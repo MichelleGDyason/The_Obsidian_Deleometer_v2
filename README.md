@@ -2,6 +2,9 @@
 
 AI-powered journaling, multi-perspective analysis, goal generation, and reflective chat for Obsidian.
 
+Active repository:
+[github.com/MichelleGDyason/The_Obsidian_Deleometer_v2](https://github.com/MichelleGDyason/The_Obsidian_Deleometer_v2)
+
 ## License Position
 
 This project is licensed under the GNU Affero General Public License v3.0.

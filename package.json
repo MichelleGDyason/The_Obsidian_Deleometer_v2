@@ -18,12 +18,12 @@
   "author": "Michelle G Dyason",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MichelleGDyason/The_Obsidian_Deleometer.git"
+    "url": "git+https://github.com/MichelleGDyason/The_Obsidian_Deleometer_v2.git"
   },
   "bugs": {
-    "url": "https://github.com/MichelleGDyason/The_Obsidian_Deleometer/issues"
+    "url": "https://github.com/MichelleGDyason/The_Obsidian_Deleometer_v2/issues"
   },
-  "homepage": "https://github.com/MichelleGDyason/The_Obsidian_Deleometer#readme",
+  "homepage": "https://github.com/MichelleGDyason/The_Obsidian_Deleometer_v2#readme",
   "funding": [
     "https://buymeacoffee.com/theobsidiandeleometer",
     "https://github.com/sponsors/MichelleGDyason"
