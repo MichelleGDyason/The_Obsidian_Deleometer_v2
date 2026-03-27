@@ -1,0 +1,261 @@
+.deleometer-dashboard,
+.deleometer-chat,
+.deleometer-modal {
+  color: var(--text-normal);
+}
+
+.deleometer-header,
+.chat-header {
+  margin-bottom: 1rem;
+}
+
+.deleometer-subtitle,
+.chat-subtitle,
+.analysis-source,
+.empty-state,
+.progress-text,
+.setting-item-description {
+  color: var(--text-muted);
+}
+
+.deleometer-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.stat-card,
+.analysis-section,
+.perspective-card,
+.milestone-item,
+.assessment-question,
+.chart-container,
+.goal-chart {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  padding: 0.9rem;
+}
+
+.stat-icon {
+  font-size: 1.4rem;
+  margin-bottom: 0.35rem;
+}
+
+.stat-number {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.clickable-card {
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.clickable-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--interactive-accent);
+}
+
+.btn-row,
+.chat-actions,
+.chat-input-area,
+.perspective-header,
+.chat-header-top,
+.add-milestone {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-row {
+  margin-top: 1rem;
+}
+
+.btn-primary,
+.btn-secondary,
+.chat-send-btn,
+.chat-with-btn {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+}
+
+.btn-primary,
+.chat-send-btn,
+.chat-with-btn {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.btn-secondary {
+  background: var(--background-primary-alt);
+  color: var(--text-normal);
+}
+
+.btn-small {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select,
+.perspective-selector,
+.chat-textarea {
+  width: 100%;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  padding: 0.6rem 0.75rem;
+}
+
+.form-group textarea,
+.chat-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 55vh;
+  overflow-y: auto;
+  margin: 1rem 0;
+  padding-right: 0.25rem;
+}
+
+.chat-message {
+  max-width: 85%;
+  border-radius: 14px;
+  padding: 0.8rem 0.95rem;
+  white-space: pre-wrap;
+  user-select: text;
+}
+
+.chat-message-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.35rem;
+}
+
+.chat-copy-btn {
+  opacity: 0.75;
+}
+
+.chat-copy-btn:hover {
+  opacity: 1;
+}
+
+.chat-message-content {
+  user-select: text;
+  cursor: text;
+}
+
+.chat-message.user {
+  align-self: flex-end;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.chat-message.assistant {
+  align-self: flex-start;
+  background: var(--background-secondary);
+}
+
+.chat-message.loading {
+  opacity: 0.8;
+}
+
+.mood-slider,
+.goal-legend,
+.recent-list,
+.scale-options,
+.milestones-list {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.mood-value {
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+.big-five-chart,
+.simple-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.trait-bar {
+  display: grid;
+  grid-template-columns: 120px 1fr 42px;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.trait-progress,
+.progress-bar,
+.goal-progress-bar {
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--background-modifier-border);
+}
+
+.progress-fill,
+.trait-progress > div,
+.goal-segment {
+  height: 100%;
+  background: var(--interactive-accent);
+}
+
+.chart-bar-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  min-height: 120px;
+}
+
+.chart-bar {
+  width: 24px;
+  min-height: 10px;
+  border-radius: 8px 8px 0 0;
+}
+
+.chart-label,
+.legend-item,
+.trait-score,
+.trait-label,
+.milestone-title {
+  font-size: 0.9rem;
+}
+
+.analysis-results {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.context-active {
+  color: var(--interactive-accent);
+}

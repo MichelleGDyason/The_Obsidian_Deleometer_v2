@@ -1,0 +1,14 @@
+{
+  "id": "the-deleometer",
+  "name": "The Deleometer",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.0",
+  "description": "A plugin for deep self-discovery journaling using AI. Use analysis history, and export options. Requires an OpenAI API key.",
+  "author": "Michelle G Dyason",
+  "authorUrl": "https://github.com/MichelleGDyason/The_Obsidian_Deleometer",
+  "fundingUrl": {
+    "Buy Me a Coffee": "https://buymeacoffee.com/theobsidiandeleometer",
+    "GitHub Sponsors": "https://github.com/sponsors/MichelleGDyason"
+  },
+  "isDesktopOnly": false
+}
