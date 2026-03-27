@@ -7447,12 +7447,13 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
     const goalWikiTarget = this.getWikiLinkTarget(event.goalFile.path);
     const goalLink = `[[${goalWikiTarget}|${event.goalTitle}]]`;
     const eventId = this.buildFullCalendarEventId(event.goalFile.path, event.kind, event.milestoneIndex);
-    const sourceNoteLink = event.sourceAnalysisPath ? `[[${this.getWikiLinkTarget(event.sourceAnalysisPath)}|${this.getFileDisplayName(event.sourceAnalysisPath)}]]` : "";
-    const sourceTypeLinks = event.sourceAnalysisPath && ((_a2 = event.sourcePerspectives) == null ? void 0 : _a2.length) ? event.sourcePerspectives.map((perspectiveKey) => {
+    const sourceAnalysisPath = event.sourceAnalysisPath;
+    const sourceNoteLink = sourceAnalysisPath ? `[[${this.getWikiLinkTarget(sourceAnalysisPath)}|${this.getFileDisplayName(sourceAnalysisPath)}]]` : "";
+    const sourceTypeLinks = sourceAnalysisPath && ((_a2 = event.sourcePerspectives) == null ? void 0 : _a2.length) ? event.sourcePerspectives.map((perspectiveKey) => {
       const perspective = PERSPECTIVES[perspectiveKey];
       if (!perspective)
         return "";
-      return `[[${this.getWikiLinkTarget(event.sourceAnalysisPath)}#${perspective.title}|${perspective.title}]]`;
+      return `[[${this.getWikiLinkTarget(sourceAnalysisPath)}#${perspective.title}|${perspective.title}]]`;
     }).filter(Boolean).join(", ") : "";
     return `---
 id: ${eventId}
