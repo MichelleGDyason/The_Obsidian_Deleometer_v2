@@ -6459,17 +6459,17 @@ var ASSESSMENT_QUESTIONS = [
 ];
 var SCALE_LABELS = ["Strongly Disagree", "Disagree", "Slightly Disagree", "Neutral", "Slightly Agree", "Agree", "Strongly Agree"];
 var GOAL_CATEGORIES = {
-  emotional_regulation: "Emotional Regulation",
-  self_awareness: "Self Awareness",
+  emotional_regulation: "Emotional regulation",
+  self_awareness: "Self awareness",
   relationships: "Relationships",
-  personal_growth: "Personal Growth",
-  behavioral_change: "Behavioral Change"
+  personal_growth: "Personal growth",
+  behavioral_change: "Behavioral change"
 };
 var ENTRY_TYPES = {
-  morning_reflection: "Morning Reflection",
-  evening_analysis: "Evening Analysis",
-  breakthrough_moment: "Breakthrough Moment",
-  free_form: "Free Form"
+  morning_reflection: "Morning reflection",
+  evening_analysis: "Evening analysis",
+  breakthrough_moment: "Breakthrough moment",
+  free_form: "Free form"
 };
 var DEFAULT_SETTINGS = {
   openaiApiKey: "",
@@ -6494,11 +6494,11 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
       this.initializeOpenAI();
     this.registerView(VIEW_TYPE_DASHBOARD, (leaf) => new DashboardView(leaf, this));
     this.registerView(VIEW_TYPE_AI_CHAT, (leaf) => new AIChatView(leaf, this));
-    this.addRibbonIcon("book-open", "New Journal Entry", () => this.openJournalModal());
-    this.addRibbonIcon("message-circle", "AI Emotional Chat", () => this.activateAIChatView());
-    this.addRibbonIcon("bar-chart-3", "Emotional Dashboard", () => this.activateDashboardView());
-    this.addRibbonIcon("target", "New Goal", () => this.openGoalModal());
-    this.addRibbonIcon("brain", "Personality Assessment", () => this.openPersonalityAssessment());
+    this.addRibbonIcon("book-open", "New journal entry", () => this.openJournalModal());
+    this.addRibbonIcon("message-circle", "AI emotional chat", () => this.activateAIChatView());
+    this.addRibbonIcon("bar-chart-3", "Emotional dashboard", () => this.activateDashboardView());
+    this.addRibbonIcon("target", "New goal", () => this.openGoalModal());
+    this.addRibbonIcon("brain", "Personality assessment", () => this.openPersonalityAssessment());
     this.addCommand({ id: "create-journal-entry", name: "Create new journal entry", callback: () => this.openJournalModal() });
     this.addCommand({ id: "open-ai-chat", name: "Open AI emotional chat", callback: () => this.activateAIChatView() });
     this.addCommand({ id: "open-dashboard", name: "Open emotional dashboard", callback: () => this.activateDashboardView() });
@@ -6506,7 +6506,7 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     this.addCommand({ id: "create-goal", name: "Create new goal", callback: () => this.openGoalModal() });
     this.addCommand({ id: "personality-assessment", name: "Take personality assessment", callback: () => this.openPersonalityAssessment() });
     this.addCommand({ id: "backfill-analysis-chat-links", name: "Backfill analysis chat links for current note", callback: async () => this.backfillAnalysisChatLinksForActiveFile() });
-    this.addCommand({ id: "sync-goals-to-full-calendar", name: "Sync goals to Full Calendar", callback: async () => this.syncAllGoalsToFullCalendar(true) });
+    this.addCommand({ id: "sync-goals-to-full-calendar", name: "Sync goals to calendar", callback: async () => this.syncAllGoalsToFullCalendar(true) });
     this.addCommand({ id: "consolidate-similar-goals", name: "Consolidate similar goals", callback: async () => this.openGoalConsolidationModal() });
     this.addCommand({ id: "repair-goal-frontmatter", name: "Repair goal note frontmatter", callback: async () => this.repairAllGoalFrontmatter(true) });
     this.addSettingTab(new DeleometerSettingTab(this.app, this));
@@ -6520,12 +6520,12 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
             const perspective = url.searchParams.get("perspective") || "";
             const source = url.searchParams.get("source") || "";
             if (!perspective || !source) {
-              new import_obsidian.Notice("\u26A0\uFE0F Missing chat link context");
+              new import_obsidian.Notice("Missing chat link context");
               return;
             }
             await this.openChatFromSourceNote(source, perspective);
           } catch (error) {
-            new import_obsidian.Notice("\u274C Could not open AI chat from note link");
+            new import_obsidian.Notice("Could not open chat from note link");
             console.error(error);
           }
         };
@@ -6564,7 +6564,7 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
       leaf = workspace.getRightLeaf(false);
       await leaf.setViewState({ type: VIEW_TYPE_DASHBOARD, active: true });
     }
-    workspace.revealLeaf(leaf);
+    await workspace.revealLeaf(leaf);
   }
   async activateAIChatView() {
     const { workspace } = this.app;
@@ -6575,7 +6575,7 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
       await leaf.setViewState({ type: VIEW_TYPE_AI_CHAT, active: true });
       created = true;
     }
-    workspace.revealLeaf(leaf);
+    await workspace.revealLeaf(leaf);
     const view = leaf.view;
     if (!created && view instanceof AIChatView) {
       await view.onOpen();
@@ -6583,11 +6583,11 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
   }
   async analyzeCurrentNote(editor) {
     if (!this.openai) {
-      new import_obsidian.Notice("\u26A0\uFE0F Please set your OpenAI API key in settings");
+      new import_obsidian.Notice("Please set your API key in settings");
       return;
     }
     const content = editor.getValue();
-    new import_obsidian.Notice("\u{1F50D} Analyzing emotions with multiple perspectives...");
+    new import_obsidian.Notice("Analyzing emotions with multiple perspectives...");
     try {
       const analysis = await this.getMultiPerspectiveAnalysis(content);
       new AnalysisResultModal(this.app, this, analysis, content).open();
@@ -6600,26 +6600,25 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     var _a2;
     const file = this.app.workspace.getActiveFile();
     if (!file) {
-      new import_obsidian.Notice("\u26A0\uFE0F Open a note with AI analysis first");
+      new import_obsidian.Notice("Open a note with AI analysis first");
       return;
     }
     const resolvedEditor = editor || ((_a2 = this.app.workspace.getActiveViewOfType(import_obsidian.MarkdownView)) == null ? void 0 : _a2.editor);
     if (!resolvedEditor) {
-      new import_obsidian.Notice("\u26A0\uFE0F Open the note in markdown editing view first");
+      new import_obsidian.Notice("Open the note in Markdown editing view first");
       return;
     }
     try {
       const content = resolvedEditor.getValue();
-      const journalContent = this.getJournalContentBeforeAnalysis(content);
       const analysis = this.extractAnalysisPayloadFromNote(content);
       if (Object.keys(analysis.perspectives).length === 0) {
-        new import_obsidian.Notice("\u26A0\uFE0F No AI analysis headings found in this note");
+        new import_obsidian.Notice("No AI analysis headings found in this note");
         return;
       }
       await this.ensurePerspectiveChatLinks(file, analysis);
-      new import_obsidian.Notice("\u{1F517} Backfilled AI chat links for this note");
+      new import_obsidian.Notice("Backfilled AI chat links for this note");
     } catch (error) {
-      new import_obsidian.Notice("\u274C Could not backfill analysis chat links");
+      new import_obsidian.Notice("Could not backfill analysis chat links");
       console.error(error);
     }
   }
@@ -6733,6 +6732,58 @@ ${authorContext}` : ""}`
     }));
     const response = await this.openai.chat.completions.create({ model: "gpt-4o-mini", messages: [systemMessage, ...conversation] });
     return ((_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content) || "I apologize, I could not generate a response.";
+  }
+  async getRandomJournalPrompt() {
+    var _a2, _b, _c;
+    if (!this.openai)
+      throw new Error("OpenAI not initialized");
+    const goalStats = this.getGoalStats();
+    const activeGoalFiles = goalStats.goals.filter((file) => {
+      var _a3, _b2;
+      return ((_b2 = (_a3 = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a3.frontmatter) == null ? void 0 : _b2.status) !== "completed";
+    }).slice(0, 8);
+    const activeGoals = (await Promise.all(activeGoalFiles.map((file) => this.getGoalFileData(file)))).filter((goal) => !!goal).slice(0, 6);
+    const recentJournalTitles = this.getJournalStats().recentEntries.slice(0, 6).map((file) => this.getFileDisplayName(file.path));
+    const goalContext = activeGoals.length > 0 ? activeGoals.map((goal) => {
+      const milestoneText = goal.milestones.slice(0, 3).join("; ") || "No milestones recorded";
+      return `- ${goal.title}: ${goal.description || "No description"}. Milestones: ${milestoneText}`;
+    }).join("\n") : "No active goals available.";
+    const journalContext = recentJournalTitles.length > 0 ? recentJournalTitles.map((title) => `- ${title}`).join("\n") : "No recent journal entries available.";
+    const authorContext = this.buildAuthorContext() || "No long-term author context available.";
+    const response = await this.openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 1,
+      messages: [
+        {
+          role: "system",
+          content: "You generate one reflective journaling prompt at a time. The prompt should feel fresh, specific, emotionally intelligent, and motivating without sounding generic. Return plain text only, no markdown list, no title, no quotation marks."
+        },
+        {
+          role: "user",
+          content: `Create one random but grounded journaling prompt for this author.
+
+Use the author context, active goals, milestones, and recent journal themes below. The prompt should help them write something meaningful today, ideally connecting to one or two live goals or milestones when relevant.
+
+Requirements:
+- 60 to 120 words
+- direct second-person voice
+- invite reflection, not analysis jargon
+- include one concrete angle or scene to write from
+- include one optional twist or follow-up question in the same paragraph
+- do not mention goals or milestones mechanically
+
+Author context:
+${authorContext}
+
+Active goals:
+${goalContext}
+
+Recent journal titles:
+${journalContext}`
+        }
+      ]
+    });
+    return ((_c = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content) == null ? void 0 : _c.trim()) || "Write about a moment today that quietly echoed one of your deeper goals, and follow that thread until it reveals what you most need right now.";
   }
   async openChatFromSourceNote(sourceFilePath, perspectiveKey) {
     const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
@@ -6949,7 +7000,7 @@ ${authorContext}` : ""}`
     return ((_a2 = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _a2.title) || perspectiveKey;
   }
   sanitizeFileNamePart(value) {
-    const normalized = value.trim().replace(/[\\/:*?"<>|#^\[\]]+/g, " ").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^\.+|\.+$/g, "");
+    const normalized = value.trim().replace(/[[\\/:*?"<>|#^\]]+/g, " ").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^\.+|\.+$/g, "");
     return normalized || "journal";
   }
   getUniqueMarkdownPath(folder, baseName) {
@@ -7089,7 +7140,7 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
       if (parsed && typeof parsed === "object" && key in parsed) {
         return parsed[key];
       }
-    } catch (_) {
+    } catch (e) {
     }
     if (value.startsWith('"') && value.endsWith('"') || value.startsWith("'") && value.endsWith("'")) {
       return value.slice(1, -1);
@@ -7160,7 +7211,7 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
     return titleIncludes ? Math.max(jaccard, 0.6) : jaccard;
   }
   async getConsolidationDrafts() {
-    const goalStats = await this.getGoalStats();
+    const goalStats = this.getGoalStats();
     const goals = (await Promise.all(goalStats.goals.map((file) => this.getGoalFileData(file)))).filter((goal) => !!goal).filter((goal) => goal.status !== "completed" && goal.status !== "merged");
     const visited = /* @__PURE__ */ new Set();
     const drafts = [];
@@ -7265,7 +7316,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
   async deleteGoalCalendarEvents(goalFile) {
     const files = this.getGoalOwnedCalendarFiles(goalFile.path);
     for (const file of files) {
-      await this.app.vault.trash(file, true);
+      await this.app.fileManager.trashFile(file);
     }
   }
   buildStandardGoalNote(goal, extras) {
@@ -7543,13 +7594,13 @@ ${event.kind === "goal_due" ? `This marks the target date for ${goalLink}.` : `R
     }
     for (const [key, file] of Array.from(byKey.entries())) {
       if (!expectedKeys.has(key)) {
-        await this.app.vault.trash(file, true);
+        await this.app.fileManager.trashFile(file);
       }
     }
     return true;
   }
   async syncAllGoalsToFullCalendar(showNotice = false) {
-    const goalStats = await this.getGoalStats();
+    const goalStats = this.getGoalStats();
     let synced = 0;
     for (const goalFile of goalStats.goals) {
       const result = await this.syncGoalFileToFullCalendar(goalFile, true);
@@ -7557,7 +7608,7 @@ ${event.kind === "goal_due" ? `This marks the target date for ${goalLink}.` : `R
         synced += 1;
     }
     if (showNotice) {
-      new import_obsidian.Notice(`\u{1F4C5} Synced ${synced} goal${synced === 1 ? "" : "s"} to Full Calendar`);
+      new import_obsidian.Notice(`Synced ${synced} goal${synced === 1 ? "" : "s"} to calendar`);
     }
   }
   buildChatFileBaseName(sourceFilePath, perspectiveKey) {
@@ -7627,7 +7678,6 @@ ${chatBlock}
   }
   async appendAnalysisToFile(sourceFile, analysis) {
     const currentContent = await this.app.vault.read(sourceFile);
-    const journalContent = this.getJournalContentBeforeAnalysis(currentContent);
     const analysisStart = this.findAnalysisSectionStart(currentContent);
     if (analysisStart !== -1) {
       const cleaned = currentContent.slice(0, analysisStart).trimEnd();
@@ -7680,7 +7730,7 @@ ${goal.description}
     };
     await this.activateAIChatView();
   }
-  async getJournalStats() {
+  getJournalStats() {
     var _a2;
     const files = this.app.vault.getMarkdownFiles().filter((f) => f.path.startsWith(this.settings.journalFolder));
     let totalMood = 0, moodCount = 0;
@@ -7694,7 +7744,7 @@ ${goal.description}
     const sorted = files.sort((a, b) => b.stat.mtime - a.stat.mtime);
     return { entries: files.length, avgMood: moodCount > 0 ? totalMood / moodCount : 0, recentEntries: sorted.slice(0, 5) };
   }
-  async getGoalStats() {
+  getGoalStats() {
     var _a2;
     const files = this.app.vault.getMarkdownFiles().filter((file) => {
       var _a3, _b;
@@ -7717,13 +7767,23 @@ ${goal.description}
     var _a2;
     if (file.path.startsWith(this.settings.goalsFolder))
       return true;
-    const frontmatter = (_a2 = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a2.frontmatter;
-    if (!frontmatter)
+    const rawFrontmatter = (_a2 = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a2.frontmatter;
+    if (!rawFrontmatter || typeof rawFrontmatter !== "object")
       return false;
-    return frontmatter.type === "goal" || typeof frontmatter.progress_percentage !== "undefined" || typeof frontmatter.category === "string" && Object.prototype.hasOwnProperty.call(GOAL_CATEGORIES, frontmatter.category) || Array.isArray(frontmatter.milestones);
+    const frontmatter = rawFrontmatter;
+    const type = frontmatter.type;
+    const progressPercentage = frontmatter.progress_percentage;
+    const category = frontmatter.category;
+    const milestones = frontmatter.milestones;
+    const isGoalType = type === "goal";
+    const hasProgress = typeof progressPercentage !== "undefined";
+    const hasKnownCategory = typeof category === "string" ? Object.keys(GOAL_CATEGORIES).includes(category) : false;
+    const hasMilestones = Array.isArray(milestones);
+    return isGoalType || hasProgress || hasKnownCategory || hasMilestones;
   }
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const savedData = await this.loadData();
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, savedData != null ? savedData : {});
     if (!Array.isArray(this.settings.selectedPerspectives) || this.settings.selectedPerspectives.length === 0) {
       this.settings.selectedPerspectives = Object.keys(PERSPECTIVES);
     }
@@ -7743,7 +7803,7 @@ var DashboardView = class extends import_obsidian.ItemView {
     return VIEW_TYPE_DASHBOARD;
   }
   getDisplayText() {
-    return "Deleometer Dashboard";
+    return "Deleometer dashboard";
   }
   getIcon() {
     return "bar-chart-3";
@@ -7753,32 +7813,32 @@ var DashboardView = class extends import_obsidian.ItemView {
     container.empty();
     container.addClass("deleometer-dashboard");
     const header = container.createDiv({ cls: "deleometer-header" });
-    header.createEl("h2", { text: "\u{1F9E0} The Deleometer" });
+    header.createEl("h2", { text: "Deleometer dashboard" });
     header.createEl("p", { text: "Your emotional intelligence dashboard", cls: "deleometer-subtitle" });
     const stats = container.createDiv({ cls: "deleometer-stats" });
-    const journalStats = await this.plugin.getJournalStats();
-    const goalStats = await this.plugin.getGoalStats();
-    this.createStatCard(stats, "\u{1F4DD}", journalStats.entries.toString(), "Journal Entries", () => {
-      new FileListModal(this.app, "Journal Entries", journalStats.recentEntries.length > 0 ? this.app.vault.getMarkdownFiles().filter((file) => file.path.startsWith(this.plugin.settings.journalFolder)).sort((a, b) => b.stat.mtime - a.stat.mtime) : []).open();
+    const journalStats = this.plugin.getJournalStats();
+    const goalStats = this.plugin.getGoalStats();
+    this.createStatCard(stats, "\u{1F4DD}", journalStats.entries.toString(), "Journal entries", () => {
+      new FileListModal(this.app, "Journal entries", journalStats.recentEntries.length > 0 ? this.app.vault.getMarkdownFiles().filter((file) => file.path.startsWith(this.plugin.settings.journalFolder)).sort((a, b) => b.stat.mtime - a.stat.mtime) : []).open();
     });
-    this.createStatCard(stats, "\u{1F60A}", journalStats.avgMood.toFixed(1), "Avg Mood");
-    this.createStatCard(stats, "\u{1F3AF}", goalStats.total.toString(), "Total Goals", () => {
-      new FileListModal(this.app, "All Goals", goalStats.goals).open();
+    this.createStatCard(stats, "\u{1F60A}", journalStats.avgMood.toFixed(1), "Average mood");
+    this.createStatCard(stats, "\u{1F3AF}", goalStats.total.toString(), "Total goals", () => {
+      new FileListModal(this.app, "All goals", goalStats.goals).open();
     });
-    this.createStatCard(stats, "\u{1F4CC}", goalStats.active.toString(), "Active Goals", () => {
+    this.createStatCard(stats, "\u{1F4CC}", goalStats.active.toString(), "Active goals", () => {
       new FileListModal(
         this.app,
-        "Active Goals",
+        "Active goals",
         goalStats.goals.filter((file) => {
           var _a2, _b;
           return ((_b = (_a2 = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a2.frontmatter) == null ? void 0 : _b.status) !== "completed";
         })
       ).open();
     });
-    this.createStatCard(stats, "\u2705", goalStats.completed.toString(), "Completed Goals", () => {
+    this.createStatCard(stats, "\u2705", goalStats.completed.toString(), "Completed goals", () => {
       new FileListModal(
         this.app,
-        "Completed Goals",
+        "Completed goals",
         goalStats.goals.filter((file) => {
           var _a2, _b;
           return ((_b = (_a2 = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a2.frontmatter) == null ? void 0 : _b.status) === "completed";
@@ -7788,7 +7848,7 @@ var DashboardView = class extends import_obsidian.ItemView {
     if (this.plugin.settings.personalityProfile) {
       const profile = this.plugin.settings.personalityProfile;
       const profileSection = container.createDiv({ cls: "analysis-section" });
-      profileSection.createEl("h3", { text: "\u{1F9EC} Your Personality Profile" });
+      profileSection.createEl("h3", { text: "Your personality profile" });
       const chart = profileSection.createDiv({ cls: "big-five-chart" });
       const traits = ["openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism"];
       for (const trait of traits) {
@@ -7803,8 +7863,8 @@ var DashboardView = class extends import_obsidian.ItemView {
     }
     if (journalStats.entries > 0) {
       const moodChartSection = container.createDiv({ cls: "analysis-section" });
-      moodChartSection.createEl("h3", { text: "\u{1F4C8} Mood Trends" });
-      const moodData = await this.getMoodTrendData();
+      moodChartSection.createEl("h3", { text: "Mood trends" });
+      const moodData = this.getMoodTrendData();
       if (moodData.labels.length > 0) {
         this.renderMoodChart(moodChartSection, moodData);
       } else {
@@ -7813,29 +7873,31 @@ var DashboardView = class extends import_obsidian.ItemView {
     }
     if (goalStats.total > 0) {
       const goalChartSection = container.createDiv({ cls: "analysis-section" });
-      goalChartSection.createEl("h3", { text: "\u{1F3AF} Goal Progress" });
+      goalChartSection.createEl("h3", { text: "Goal progress" });
       this.renderGoalChart(goalChartSection, goalStats);
       const consolidateRow = goalChartSection.createDiv({ cls: "btn-row" });
-      const consolidateBtn = consolidateRow.createEl("button", { text: "\u{1F500} Consolidate Similar Goals", cls: "btn-secondary btn-small" });
-      consolidateBtn.onclick = () => this.plugin.openGoalConsolidationModal();
+      const consolidateBtn = consolidateRow.createEl("button", { text: "Consolidate similar goals", cls: "btn-secondary btn-small" });
+      consolidateBtn.onclick = () => {
+        void this.plugin.openGoalConsolidationModal();
+      };
       const goalsSection = container.createDiv({ cls: "deleometer-recent" });
-      goalsSection.createEl("h3", { text: "\u{1F3AF} Goals" });
+      goalsSection.createEl("h3", { text: "Goals" });
       const goalList = goalsSection.createEl("ul", { cls: "recent-list" });
       for (const file of goalStats.goals.slice(0, 8)) {
         const li = goalList.createEl("li");
         const link = li.createEl("a", { text: file.basename, href: "#" });
         link.onclick = (e) => {
           e.preventDefault();
-          this.app.workspace.getLeaf().openFile(file);
+          void this.app.workspace.getLeaf().openFile(file);
         };
       }
       if (goalStats.goals.length > 8) {
         const viewAll = goalsSection.createEl("button", { text: "View all goals", cls: "btn-secondary btn-small" });
-        viewAll.onclick = () => new FileListModal(this.app, "All Goals", goalStats.goals).open();
+        viewAll.onclick = () => new FileListModal(this.app, "All goals", goalStats.goals).open();
       }
     }
     const recent = container.createDiv({ cls: "deleometer-recent" });
-    recent.createEl("h3", { text: "\u{1F4C5} Recent Journal Entries" });
+    recent.createEl("h3", { text: "Recent journal entries" });
     if (journalStats.recentEntries.length === 0) {
       recent.createEl("p", { text: "No journal entries yet. Click the \u{1F4DD} icon to create one!", cls: "empty-state" });
     } else {
@@ -7845,22 +7907,26 @@ var DashboardView = class extends import_obsidian.ItemView {
         const link = li.createEl("a", { text: file.basename, href: "#" });
         link.onclick = (e) => {
           e.preventDefault();
-          this.app.workspace.getLeaf().openFile(file);
+          void this.app.workspace.getLeaf().openFile(file);
         };
       }
     }
     const exportSection = container.createDiv({ cls: "btn-row" });
-    const exportBtn = exportSection.createEl("button", { text: "\u{1F4CA} Export Charts to Note", cls: "btn-primary" });
-    exportBtn.onclick = () => this.exportChartsToNote();
+    const exportBtn = exportSection.createEl("button", { text: "Export charts to note", cls: "btn-primary" });
+    exportBtn.onclick = () => {
+      void this.exportChartsToNote();
+    };
   }
-  async getMoodTrendData() {
+  getMoodTrendData() {
     var _a2, _b;
     const files = this.app.vault.getMarkdownFiles().filter((f) => f.path.startsWith(this.plugin.settings.journalFolder));
     const moodEntries = [];
     for (const file of files) {
       const cache = this.app.metadataCache.getFileCache(file);
-      if (((_a2 = cache == null ? void 0 : cache.frontmatter) == null ? void 0 : _a2.mood_score) && ((_b = cache == null ? void 0 : cache.frontmatter) == null ? void 0 : _b.date)) {
-        moodEntries.push({ date: cache.frontmatter.date.split("T")[0], mood: cache.frontmatter.mood_score });
+      const moodScore = (_a2 = cache == null ? void 0 : cache.frontmatter) == null ? void 0 : _a2.mood_score;
+      const entryDate = (_b = cache == null ? void 0 : cache.frontmatter) == null ? void 0 : _b.date;
+      if (typeof moodScore === "number" && typeof entryDate === "string") {
+        moodEntries.push({ date: entryDate.split("T")[0], mood: moodScore });
       }
     }
     moodEntries.sort((a, b) => a.date.localeCompare(b.date));
@@ -7913,9 +7979,9 @@ var DashboardView = class extends import_obsidian.ItemView {
     legend.createEl("span", { text: `\u{1F4CB} Other: ${stats.total - stats.completed - stats.active}`, cls: "legend-item" });
   }
   async exportChartsToNote() {
-    const journalStats = await this.plugin.getJournalStats();
-    const goalStats = await this.plugin.getGoalStats();
-    const moodData = await this.getMoodTrendData();
+    const journalStats = this.plugin.getJournalStats();
+    const goalStats = this.plugin.getGoalStats();
+    const moodData = this.getMoodTrendData();
     const profile = this.plugin.settings.personalityProfile;
     let content = `# \u{1F4CA} Deleometer Analytics Report
 
@@ -7939,29 +8005,29 @@ var DashboardView = class extends import_obsidian.ItemView {
 
 `;
     if (moodData.labels.length > 0) {
-      content += `## \u{1F4C8} Mood Trend (Last 7 Entries)
+      content += `## \u{1F4C8} Mood trend (last 7 entries)
 
 `;
       content += "```chart\ntype: line\nlabels: [" + moodData.labels.map((l) => `"${l}"`).join(", ") + "]\nseries:\n  - title: Mood\n    data: [" + moodData.data.join(", ") + "]\ntension: 0.2\nwidth: 80%\nlabelColors: true\nfill: true\nbeginAtZero: true\n```\n\n";
     }
     if (goalStats.total > 0) {
-      content += `## \u{1F3AF} Goal Progress
+      content += `## \u{1F3AF} Goal progress
 
 `;
       content += '```chart\ntype: doughnut\nlabels: ["Completed", "Active", "Other"]\nseries:\n  - title: Goals\n    data: [' + goalStats.completed + ", " + goalStats.active + ", " + (goalStats.total - goalStats.completed - goalStats.active) + "]\nwidth: 50%\nlabelColors: true\n```\n\n";
     }
     if (profile) {
-      content += `## \u{1F9EC} Personality Profile
+      content += `## \u{1F9EC} Personality profile
 
 `;
       content += '```chart\ntype: radar\nlabels: ["Openness", "Conscientiousness", "Extraversion", "Agreeableness", "Neuroticism"]\nseries:\n  - title: Your Profile\n    data: [' + profile.big_five_scores.openness + ", " + profile.big_five_scores.conscientiousness + ", " + profile.big_five_scores.extraversion + ", " + profile.big_five_scores.agreeableness + ", " + profile.big_five_scores.neuroticism + "]\nwidth: 60%\nlabelColors: true\n```\n\n";
-      content += `**Psychological Type:** ${profile.psychological_type}
+      content += `**Psychological type:** ${profile.psychological_type}
 
 `;
-      content += `**Dominant Traits:** ${profile.dominant_traits.join(", ")}
+      content += `**Dominant traits:** ${profile.dominant_traits.join(", ")}
 
 `;
-      content += `**Growth Areas:** ${profile.growth_areas.join(", ")}
+      content += `**Growth areas:** ${profile.growth_areas.join(", ")}
 
 `;
     }
@@ -7970,7 +8036,7 @@ var DashboardView = class extends import_obsidian.ItemView {
     try {
       const file = await this.app.vault.create(fileName, content);
       await this.app.workspace.getLeaf().openFile(file);
-      new import_obsidian.Notice("\u{1F4CA} Analytics report exported!");
+      new import_obsidian.Notice("Analytics report exported!");
     } catch (e) {
       new import_obsidian.Notice("Report already exists for today");
     }
@@ -8033,12 +8099,12 @@ var AIChatView = class extends import_obsidian.ItemView {
     return VIEW_TYPE_AI_CHAT;
   }
   getDisplayText() {
-    return "AI Emotional Chat";
+    return "AI emotional chat";
   }
   getIcon() {
     return "message-circle";
   }
-  async onOpen() {
+  onOpen() {
     var _a2, _b;
     const container = this.containerEl.children[1] instanceof HTMLElement ? this.containerEl.children[1] : this.containerEl;
     container.empty();
@@ -8051,7 +8117,7 @@ var AIChatView = class extends import_obsidian.ItemView {
     if (context) {
       this.currentPerspective = context.perspective;
       this.journalContext = context.journalContent;
-      this.chatTitle = `Journal Analysis - ${(_a2 = PERSPECTIVES[context.perspective]) == null ? void 0 : _a2.title}`;
+      this.chatTitle = `Journal analysis - ${(_a2 = PERSPECTIVES[context.perspective]) == null ? void 0 : _a2.title}`;
       this.sourceFilePath = context.sourceFilePath || "";
       this.plugin.pendingChatContext = null;
     } else {
@@ -8059,13 +8125,17 @@ var AIChatView = class extends import_obsidian.ItemView {
     }
     const header = container.createDiv({ cls: "chat-header" });
     const headerTop = header.createDiv({ cls: "chat-header-top" });
-    headerTop.createEl("h2", { text: "\u{1F4AC} AI Emotional Chat" });
+    headerTop.createEl("h2", { text: "AI emotional chat" });
     const actionBtns = headerTop.createDiv({ cls: "chat-actions" });
-    const saveBtn = actionBtns.createEl("button", { text: "\u{1F4BE} Save", cls: "btn-secondary btn-small" });
-    saveBtn.onclick = () => this.saveChat();
-    const exportBtn = actionBtns.createEl("button", { text: "\u{1F4C4} Export", cls: "btn-secondary btn-small" });
-    exportBtn.onclick = () => this.exportToNote();
-    const newChatBtn = actionBtns.createEl("button", { text: "\u2795 New", cls: "btn-secondary btn-small" });
+    const saveBtn = actionBtns.createEl("button", { text: "Save chat", cls: "btn-secondary btn-small" });
+    saveBtn.onclick = () => {
+      void this.saveChat();
+    };
+    const exportBtn = actionBtns.createEl("button", { text: "Export chat", cls: "btn-secondary btn-small" });
+    exportBtn.onclick = () => {
+      void this.exportToNote();
+    };
+    const newChatBtn = actionBtns.createEl("button", { text: "New chat", cls: "btn-secondary btn-small" });
     newChatBtn.onclick = () => this.startNewChat();
     if (context) {
       header.createEl("p", { text: `Continuing analysis with ${(_b = PERSPECTIVES[this.currentPerspective]) == null ? void 0 : _b.title}`, cls: "chat-subtitle context-active" });
@@ -8102,13 +8172,16 @@ ${context.journalContent}` });
     const inputArea = container.createDiv({ cls: "chat-input-area" });
     this.inputArea = inputArea.createEl("textarea", { cls: "chat-textarea", attr: { placeholder: "Share your thoughts..." } });
     const sendBtn = inputArea.createEl("button", { text: "Send", cls: "chat-send-btn" });
-    sendBtn.onclick = () => this.sendMessage();
+    sendBtn.onclick = () => {
+      void this.sendMessage();
+    };
     this.inputArea.onkeydown = (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        this.sendMessage();
+        void this.sendMessage();
       }
     };
+    return Promise.resolve();
   }
   addMessage(role, content) {
     const msgDiv = this.messagesContainer.createDiv({ cls: `chat-message ${role}` });
@@ -8131,7 +8204,7 @@ ${context.journalContent}` });
     if (!content)
       return;
     if (!this.plugin.openai) {
-      new import_obsidian.Notice("\u26A0\uFE0F Please set your OpenAI API key in settings");
+      new import_obsidian.Notice("Please set your API key in settings");
       return;
     }
     this.inputArea.value = "";
@@ -8158,13 +8231,13 @@ ${context.journalContent}` });
     }
     try {
       if (!this.sourceFilePath) {
-        new import_obsidian.Notice("\u26A0\uFE0F This chat is not linked to a journal analysis note. Use Export if you want a separate note.");
+        new import_obsidian.Notice("This chat is not linked to a journal analysis note. Use export if you want a separate note.");
         return;
       }
       await this.plugin.saveChatBackToSourceNote(this.sourceFilePath, this.currentPerspective, this.chatMessages, this.chatStartTime);
-      new import_obsidian.Notice("\u{1F4BE} Chat saved back to the source analysis section");
+      new import_obsidian.Notice("Chat saved back to the source analysis section");
     } catch (error) {
-      new import_obsidian.Notice("\u274C Error saving chat");
+      new import_obsidian.Notice("Error saving chat");
       console.error(error);
     }
   }
@@ -8229,7 +8302,7 @@ ${msg.content}
 - 
 
 `;
-    content += `## \u{1F4CB} Action Items
+    content += `## \u{1F4CB} Action items
 
 `;
     content += `- [ ] 
@@ -8239,10 +8312,10 @@ ${msg.content}
     try {
       const file = await this.app.vault.create(fileName, content);
       await this.app.workspace.getLeaf().openFile(file);
-      new import_obsidian.Notice("\u{1F4C4} Chat exported to note!");
-    } catch (e) {
-      new import_obsidian.Notice("\u274C Error exporting chat");
-      console.error(e);
+      new import_obsidian.Notice("Chat exported to note");
+    } catch (error) {
+      new import_obsidian.Notice("Could not export chat");
+      console.error(error);
     }
   }
   startNewChat() {
@@ -8252,8 +8325,8 @@ ${msg.content}
     this.chatTitle = `Chat - ${new Date().toLocaleDateString()}`;
     this.currentPerspective = "lacanian_perspective";
     this.sourceFilePath = "";
-    this.onOpen();
-    new import_obsidian.Notice("\u2795 Started new chat");
+    void this.onOpen();
+    new import_obsidian.Notice("Started a new chat");
   }
   async onClose() {
   }
@@ -8267,12 +8340,14 @@ var JournalEntryModal = class extends import_obsidian.Modal {
     this.entryType = "free_form";
     this.emotionalTags = [];
     this.isSaving = false;
+    this.suggestedPrompt = "";
+    this.isGeneratingPrompt = false;
     this.plugin = plugin;
   }
   onOpen() {
     const { contentEl } = this;
     contentEl.addClass("deleometer-modal");
-    contentEl.createEl("h2", { text: "\u{1F4DD} New Journal Entry" });
+    contentEl.createEl("h2", { text: "New journal entry" });
     const titleGroup = contentEl.createDiv({ cls: "form-group" });
     titleGroup.createEl("label", { text: "Title" });
     const titleInput = titleGroup.createEl("input", { type: "text", attr: { placeholder: "Entry title..." } });
@@ -8280,7 +8355,7 @@ var JournalEntryModal = class extends import_obsidian.Modal {
       this.title = titleInput.value;
     };
     const typeGroup = contentEl.createDiv({ cls: "form-group" });
-    typeGroup.createEl("label", { text: "Entry Type" });
+    typeGroup.createEl("label", { text: "Entry type" });
     const typeSelect = typeGroup.createEl("select");
     for (const [key, label] of Object.entries(ENTRY_TYPES)) {
       typeSelect.createEl("option", { text: label, value: key });
@@ -8288,14 +8363,28 @@ var JournalEntryModal = class extends import_obsidian.Modal {
     typeSelect.onchange = () => {
       this.entryType = typeSelect.value;
     };
+    const promptGroup = contentEl.createDiv({ cls: "analysis-section" });
+    promptGroup.createEl("label", { text: "AI writing prompt" });
+    const promptBtnRow = promptGroup.createDiv({ cls: "btn-row" });
+    const promptBtn = promptBtnRow.createEl("button", { text: "Generate prompt", cls: "btn-secondary" });
+    this.promptUseBtn = promptBtnRow.createEl("button", { text: "Use prompt", cls: "btn-secondary" });
+    this.promptUseBtn.disabled = true;
+    this.promptDisplay = promptGroup.createEl("p", {
+      text: "Generate a reflective writing prompt based on your current goals, milestones, and recent patterns.",
+      cls: "analysis-source"
+    });
+    promptBtn.onclick = () => {
+      void this.generatePrompt(promptBtn);
+    };
+    this.promptUseBtn.onclick = () => this.usePrompt();
     const contentGroup = contentEl.createDiv({ cls: "form-group" });
     contentGroup.createEl("label", { text: "What's on your mind?" });
-    const contentArea = contentGroup.createEl("textarea", { attr: { placeholder: "Write your thoughts..." } });
-    contentArea.oninput = () => {
-      this.content = contentArea.value;
+    this.contentArea = contentGroup.createEl("textarea", { attr: { placeholder: "Write your thoughts..." } });
+    this.contentArea.oninput = () => {
+      this.content = this.contentArea.value;
     };
     const moodGroup = contentEl.createDiv({ cls: "form-group" });
-    moodGroup.createEl("label", { text: "Mood Score" });
+    moodGroup.createEl("label", { text: "Mood score" });
     const moodSlider = moodGroup.createDiv({ cls: "mood-slider" });
     moodSlider.createEl("span", { text: "\u{1F622}" });
     const slider = moodSlider.createEl("input", { type: "range", attr: { min: "1", max: "10", value: "5" } });
@@ -8306,18 +8395,59 @@ var JournalEntryModal = class extends import_obsidian.Modal {
       moodValue.textContent = slider.value;
     };
     const tagsGroup = contentEl.createDiv({ cls: "form-group" });
-    tagsGroup.createEl("label", { text: "Emotional Tags (comma separated)" });
-    const tagsInput = tagsGroup.createEl("input", { type: "text", attr: { placeholder: "anxious, hopeful, confused..." } });
+    tagsGroup.createEl("label", { text: "Emotional tags (comma separated)" });
+    const tagsInput = tagsGroup.createEl("input", { type: "text", attr: { placeholder: "Anxious, hopeful, confused..." } });
     tagsInput.oninput = () => {
       this.emotionalTags = tagsInput.value.split(",").map((t) => t.trim()).filter((t) => t);
     };
     const btnRow = contentEl.createDiv({ cls: "btn-row" });
     const cancelBtn = btnRow.createEl("button", { text: "Cancel", cls: "btn-secondary" });
     cancelBtn.onclick = () => this.close();
-    const saveBtn = btnRow.createEl("button", { text: "Save Only", cls: "btn-secondary" });
-    saveBtn.onclick = () => this.saveEntry(false);
-    const analyzeBtn = btnRow.createEl("button", { text: "\u{1F50D} Save & Analyze", cls: "btn-primary" });
-    analyzeBtn.onclick = () => this.saveEntry(true);
+    const saveBtn = btnRow.createEl("button", { text: "Save only", cls: "btn-secondary" });
+    saveBtn.onclick = () => {
+      void this.saveEntry(false);
+    };
+    const analyzeBtn = btnRow.createEl("button", { text: "Save and analyze", cls: "btn-primary" });
+    analyzeBtn.onclick = () => {
+      void this.saveEntry(true);
+    };
+  }
+  async generatePrompt(button) {
+    if (this.isGeneratingPrompt)
+      return;
+    if (!this.plugin.openai) {
+      new import_obsidian.Notice("Please set your API key in settings to generate prompts");
+      return;
+    }
+    this.isGeneratingPrompt = true;
+    button.disabled = true;
+    button.setText("Generating...");
+    this.promptDisplay.setText("Generating a new prompt...");
+    try {
+      this.suggestedPrompt = await this.plugin.getRandomJournalPrompt();
+      this.promptDisplay.setText(this.suggestedPrompt);
+      this.promptUseBtn.disabled = !this.suggestedPrompt;
+    } catch (error) {
+      this.promptDisplay.setText("Could not generate a prompt right now.");
+      new import_obsidian.Notice(this.plugin.getOpenAIErrorMessage(error, "Error generating journal prompt"));
+      console.error(error);
+    } finally {
+      this.isGeneratingPrompt = false;
+      button.disabled = false;
+      button.setText("Generate prompt");
+    }
+  }
+  usePrompt() {
+    if (!this.suggestedPrompt)
+      return;
+    const prefix = this.contentArea.value.trim() ? "\n\n" : "";
+    this.contentArea.value = `${this.contentArea.value}${prefix}${this.suggestedPrompt}
+
+`;
+    this.content = this.contentArea.value;
+    this.contentArea.focus();
+    this.contentArea.selectionStart = this.contentArea.value.length;
+    this.contentArea.selectionEnd = this.contentArea.value.length;
   }
   async saveEntry(analyze) {
     if (this.isSaving)
@@ -8343,34 +8473,34 @@ mood_score: ${this.moodScore}
 emotional_tags: [${this.emotionalTags.map((t) => `"${t}"`).join(", ")}]
 ---
 
-# ${this.title || "Journal Entry"} - ${date.toLocaleDateString()}
+# ${this.title || "Journal entry"} - ${date.toLocaleDateString()}
 
 ${this.content}
 `;
       const file = await this.app.vault.create(fileName, template);
       await this.app.workspace.getLeaf().openFile(file);
-      new import_obsidian.Notice("\u{1F4DD} Journal entry saved!");
+      new import_obsidian.Notice("Journal entry saved!");
       this.close();
       if (analyze) {
         if (!this.plugin.openai) {
-          new import_obsidian.Notice("\u26A0\uFE0F Please set your OpenAI API key in settings to analyze");
+          new import_obsidian.Notice("Please set your API key in settings to analyze");
           return;
         }
-        new import_obsidian.Notice("\u{1F50D} Analyzing with multiple perspectives...");
+        new import_obsidian.Notice("Analyzing with multiple perspectives...");
         try {
           const savedContent = await this.app.vault.read(file);
           const journalContent = this.plugin.stripFrontmatter(savedContent);
           const analysis = await this.plugin.getMultiPerspectiveAnalysis(journalContent);
           await this.plugin.appendAnalysisToFile(file, analysis);
           new AnalysisResultModal(this.app, this.plugin, analysis, journalContent, file).open();
-          new import_obsidian.Notice("\u{1F50D} Analysis added to the note");
+          new import_obsidian.Notice("Analysis added to the note");
         } catch (error) {
           new import_obsidian.Notice(this.plugin.getOpenAIErrorMessage(error, "Error analyzing journal entry"));
           console.error(error);
         }
       }
     } catch (error) {
-      new import_obsidian.Notice("\u274C Could not save journal entry");
+      new import_obsidian.Notice("Could not save journal entry");
       console.error(error);
     } finally {
       this.isSaving = false;
@@ -8393,9 +8523,9 @@ var GoalModal = class extends import_obsidian.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.addClass("deleometer-modal");
-    contentEl.createEl("h2", { text: "\u{1F3AF} New Goal" });
+    contentEl.createEl("h2", { text: "New goal" });
     const titleGroup = contentEl.createDiv({ cls: "form-group" });
-    titleGroup.createEl("label", { text: "Goal Title" });
+    titleGroup.createEl("label", { text: "Goal title" });
     const titleInput = titleGroup.createEl("input", { type: "text", attr: { placeholder: "What do you want to achieve?" } });
     titleInput.oninput = () => {
       this.goalTitle = titleInput.value;
@@ -8416,7 +8546,7 @@ var GoalModal = class extends import_obsidian.Modal {
       this.category = catSelect.value;
     };
     const dateGroup = contentEl.createDiv({ cls: "form-group" });
-    dateGroup.createEl("label", { text: "Target Date" });
+    dateGroup.createEl("label", { text: "Target date" });
     const dateInput = dateGroup.createEl("input", { type: "date" });
     dateInput.oninput = () => {
       this.targetDate = dateInput.value;
@@ -8437,8 +8567,10 @@ var GoalModal = class extends import_obsidian.Modal {
     const btnRow = contentEl.createDiv({ cls: "btn-row" });
     const cancelBtn = btnRow.createEl("button", { text: "Cancel", cls: "btn-secondary" });
     cancelBtn.onclick = () => this.close();
-    const saveBtn = btnRow.createEl("button", { text: "Create Goal", cls: "btn-primary" });
-    saveBtn.onclick = () => this.saveGoal();
+    const saveBtn = btnRow.createEl("button", { text: "Create goal", cls: "btn-primary" });
+    saveBtn.onclick = () => {
+      void this.saveGoal();
+    };
   }
   renderMilestones(container) {
     container.empty();
@@ -8493,7 +8625,7 @@ ${this.milestones.map((m) => `- [ ] ${m.title}`).join("\n")}
     const file = await this.app.vault.create(fileName, template);
     await this.plugin.syncGoalFileToFullCalendar(file);
     await this.app.workspace.getLeaf().openFile(file);
-    new import_obsidian.Notice("\u{1F3AF} Goal created!");
+    new import_obsidian.Notice("Goal created!");
     this.close();
   }
   onClose() {
@@ -8516,8 +8648,8 @@ var GoalDraftsModal = class extends import_obsidian.Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("deleometer-modal");
-    contentEl.style.maxWidth = "900px";
-    contentEl.createEl("h2", { text: "\u{1F3AF} Draft Goals from Analysis" });
+    contentEl.addClass("deleometer-modal-wide");
+    contentEl.createEl("h2", { text: "Draft goals from analysis" });
     contentEl.createEl("p", { text: "Edit these AI-generated goals before saving them to your goals folder.", cls: "analysis-source" });
     this.drafts.forEach((draft, index) => {
       const section = contentEl.createDiv({ cls: "analysis-section" });
@@ -8546,7 +8678,7 @@ var GoalDraftsModal = class extends import_obsidian.Modal {
         draft.category = categorySelect.value;
       };
       const dateGroup = section.createDiv({ cls: "form-group" });
-      dateGroup.createEl("label", { text: "Target Date" });
+      dateGroup.createEl("label", { text: "Target date" });
       const dateInput = dateGroup.createEl("input", { type: "date" });
       dateInput.value = draft.targetDate || "";
       dateInput.oninput = () => {
@@ -8571,8 +8703,10 @@ var GoalDraftsModal = class extends import_obsidian.Modal {
     const btnRow = contentEl.createDiv({ cls: "btn-row" });
     const cancelBtn = btnRow.createEl("button", { text: "Cancel", cls: "btn-secondary" });
     cancelBtn.onclick = () => this.close();
-    const saveBtn = btnRow.createEl("button", { text: "Save Draft Goals", cls: "btn-primary" });
-    saveBtn.onclick = () => this.saveGoals();
+    const saveBtn = btnRow.createEl("button", { text: "Save draft goals", cls: "btn-primary" });
+    saveBtn.onclick = () => {
+      void this.saveGoals();
+    };
   }
   async saveGoals() {
     const validDrafts = this.drafts.filter((draft) => draft.title.trim() && draft.description.trim());
@@ -8588,10 +8722,10 @@ var GoalDraftsModal = class extends import_obsidian.Modal {
       if (lastFile) {
         await this.app.workspace.getLeaf().openFile(lastFile);
       }
-      new import_obsidian.Notice(`\u{1F3AF} Saved ${validDrafts.length} goal draft${validDrafts.length === 1 ? "" : "s"}!`);
+      new import_obsidian.Notice(`Saved ${validDrafts.length} goal draft${validDrafts.length === 1 ? "" : "s"}!`);
       this.close();
     } catch (error) {
-      new import_obsidian.Notice("\u274C Could not save goal drafts");
+      new import_obsidian.Notice("Could not save goal drafts");
       console.error(error);
     }
   }
@@ -8614,21 +8748,21 @@ var GoalConsolidationModal = class extends import_obsidian.Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("deleometer-modal");
-    contentEl.style.maxWidth = "900px";
-    contentEl.createEl("h2", { text: "\u{1F500} Consolidate Similar Goals" });
+    contentEl.addClass("deleometer-modal-wide");
+    contentEl.createEl("h2", { text: "Consolidate similar goals" });
     contentEl.createEl("p", { text: "Review the suggested groups below. Saving will keep one consolidated goal note and mark the others as merged redirects.", cls: "analysis-source" });
     this.drafts.forEach((draft, index) => {
       const section = contentEl.createDiv({ cls: "analysis-section" });
       section.createEl("h4", { text: `Group ${index + 1}` });
       section.createEl("p", { text: `Source goals: ${draft.sourceGoals.map((goal) => goal.title).join(", ")}`, cls: "analysis-source" });
       const titleGroup = section.createDiv({ cls: "form-group" });
-      titleGroup.createEl("label", { text: "Merged Title" });
+      titleGroup.createEl("label", { text: "Merged title" });
       const titleInput = titleGroup.createEl("input", { type: "text", value: draft.mergedTitle });
       titleInput.oninput = () => {
         draft.mergedTitle = titleInput.value;
       };
       const descGroup = section.createDiv({ cls: "form-group" });
-      descGroup.createEl("label", { text: "Merged Description" });
+      descGroup.createEl("label", { text: "Merged description" });
       const descArea = descGroup.createEl("textarea", { text: draft.mergedDescription });
       descArea.oninput = () => {
         draft.mergedDescription = descArea.value;
@@ -8645,14 +8779,14 @@ var GoalConsolidationModal = class extends import_obsidian.Modal {
         draft.mergedCategory = categorySelect.value;
       };
       const dateGroup = section.createDiv({ cls: "form-group" });
-      dateGroup.createEl("label", { text: "Target Date" });
+      dateGroup.createEl("label", { text: "Target date" });
       const dateInput = dateGroup.createEl("input", { type: "date" });
       dateInput.value = draft.mergedTargetDate || "";
       dateInput.oninput = () => {
         draft.mergedTargetDate = dateInput.value || void 0;
       };
       const milestonesGroup = section.createDiv({ cls: "form-group" });
-      milestonesGroup.createEl("label", { text: "Merged Milestones (one per line)" });
+      milestonesGroup.createEl("label", { text: "Merged milestones (one per line)" });
       const milestonesArea = milestonesGroup.createEl("textarea", { text: draft.mergedMilestones.join("\n") });
       milestonesArea.oninput = () => {
         draft.mergedMilestones = milestonesArea.value.split("\n").map((line) => line.trim()).filter(Boolean);
@@ -8661,8 +8795,10 @@ var GoalConsolidationModal = class extends import_obsidian.Modal {
     const btnRow = contentEl.createDiv({ cls: "btn-row" });
     const cancelBtn = btnRow.createEl("button", { text: "Cancel", cls: "btn-secondary" });
     cancelBtn.onclick = () => this.close();
-    const saveBtn = btnRow.createEl("button", { text: "Merge Suggested Goals", cls: "btn-primary" });
-    saveBtn.onclick = () => this.save();
+    const saveBtn = btnRow.createEl("button", { text: "Merge suggested goals", cls: "btn-primary" });
+    saveBtn.onclick = () => {
+      void this.save();
+    };
   }
   async save() {
     const validDrafts = this.drafts.filter((draft) => draft.mergedTitle.trim() && draft.mergedDescription.trim() && draft.sourceGoals.length > 1);
@@ -8675,7 +8811,7 @@ var GoalConsolidationModal = class extends import_obsidian.Modal {
       await this.plugin.syncAllGoalsToFullCalendar(false);
       this.close();
     } catch (error) {
-      new import_obsidian.Notice("\u274C Could not consolidate goals");
+      new import_obsidian.Notice("Could not consolidate goals");
       console.error(error);
     }
   }
@@ -8703,7 +8839,7 @@ var PersonalityAssessmentModal = class extends import_obsidian.Modal {
     }
     const q = ASSESSMENT_QUESTIONS[this.currentQuestion];
     const progress = this.currentQuestion / ASSESSMENT_QUESTIONS.length * 100;
-    contentEl.createEl("h2", { text: "\u{1F9E0} Personality Assessment" });
+    contentEl.createEl("h2", { text: "Personality assessment" });
     const progressDiv = contentEl.createDiv({ cls: "assessment-progress" });
     const progressBar = progressDiv.createDiv({ cls: "progress-bar" });
     const progressFill = progressBar.createDiv({ cls: "progress-fill" });
@@ -8735,8 +8871,8 @@ var PersonalityAssessmentModal = class extends import_obsidian.Modal {
       growth_areas: this.getGrowthAreas(scores)
     };
     this.plugin.settings.personalityProfile = profile;
-    this.plugin.saveSettings();
-    contentEl.createEl("h2", { text: "\u{1F389} Your Personality Profile" });
+    void this.plugin.saveSettings();
+    contentEl.createEl("h2", { text: "Your personality profile" });
     const chart = contentEl.createDiv({ cls: "big-five-chart" });
     const traits = ["openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism"];
     for (const trait of traits) {
@@ -8752,10 +8888,10 @@ var PersonalityAssessmentModal = class extends import_obsidian.Modal {
     summary.createEl("h4", { text: "Summary" });
     summary.createEl("p", { text: profile.psychological_type });
     const dominant = contentEl.createDiv({ cls: "analysis-section" });
-    dominant.createEl("h4", { text: "Dominant Traits" });
+    dominant.createEl("h4", { text: "Dominant traits" });
     dominant.createEl("p", { text: profile.dominant_traits.join(", ") });
     const growth = contentEl.createDiv({ cls: "analysis-section" });
-    growth.createEl("h4", { text: "Growth Areas" });
+    growth.createEl("h4", { text: "Growth areas" });
     growth.createEl("p", { text: profile.growth_areas.join(", ") });
     const btnRow = contentEl.createDiv({ cls: "btn-row" });
     const closeBtn = btnRow.createEl("button", { text: "Close", cls: "btn-primary" });
@@ -8783,14 +8919,14 @@ var PersonalityAssessmentModal = class extends import_obsidian.Modal {
   getPsychologicalType(scores) {
     const high = Object.entries(scores).filter(([, v]) => v >= 60).map(([k]) => k);
     if (high.includes("openness") && high.includes("extraversion"))
-      return "Creative Explorer - You thrive on new experiences and social connections.";
+      return "Creative explorer - You thrive on new experiences and social connections.";
     if (high.includes("conscientiousness") && high.includes("agreeableness"))
-      return "Reliable Helper - You are dependable and care deeply about others.";
+      return "Reliable helper - You are dependable and care deeply about others.";
     if (high.includes("openness") && high.includes("neuroticism"))
-      return "Sensitive Artist - You experience emotions deeply and express them creatively.";
+      return "Sensitive artist - You experience emotions deeply and express them creatively.";
     if (high.includes("extraversion") && high.includes("agreeableness"))
-      return "Social Connector - You build bridges between people and communities.";
-    return "Balanced Individual - You have a well-rounded personality profile.";
+      return "Social connector - You build bridges between people and communities.";
+    return "Balanced individual - You have a well-rounded personality profile.";
   }
   getGrowthAreas(scores) {
     const areas = [];
@@ -8821,8 +8957,8 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.addClass("deleometer-modal");
-    contentEl.style.maxWidth = "800px";
-    contentEl.createEl("h2", { text: "\u{1F50D} Multi-Perspective Analysis" });
+    contentEl.addClass("deleometer-modal-medium");
+    contentEl.createEl("h2", { text: "Multi-perspective analysis" });
     if (this.sourceFile) {
       contentEl.createEl("p", { text: `Analysis of: ${this.sourceFile.basename}`, cls: "analysis-source" });
     }
@@ -8832,26 +8968,29 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
       const card = results.createDiv({ cls: "perspective-card" });
       const header = card.createDiv({ cls: "perspective-header" });
       header.createEl("h4", { text: (persp == null ? void 0 : persp.title) || perspKey });
-      const chatBtn = header.createEl("button", { text: "\u{1F4AC} Chat with this perspective", cls: "chat-with-btn" });
-      chatBtn.onclick = () => this.openChatWithPerspective(perspKey, analysisContent);
+      const chatBtn = header.createEl("button", { text: "Chat with this perspective", cls: "chat-with-btn" });
+      chatBtn.onclick = () => {
+        void this.openChatWithPerspective(perspKey, analysisContent);
+      };
       card.createEl("p", { text: analysisContent });
     }
     if (this.analysis.authorMemorySummary) {
       const memorySection = contentEl.createDiv({ cls: "analysis-section" });
-      memorySection.createEl("h4", { text: "\u{1F9E0} Author Memory" });
+      memorySection.createEl("h4", { text: "Author memory" });
       memorySection.createEl("p", { text: this.analysis.authorMemorySummary });
     }
     if (this.sourceFile) {
       const appendBtn = contentEl.createEl("button", {
-        text: "\u{1F4CE} Append Analysis to Note",
-        cls: "btn-secondary"
+        text: "Append analysis to note",
+        cls: "btn-secondary analysis-append-button"
       });
-      appendBtn.style.marginTop = "16px";
-      appendBtn.onclick = () => this.appendAnalysisToNote();
+      appendBtn.onclick = () => {
+        void this.appendAnalysisToNote();
+      };
     }
     const btnRow = contentEl.createDiv({ cls: "btn-row" });
     if (this.analysis.goalSuggestions.length > 0) {
-      const goalBtn = btnRow.createEl("button", { text: "\u{1F3AF} Draft Goals from Analysis", cls: "btn-secondary" });
+      const goalBtn = btnRow.createEl("button", { text: "Draft goals from analysis", cls: "btn-secondary" });
       goalBtn.onclick = () => this.openGoalDrafts();
     }
     const closeBtn = btnRow.createEl("button", { text: "Close", cls: "btn-primary" });
@@ -8870,13 +9009,13 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
       sourceFilePath: ((_a2 = this.sourceFile) == null ? void 0 : _a2.path) || ""
     };
     await this.plugin.activateAIChatView();
-    new import_obsidian.Notice(`\u{1F4AC} Opening chat with ${((_b = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _b.title) || perspectiveKey} perspective`);
+    new import_obsidian.Notice(`Opening chat with ${((_b = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _b.title) || perspectiveKey} perspective`);
   }
   async appendAnalysisToNote() {
     if (!this.sourceFile)
       return;
     await this.plugin.appendAnalysisToFile(this.sourceFile, this.analysis);
-    new import_obsidian.Notice("\u{1F4CE} Analysis appended to note!");
+    new import_obsidian.Notice("Analysis appended to note!");
   }
   openGoalDrafts() {
     var _a2;
@@ -8894,35 +9033,38 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "The Deleometer Settings" });
-    new import_obsidian.Setting(containerEl).setName("OpenAI API Key").setDesc(this.plugin.settings.openaiApiKey ? "Your OpenAI API key for AI analysis. A key is currently stored in plugin data and reloaded on startup." : "Your OpenAI API key for AI analysis.").addText((text) => text.setPlaceholder("sk-...").setValue(this.plugin.settings.openaiApiKey).onChange(async (value) => {
+    containerEl.createEl("p", {
+      text: "Configure journal analysis, goals, and calendar sync.",
+      cls: "setting-item-description"
+    });
+    new import_obsidian.Setting(containerEl).setName("API key").setDesc(this.plugin.settings.openaiApiKey ? "Your API key for AI analysis. A key is currently stored in plugin data and reloaded on startup." : "Your API key for AI analysis.").addText((text) => text.setPlaceholder("Paste your API key").setValue(this.plugin.settings.openaiApiKey).onChange(async (value) => {
       this.plugin.settings.openaiApiKey = value;
       await this.plugin.saveSettings();
       if (value)
         this.plugin.initializeOpenAI();
     }));
-    new import_obsidian.Setting(containerEl).setName("Journal Folder").setDesc("Folder for journal entries").addText((text) => text.setValue(this.plugin.settings.journalFolder).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("Journal folder").setDesc("Folder for journal entries").addText((text) => text.setValue(this.plugin.settings.journalFolder).onChange(async (value) => {
       this.plugin.settings.journalFolder = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian.Setting(containerEl).setName("Goals Folder").setDesc("Folder for goals").addText((text) => text.setValue(this.plugin.settings.goalsFolder).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("Goals folder").setDesc("Folder for goals").addText((text) => text.setValue(this.plugin.settings.goalsFolder).onChange(async (value) => {
       this.plugin.settings.goalsFolder = value;
       await this.plugin.saveSettings();
     }));
-    containerEl.createEl("h3", { text: "Full Calendar" });
-    new import_obsidian.Setting(containerEl).setName("Full Calendar Folder").setDesc("Folder watched by the Full Calendar plugin local calendar source. Deleometer will create dated event notes here.").addText((text) => text.setValue(this.plugin.settings.fullCalendarFolder).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("Calendar integration").setHeading();
+    new import_obsidian.Setting(containerEl).setName("Calendar folder").setDesc("Folder watched by your calendar plugin local calendar source. Deleometer will create dated event notes here.").addText((text) => text.setValue(this.plugin.settings.fullCalendarFolder).onChange(async (value) => {
       this.plugin.settings.fullCalendarFolder = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian.Setting(containerEl).setName("Auto-sync Goals to Full Calendar").setDesc("Create or update Full Calendar event notes whenever a goal is created or saved from analysis.").addToggle((toggle) => toggle.setValue(this.plugin.settings.autoSyncGoalsToFullCalendar).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("Auto-sync goals to calendar").setDesc("Create or update calendar event notes whenever a goal is created or saved from analysis.").addToggle((toggle) => toggle.setValue(this.plugin.settings.autoSyncGoalsToFullCalendar).onChange(async (value) => {
       this.plugin.settings.autoSyncGoalsToFullCalendar = value;
       await this.plugin.saveSettings();
     })).addButton((button) => button.setButtonText("Sync now").onClick(async () => {
       await this.plugin.syncAllGoalsToFullCalendar(true);
     }));
-    containerEl.createEl("h3", { text: "Analysis Perspectives" });
+    new import_obsidian.Setting(containerEl).setName("Analysis perspectives").setHeading();
     containerEl.createEl("p", { text: "Select which perspectives to use for journal analysis:", cls: "setting-item-description" });
-    new import_obsidian.Setting(containerEl).setName("Enable All Perspectives").setDesc("Turn on every available analysis type.").addButton((button) => button.setButtonText("Enable all").onClick(async () => {
+    new import_obsidian.Setting(containerEl).setName("Enable all perspectives").setDesc("Turn on every available analysis type.").addButton((button) => button.setButtonText("Enable all").onClick(async () => {
       this.plugin.settings.selectedPerspectives = Object.keys(PERSPECTIVES);
       await this.plugin.saveSettings();
       this.display();
