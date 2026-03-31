@@ -7808,7 +7808,7 @@ var DashboardView = class extends import_obsidian.ItemView {
   getIcon() {
     return "bar-chart-3";
   }
-  async onOpen() {
+  onOpen() {
     const container = this.containerEl.children[1];
     container.empty();
     container.addClass("deleometer-dashboard");
@@ -7916,6 +7916,7 @@ var DashboardView = class extends import_obsidian.ItemView {
     exportBtn.onclick = () => {
       void this.exportChartsToNote();
     };
+    return Promise.resolve();
   }
   getMoodTrendData() {
     var _a2, _b;

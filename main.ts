@@ -1668,7 +1668,7 @@ class DashboardView extends ItemView {
   getDisplayText() { return 'Deleometer dashboard'; }
   getIcon() { return 'bar-chart-3'; }
 
-  async onOpen() {
+  onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
     container.empty();
     container.addClass('deleometer-dashboard');
@@ -1778,6 +1778,7 @@ class DashboardView extends ItemView {
     const exportSection = container.createDiv({ cls: 'btn-row' });
     const exportBtn = exportSection.createEl('button', { text: 'Export charts to note', cls: 'btn-primary' });
     exportBtn.onclick = () => { void this.exportChartsToNote(); };
+    return Promise.resolve();
   }
 
   getMoodTrendData(): { labels: string[]; data: number[] } {
