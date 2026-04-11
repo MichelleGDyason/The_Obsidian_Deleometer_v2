@@ -6416,6 +6416,7 @@ var openai_default = OpenAI;
 // main.ts
 var VIEW_TYPE_DASHBOARD = "deleometer-dashboard";
 var VIEW_TYPE_AI_CHAT = "deleometer-ai-chat";
+var MYERS_BRIGGS_PERSPECTIVE_KEY = "myers_briggs_perspective";
 var PERSPECTIVES = {
   lacanian_perspective: { title: "Lacanian Psychoanalysis", description: "Analysis through desire, the Other, and symbolic order" },
   schizoanalytic_insights: { title: "Deleuzian Schizoanalysis", description: "Rhizomatic thinking, lines of flight, and becoming" },
@@ -6438,7 +6439,11 @@ var PERSPECTIVES = {
   cbt_perspective: { title: "Cognitive Behavioral", description: "Thoughts, behaviors, and patterns" },
   hermeneutics_perspective: { title: "Hermeneutics", description: "Interpretation and understanding" },
   stoicism_perspective: { title: "Stoic Philosophy", description: "Virtue, acceptance, and inner peace" },
-  psychiatry_perspective: { title: "Psychiatric Assessment", description: "Clinical patterns and mental health" }
+  psychiatry_perspective: { title: "Psychiatric Assessment", description: "Clinical patterns and mental health" },
+  [MYERS_BRIGGS_PERSPECTIVE_KEY]: {
+    title: "Myers-Briggs analysis",
+    description: "Personality preferences across introversion/extraversion, sensing/intuition, thinking/feeling, and judging/perceiving"
+  }
 };
 var ASSESSMENT_QUESTIONS = [
   { trait: "openness", question: "I enjoy exploring new ideas and concepts, even if they seem unconventional.", reverse: false },
@@ -7784,9 +7789,18 @@ ${goal.description}
   async loadSettings() {
     const savedData = await this.loadData();
     this.settings = Object.assign({}, DEFAULT_SETTINGS, savedData != null ? savedData : {});
+    const perspectiveKeys = Object.keys(PERSPECTIVES);
     if (!Array.isArray(this.settings.selectedPerspectives) || this.settings.selectedPerspectives.length === 0) {
-      this.settings.selectedPerspectives = Object.keys(PERSPECTIVES);
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
     }
+    const selectedPerspectives = this.settings.selectedPerspectives.filter((key) => !!PERSPECTIVES[key]);
+    const existingPerspectiveKeys = perspectiveKeys.filter((key) => key !== MYERS_BRIGGS_PERSPECTIVE_KEY);
+    const hadEveryExistingPerspective = existingPerspectiveKeys.every((key) => selectedPerspectives.includes(key));
+    if (hadEveryExistingPerspective && !selectedPerspectives.includes(MYERS_BRIGGS_PERSPECTIVE_KEY)) {
+      selectedPerspectives.push(MYERS_BRIGGS_PERSPECTIVE_KEY);
+    }
+    this.settings.selectedPerspectives = selectedPerspectives.length > 0 ? selectedPerspectives : perspectiveKeys;
   }
   async saveSettings() {
     await this.saveData(this.settings);
