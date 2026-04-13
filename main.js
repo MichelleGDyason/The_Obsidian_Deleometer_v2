@@ -6417,34 +6417,138 @@ var openai_default = OpenAI;
 var VIEW_TYPE_DASHBOARD = "deleometer-dashboard";
 var VIEW_TYPE_AI_CHAT = "deleometer-ai-chat";
 var MYERS_BRIGGS_PERSPECTIVE_KEY = "myers_briggs_perspective";
-var PERSPECTIVES = {
-  lacanian_perspective: { title: "Lacanian Psychoanalysis", description: "Analysis through desire, the Other, and symbolic order" },
-  schizoanalytic_insights: { title: "Deleuzian Schizoanalysis", description: "Rhizomatic thinking, lines of flight, and becoming" },
-  irigarayian_perspective: { title: "Irigarayian Feminine", description: "Sexual difference and feminine subjectivity" },
-  jungian_perspective: { title: "Jungian Analysis", description: "Archetypes, shadow, and individuation" },
-  attachment_theory_perspective: { title: "Attachment Theory", description: "Attachment styles and relational patterns" },
-  positive_psychology_perspective: { title: "Positive Psychology", description: "Strengths, flourishing, and well-being" },
-  narrative_psychology_perspective: { title: "Narrative Psychology", description: "Life stories and meaning-making" },
-  phenomenology_perspective: { title: "Phenomenology", description: "Lived experience and consciousness" },
-  existential_perspective: { title: "Existential Analysis", description: "Authenticity, freedom, and meaning" },
-  feminist_perspective: { title: "Feminist Psychology", description: "Gender, power, and social context" },
-  queer_theory_perspective: { title: "Queer Theory", description: "Norms, identity, fluidity, and the politics of desire" },
-  lgbtq_studies_perspective: { title: "LGBTQ+ Studies", description: "Queer lives, community, marginalization, resilience, and affirmation" },
-  critical_theory_perspective: { title: "Critical Theory", description: "Social critique and emancipation" },
-  posthumanism_perspective: { title: "Posthumanism", description: "Beyond human-centered thinking" },
-  buddhist_psychology_perspective: { title: "Buddhist Psychology", description: "Mindfulness, suffering, and liberation" },
-  nietzschean_perspective: { title: "Nietzschean Philosophy", description: "Will to power, values, and self-overcoming" },
-  gestalt_perspective: { title: "Gestalt Therapy", description: "Awareness, wholeness, and present experience" },
-  transpersonal_perspective: { title: "Transpersonal Psychology", description: "Spiritual dimensions and peak experiences" },
-  cbt_perspective: { title: "Cognitive Behavioral", description: "Thoughts, behaviors, and patterns" },
-  hermeneutics_perspective: { title: "Hermeneutics", description: "Interpretation and understanding" },
-  stoicism_perspective: { title: "Stoic Philosophy", description: "Virtue, acceptance, and inner peace" },
-  psychiatry_perspective: { title: "Psychiatric Assessment", description: "Clinical patterns and mental health" },
-  [MYERS_BRIGGS_PERSPECTIVE_KEY]: {
-    title: "Myers-Briggs analysis",
-    description: "Personality preferences across introversion/extraversion, sensing/intuition, thinking/feeling, and judging/perceiving"
+var PHILOSOPHY_GROUP_KEY = "philosophy_first_discipline";
+var PERSPECTIVE_GROUPS = {
+  [PHILOSOPHY_GROUP_KEY]: {
+    title: "Philosophy as First Discipline",
+    description: "First principles, being, ethics, mind, theology, and metaphysical orientation"
+  },
+  archeo_genealogical_deconstruction: {
+    title: "Archeo-Genealogical and Deconstructive Thought",
+    description: "Power, discourse, difference, ideology, critique, and the recombination of inherited forms"
+  },
+  psychoanalytic_clinical: {
+    title: "Psychoanalytic and Clinical Psychologies",
+    description: "Desire, attachment, symptom, personality, cognition, embodiment, and therapeutic interpretation"
+  },
+  gender_sexuality_queer: {
+    title: "Gender, Sexuality, and Queer Studies",
+    description: "Gendered life, sexualities, lesbian and gay studies, trans studies, and queer norm critique"
+  },
+  race_coloniality_embodiment: {
+    title: "Race, Coloniality, and Embodiment Studies",
+    description: "Race, decoloniality, disability, madness, fatness, embodiment, and situated power"
+  },
+  narrative_media_frame: {
+    title: "Narrative, Media, and Frame Studies",
+    description: "Story, mediation, public presentation, framing, nonfiction practice, and interaction order"
+  },
+  systems_ecology_food: {
+    title: "Systems, Ecology, and Food Futures",
+    description: "Actor-networks, food systems, biomimicry, ecopoiesis, resilience, and ecological transition"
+  },
+  strategy_method_organisation: {
+    title: "Strategy, Method, and Organisation",
+    description: "Tactical method, risk, feasibility, SWOT, organisations, movements, and transformative futures"
   }
 };
+var PERSPECTIVES = {
+  aristotle_argonic_teachings: { title: "Aristotle's Argonic Teachings", description: "Purpose, function, virtue, practical wisdom, and flourishing", group: PHILOSOPHY_GROUP_KEY },
+  platonic_perspective: { title: "Platonic Philosophy", description: "Forms, dialectic, eros, education, justice, and ascent toward truth", group: PHILOSOPHY_GROUP_KEY },
+  spinoza_theologic_ethico_perspective: { title: "Spinoza's Theologic-Ethico Philosophy", description: "Immanence, affect, necessity, freedom, substance, and ethical life", group: PHILOSOPHY_GROUP_KEY },
+  bible_teachings_perspective: { title: "Bible Teachings", description: "Wisdom, covenant, prophecy, parable, care, justice, and spiritual discernment", group: PHILOSOPHY_GROUP_KEY },
+  metaphysical_analysis: { title: "Metaphysical Analysis", description: "Reality, causality, substance, possibility, identity, and ultimate commitments", group: PHILOSOPHY_GROUP_KEY },
+  ontological_analysis: { title: "Ontological Analysis", description: "Modes of being, entities, relations, becoming, and existential structure", group: PHILOSOPHY_GROUP_KEY },
+  ethical_analysis: { title: "Ethical Analysis", description: "Obligation, virtue, care, harm, responsibility, and practical judgment", group: PHILOSOPHY_GROUP_KEY },
+  philosophy_of_mind_perspective: { title: "Philosophy of Mind", description: "Consciousness, intention, emotion, agency, selfhood, and mental causation", group: PHILOSOPHY_GROUP_KEY },
+  process_philosophical_analysis: { title: "Process Philosophical Analysis", description: "Becoming, relation, event, creativity, temporality, and emergent order", group: PHILOSOPHY_GROUP_KEY },
+  phenomenology_perspective: { title: "Phenomenology", description: "Lived experience and consciousness", group: PHILOSOPHY_GROUP_KEY },
+  existential_perspective: { title: "Existential Analysis", description: "Authenticity, freedom, and meaning", group: PHILOSOPHY_GROUP_KEY },
+  buddhist_psychology_perspective: { title: "Buddhist Psychology", description: "Mindfulness, suffering, and liberation", group: PHILOSOPHY_GROUP_KEY },
+  nietzschean_perspective: { title: "Nietzschean Philosophy", description: "Will to power, values, and self-overcoming", group: PHILOSOPHY_GROUP_KEY },
+  stoicism_perspective: { title: "Stoic Philosophy", description: "Virtue, acceptance, and inner peace", group: PHILOSOPHY_GROUP_KEY },
+  hermeneutics_perspective: { title: "Hermeneutics", description: "Interpretation and understanding", group: PHILOSOPHY_GROUP_KEY },
+  foucaultian_analysis: { title: "Foucaultian Analysis", description: "Power, discourse, discipline, subject formation, and historical conditions of truth", group: "archeo_genealogical_deconstruction" },
+  derridian_analysis: { title: "Derridian Analysis", description: "Deconstruction, differance, trace, supplement, undecidability, and textual instability", group: "archeo_genealogical_deconstruction" },
+  zizekian_analysis: { title: "\u017Di\u017Eekian Analysis", description: "Ideology, fantasy, contradiction, enjoyment, subjectivity, and the Real", group: "archeo_genealogical_deconstruction" },
+  simondonian_analysis: { title: "Simondonian Analysis", description: "Individuation, preindividual fields, technics, relation, and collective becoming", group: "archeo_genealogical_deconstruction" },
+  schizoanalytic_insights: { title: "Deleuzian Schizoanalysis", description: "Rhizomatic thinking, lines of flight, and becoming", group: "archeo_genealogical_deconstruction" },
+  critical_theory_perspective: { title: "Critical Theory", description: "Social critique and emancipation", group: "archeo_genealogical_deconstruction" },
+  posthumanism_perspective: { title: "Posthumanism", description: "Beyond human-centered thinking", group: "archeo_genealogical_deconstruction" },
+  lacanian_perspective: { title: "Lacanian Psychoanalysis", description: "Analysis through desire, the Other, and symbolic order", group: "psychoanalytic_clinical" },
+  freudian_psychoanalysis: { title: "Freudian Psychoanalysis", description: "Unconscious conflict, repression, dream-work, sexuality, and symptom formation", group: "psychoanalytic_clinical" },
+  jungian_perspective: { title: "Jungian Analysis", description: "Archetypes, shadow, and individuation", group: "psychoanalytic_clinical" },
+  attachment_theory_perspective: { title: "Attachment Theory", description: "Attachment styles and relational patterns", group: "psychoanalytic_clinical" },
+  positive_psychology_perspective: { title: "Positive Psychology", description: "Strengths, flourishing, and well-being", group: "psychoanalytic_clinical" },
+  gestalt_perspective: { title: "Gestalt Therapy", description: "Awareness, wholeness, and present experience", group: "psychoanalytic_clinical" },
+  transpersonal_perspective: { title: "Transpersonal Psychology", description: "Spiritual dimensions and peak experiences", group: "psychoanalytic_clinical" },
+  cbt_perspective: { title: "Cognitive Behavioral", description: "Thoughts, behaviors, and patterns", group: "psychoanalytic_clinical" },
+  psychiatry_perspective: { title: "Psychiatric Assessment", description: "Clinical patterns and mental health", group: "psychoanalytic_clinical" },
+  [MYERS_BRIGGS_PERSPECTIVE_KEY]: {
+    title: "Myers-Briggs analysis",
+    description: "Personality preferences across introversion/extraversion, sensing/intuition, thinking/feeling, and judging/perceiving",
+    group: "psychoanalytic_clinical"
+  },
+  irigarayian_perspective: { title: "Irigarayian Feminine", description: "Sexual difference and feminine subjectivity", group: "gender_sexuality_queer" },
+  feminist_perspective: { title: "Feminist Psychology", description: "Gender, power, and social context", group: "gender_sexuality_queer" },
+  queer_theory_perspective: { title: "Queer Theory", description: "Norms, identity, fluidity, and the politics of desire", group: "gender_sexuality_queer" },
+  lgbtq_studies_perspective: { title: "Lesbian & Gay Studies", description: "Lesbian and gay histories, cultures, communities, marginalization, resilience, and affirmation", group: "gender_sexuality_queer" },
+  sexualities_studies: { title: "Sexualities Studies", description: "Sexual cultures, practices, identities, norms, pleasure, stigma, and social regulation", group: "gender_sexuality_queer" },
+  gender_studies: { title: "Gender Studies", description: "Gender systems, identities, embodiment, institutions, power, and everyday life", group: "gender_sexuality_queer" },
+  trans_studies: { title: "Trans Studies", description: "Trans life, embodiment, transition, self-determination, institutions, and gender variance", group: "gender_sexuality_queer" },
+  critical_race_studies: { title: "Critical Race Studies", description: "Racial formation, structural racism, intersectionality, law, culture, and lived experience", group: "race_coloniality_embodiment" },
+  decolonial_studies: { title: "Decolonial Studies", description: "Coloniality, land, knowledge, sovereignty, extraction, repair, and pluriversal futures", group: "race_coloniality_embodiment" },
+  mad_studies: { title: "Mad Studies", description: "Psychiatric power, mad knowledge, distress, survival, and alternatives to pathologization", group: "race_coloniality_embodiment" },
+  fat_studies: { title: "Fat Studies", description: "Anti-fat bias, embodiment, health norms, stigma, access, and fat liberation", group: "race_coloniality_embodiment" },
+  narrative_psychology_perspective: { title: "Narrative Psychology", description: "Life stories and meaning-making", group: "narrative_media_frame" },
+  creative_nonfiction_perspective: { title: "Creative Non-Fiction", description: "Scene, voice, witness, memory, essaying, and truthful narrative craft", group: "narrative_media_frame" },
+  media_studies: { title: "Media Studies", description: "Platforms, mediation, publics, representation, attention, circulation, and media power", group: "narrative_media_frame" },
+  frame_analysis: { title: "Frame Analysis", description: "Interpretive frames, salience, boundaries, alignment, and meaning organization", group: "narrative_media_frame" },
+  goffman_frame_analysis: { title: "Erving Goffman's Frame Analysis", description: "Interaction order, presentation of self, keyed events, footing, and everyday frames", group: "narrative_media_frame" },
+  latourian_analysis: { title: "Latourian Analysis", description: "Actor-networks, mediation, translation, nonhuman agency, and assembled realities", group: "systems_ecology_food" },
+  critical_food_systems_analysis: { title: "Critical Food Systems Analysis", description: "Food justice, supply chains, agriculture, labor, ecology, access, and power", group: "systems_ecology_food" },
+  biomimicry_perspective: { title: "Biomimicry", description: "Learning from living systems, adaptation, form, function, and regenerative design", group: "systems_ecology_food" },
+  ecopoiesis_perspective: { title: "Ecopoiesis", description: "World-making ecologies, habitat creation, planetary repair, and life-supporting systems", group: "systems_ecology_food" },
+  resilience_analysis: { title: "Resilience", description: "Adaptive capacity, recovery, redundancy, stress response, and durable support systems", group: "systems_ecology_food" },
+  tacktical_methodological_analysis: { title: "Tacktical Methodological Analysis", description: "Louisa Bufardeci's tactical method, situated procedure, constraints, mapping, and action", group: "strategy_method_organisation" },
+  swot_analysis: { title: "SWOT Analysis", description: "Strengths, weaknesses, opportunities, threats, and strategic positioning", group: "strategy_method_organisation" },
+  feasibility_analysis: { title: "Feasibility Analysis", description: "Practical viability, resources, constraints, dependencies, costs, and implementation readiness", group: "strategy_method_organisation" },
+  risk_analysis: { title: "Risk Analysis", description: "Likelihood, impact, uncertainty, exposure, prevention, mitigation, and contingency", group: "strategy_method_organisation" },
+  transitional_theory: { title: "Transitional Theory", description: "Liminal movement, phased change, rites of passage, continuity, and transformation", group: "strategy_method_organisation" },
+  social_movement_theories: { title: "Theories Growing a Social Movement", description: "Collective action, mobilization, framing, resources, leadership, and movement ecology", group: "strategy_method_organisation" },
+  organisational_theories: { title: "Organisational Theories", description: "Structures, culture, governance, roles, incentives, coordination, and institutional change", group: "strategy_method_organisation" },
+  transformative_futures: { title: "Imagining Transformative Futures", description: "Speculation, prefiguration, scenario imagination, world-building, and emancipatory possibility", group: "strategy_method_organisation" }
+};
+var PERSPECTIVE_HEADING_ALIASES = {
+  lgbtq_studies_perspective: ["LGBTQ+ Studies"],
+  feasibility_analysis: ["Feasability Analysis"],
+  tacktical_methodological_analysis: ["Tactical Methodological Analysis"]
+};
+var PRE_HIERARCHY_PERSPECTIVE_KEYS = [
+  "lacanian_perspective",
+  "schizoanalytic_insights",
+  "irigarayian_perspective",
+  "jungian_perspective",
+  "attachment_theory_perspective",
+  "positive_psychology_perspective",
+  "narrative_psychology_perspective",
+  "phenomenology_perspective",
+  "existential_perspective",
+  "feminist_perspective",
+  "queer_theory_perspective",
+  "lgbtq_studies_perspective",
+  "critical_theory_perspective",
+  "posthumanism_perspective",
+  "buddhist_psychology_perspective",
+  "nietzschean_perspective",
+  "gestalt_perspective",
+  "transpersonal_perspective",
+  "cbt_perspective",
+  "hermeneutics_perspective",
+  "stoicism_perspective",
+  "psychiatry_perspective",
+  MYERS_BRIGGS_PERSPECTIVE_KEY
+];
 var ASSESSMENT_QUESTIONS = [
   { trait: "openness", question: "I enjoy exploring new ideas and concepts, even if they seem unconventional.", reverse: false },
   { trait: "openness", question: "I prefer sticking to familiar routines rather than trying new approaches.", reverse: true },
@@ -6635,11 +6739,19 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     if (perspectives.length === 0) {
       return {
         perspectives: {},
+        groupSyntheses: {},
+        philosophicalReaccumulation: "",
         authorMemorySummary: this.settings.authorMemorySummary,
         goalSuggestions: []
       };
     }
-    const perspectiveList = perspectives.map(({ key, perspective }) => `- ${key}: ${perspective.title} - ${perspective.description}`).join("\n");
+    const selectedGroupKeys = [...new Set(perspectives.map(({ perspective }) => perspective.group))].filter((groupKey) => PERSPECTIVE_GROUPS[groupKey]);
+    const perspectiveList = perspectives.map(({ key, perspective }) => {
+      var _a3;
+      const groupTitle = ((_a3 = PERSPECTIVE_GROUPS[perspective.group]) == null ? void 0 : _a3.title) || perspective.group;
+      return `- ${key}: ${perspective.title} [${groupTitle}] - ${perspective.description}`;
+    }).join("\n");
+    const groupList = selectedGroupKeys.map((groupKey) => `- ${groupKey}: ${PERSPECTIVE_GROUPS[groupKey].title} - ${PERSPECTIVE_GROUPS[groupKey].description}`).join("\n");
     const personalityContext = this.settings.personalityProfile ? `Personality profile:
 - Type: ${this.settings.personalityProfile.psychological_type}
 - Dominant traits: ${this.settings.personalityProfile.dominant_traits.join(", ")}
@@ -6652,20 +6764,25 @@ ${this.settings.authorMemorySummary}` : "Existing author memory summary: none ye
       messages: [
         {
           role: "system",
-          content: "You are an empathetic psychological analysis assistant. Return valid JSON only. Produce concise, useful outputs that can be shown directly in an app."
+          content: "You are an empathetic interdisciplinary analysis assistant. Return valid JSON only. Produce concise, useful outputs that can be shown directly in an app."
         },
         {
           role: "user",
           content: `Analyze the following journal entry from each requested perspective.
 
 Return JSON with exactly these top-level keys:
-- perspectives: an object where each key is the exact perspective key and each value is a string under 200 words with insight, emotional interpretation, and one practical next step.
+- perspectives: an object where each key is the exact perspective key and each value is a string under 120 words with insight, emotional interpretation, and one practical next step.
+- group_syntheses: an object where each key is the exact group key and each value is a string under 170 words. First synthesize the outputs of the perspectives inside that group after they have been individually explicated.
+- philosophical_reaccumulation: a string under 240 words that iteratively recombines the group syntheses into Philosophy as the first discipline. Treat this as an archeo-genealogical recombination of subdisciplines, theories, and analyses into an overarching philosophical orientation.
 - author_memory_summary: a compact summary under 180 words describing enduring patterns, recurring concerns, strengths, values, and helpful supports for the journal author. Update the existing memory rather than repeating temporary details.
 - goal_suggestions: an array of 0-5 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(", ")}. milestones must be an array of short strings. sourcePerspectives must be an array of the perspective keys that informed the goal.
 
 ${personalityContext}
 
 ${authorMemoryContext}
+
+Perspective groups:
+${groupList}
 
 Requested perspectives:
 ${perspectiveList}
@@ -6690,6 +6807,15 @@ ${content}`
     if (Object.keys(results).length === 0) {
       throw new Error("Analysis response did not include any usable perspectives");
     }
+    const parsedGroupSyntheses = parsed.group_syntheses && typeof parsed.group_syntheses === "object" ? parsed.group_syntheses : {};
+    const groupSyntheses = {};
+    for (const groupKey of selectedGroupKeys) {
+      const value = parsedGroupSyntheses[groupKey];
+      if (typeof value === "string" && value.trim()) {
+        groupSyntheses[groupKey] = value.trim();
+      }
+    }
+    const philosophicalReaccumulation = typeof parsed.philosophical_reaccumulation === "string" ? parsed.philosophical_reaccumulation.trim() : "";
     const authorMemorySummary = typeof parsed.author_memory_summary === "string" ? parsed.author_memory_summary.trim() : this.settings.authorMemorySummary;
     const rawGoalSuggestions = Array.isArray(parsed.goal_suggestions) ? parsed.goal_suggestions : [];
     const goalSuggestions = rawGoalSuggestions.map((goal) => {
@@ -6712,6 +6838,8 @@ ${content}`
     }
     return {
       perspectives: results,
+      groupSyntheses,
+      philosophicalReaccumulation,
       authorMemorySummary,
       goalSuggestions
     };
@@ -6724,9 +6852,9 @@ ${content}`
     const authorContext = this.buildAuthorContext();
     const systemMessage = {
       role: "system",
-      content: `You are an empathetic AI therapist specializing in ${(persp == null ? void 0 : persp.title) || "psychological analysis"}. ${(persp == null ? void 0 : persp.description) || ""}
+      content: `You are an empathetic analytical companion specializing in ${(persp == null ? void 0 : persp.title) || "reflective analysis"}. ${(persp == null ? void 0 : persp.description) || ""}
 
-You help users explore their emotions, thoughts, and experiences. Be warm, insightful, and supportive. Ask thoughtful follow-up questions. Keep responses conversational and under 150 words unless more detail is needed.${authorContext ? `
+You help users explore emotions, thoughts, experiences, contexts, and practical possibilities through this perspective. Be warm, insightful, and supportive. Ask thoughtful follow-up questions. Keep responses conversational and under 150 words unless more detail is needed.${authorContext ? `
 
 Context about the journal author:
 ${authorContext}` : ""}`
@@ -6816,7 +6944,15 @@ ${journalContext}`
     const normalizedHeading = this.normalizeHeadingText(heading);
     for (const [key, perspective] of Object.entries(PERSPECTIVES)) {
       const normalizedTitle = this.normalizeHeadingText(perspective.title);
-      if (normalizedHeading === normalizedTitle || normalizedHeading.includes(normalizedTitle) || normalizedTitle.includes(normalizedHeading)) {
+      const normalizedAliases = (PERSPECTIVE_HEADING_ALIASES[key] || []).map((alias) => this.normalizeHeadingText(alias));
+      if (normalizedHeading === normalizedTitle || normalizedAliases.some((alias) => normalizedHeading === alias)) {
+        return key;
+      }
+    }
+    for (const [key, perspective] of Object.entries(PERSPECTIVES)) {
+      const normalizedTitle = this.normalizeHeadingText(perspective.title);
+      const normalizedAliases = (PERSPECTIVE_HEADING_ALIASES[key] || []).map((alias) => this.normalizeHeadingText(alias));
+      if (normalizedHeading.includes(normalizedTitle) || normalizedTitle.includes(normalizedHeading) || normalizedAliases.some((alias) => normalizedHeading.includes(alias) || alias.includes(normalizedHeading))) {
         return key;
       }
     }
@@ -6875,7 +7011,13 @@ ${journalContext}`
     const perspectives = {};
     const analysisStart = this.findAnalysisSectionStart(content);
     if (analysisStart === -1) {
-      return { perspectives, authorMemorySummary: "", goalSuggestions: [] };
+      return {
+        perspectives,
+        groupSyntheses: {},
+        philosophicalReaccumulation: "",
+        authorMemorySummary: "",
+        goalSuggestions: []
+      };
     }
     const analysisSection = content.slice(analysisStart);
     const headingMatches = [];
@@ -6901,7 +7043,13 @@ ${journalContext}`
         perspectives[perspectiveKey] = sectionBody;
       }
     }
-    return { perspectives, authorMemorySummary: "", goalSuggestions: [] };
+    return {
+      perspectives,
+      groupSyntheses: {},
+      philosophicalReaccumulation: "",
+      authorMemorySummary: "",
+      goalSuggestions: []
+    };
   }
   getOpenAIErrorMessage(error, fallback) {
     if (error && typeof error === "object") {
@@ -7693,15 +7841,43 @@ ${chatBlock}
     await this.ensurePerspectiveChatLinks(sourceFile, analysis);
   }
   buildAnalysisMarkdown(analysis) {
+    var _a2;
     let analysisMarkdown = "\n\n---\n\n## \u{1F50D} AI Analysis\n\n";
     analysisMarkdown += `*Analyzed: ${new Date().toLocaleString()}*
 
 `;
     for (const [perspKey, content] of Object.entries(analysis.perspectives)) {
       const persp = PERSPECTIVES[perspKey];
+      const groupTitle = persp ? (_a2 = PERSPECTIVE_GROUPS[persp.group]) == null ? void 0 : _a2.title : "";
       analysisMarkdown += `### ${(persp == null ? void 0 : persp.title) || perspKey}
 
+`;
+      if (groupTitle) {
+        analysisMarkdown += `*Group: ${groupTitle}*
+
+`;
+      }
+      analysisMarkdown += `${content}
+
+`;
+    }
+    if (Object.keys(analysis.groupSyntheses).length > 0) {
+      analysisMarkdown += `## Group Syntheses
+
+`;
+      for (const [groupKey, content] of Object.entries(analysis.groupSyntheses)) {
+        const group = PERSPECTIVE_GROUPS[groupKey];
+        analysisMarkdown += `### ${(group == null ? void 0 : group.title) || groupKey}
+
 ${content}
+
+`;
+      }
+    }
+    if (analysis.philosophicalReaccumulation) {
+      analysisMarkdown += `## Philosophy Re-accumulation
+
+${analysis.philosophicalReaccumulation}
 
 `;
     }
@@ -7795,6 +7971,11 @@ ${goal.description}
       return;
     }
     const selectedPerspectives = this.settings.selectedPerspectives.filter((key) => !!PERSPECTIVES[key]);
+    const hadEveryPreHierarchyPerspective = PRE_HIERARCHY_PERSPECTIVE_KEYS.every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreHierarchyPerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
     const existingPerspectiveKeys = perspectiveKeys.filter((key) => key !== MYERS_BRIGGS_PERSPECTIVE_KEY);
     const hadEveryExistingPerspective = existingPerspectiveKeys.every((key) => selectedPerspectives.includes(key));
     if (hadEveryExistingPerspective && !selectedPerspectives.includes(MYERS_BRIGGS_PERSPECTIVE_KEY)) {
@@ -8978,16 +9159,42 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
       contentEl.createEl("p", { text: `Analysis of: ${this.sourceFile.basename}`, cls: "analysis-source" });
     }
     const results = contentEl.createDiv({ cls: "analysis-results" });
-    for (const [perspKey, analysisContent] of Object.entries(this.analysis.perspectives)) {
-      const persp = PERSPECTIVES[perspKey];
-      const card = results.createDiv({ cls: "perspective-card" });
-      const header = card.createDiv({ cls: "perspective-header" });
-      header.createEl("h4", { text: (persp == null ? void 0 : persp.title) || perspKey });
-      const chatBtn = header.createEl("button", { text: "Chat with this perspective", cls: "chat-with-btn" });
-      chatBtn.onclick = () => {
-        void this.openChatWithPerspective(perspKey, analysisContent);
-      };
-      card.createEl("p", { text: analysisContent });
+    for (const groupKey of Object.keys(PERSPECTIVE_GROUPS)) {
+      const groupEntries = Object.entries(this.analysis.perspectives).filter(([perspKey]) => {
+        var _a2;
+        return ((_a2 = PERSPECTIVES[perspKey]) == null ? void 0 : _a2.group) === groupKey;
+      });
+      if (groupEntries.length === 0)
+        continue;
+      const group = PERSPECTIVE_GROUPS[groupKey];
+      const groupHeader = results.createDiv({ cls: "perspective-group-heading" });
+      groupHeader.createEl("h3", { text: group.title });
+      groupHeader.createEl("p", { text: group.description });
+      for (const [perspKey, analysisContent] of groupEntries) {
+        const persp = PERSPECTIVES[perspKey];
+        const card = results.createDiv({ cls: "perspective-card" });
+        const header = card.createDiv({ cls: "perspective-header" });
+        header.createEl("h4", { text: (persp == null ? void 0 : persp.title) || perspKey });
+        const chatBtn = header.createEl("button", { text: "Chat with this perspective", cls: "chat-with-btn" });
+        chatBtn.onclick = () => {
+          void this.openChatWithPerspective(perspKey, analysisContent);
+        };
+        card.createEl("p", { text: analysisContent });
+      }
+    }
+    if (Object.keys(this.analysis.groupSyntheses).length > 0) {
+      const synthesisSection = contentEl.createDiv({ cls: "analysis-section" });
+      synthesisSection.createEl("h3", { text: "Group syntheses" });
+      for (const [groupKey, content] of Object.entries(this.analysis.groupSyntheses)) {
+        const group = PERSPECTIVE_GROUPS[groupKey];
+        synthesisSection.createEl("h4", { text: (group == null ? void 0 : group.title) || groupKey });
+        synthesisSection.createEl("p", { text: content });
+      }
+    }
+    if (this.analysis.philosophicalReaccumulation) {
+      const philosophySection = contentEl.createDiv({ cls: "analysis-section" });
+      philosophySection.createEl("h3", { text: "Philosophy re-accumulation" });
+      philosophySection.createEl("p", { text: this.analysis.philosophicalReaccumulation });
     }
     if (this.analysis.authorMemorySummary) {
       const memorySection = contentEl.createDiv({ cls: "analysis-section" });
@@ -9084,17 +9291,20 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       await this.plugin.saveSettings();
       this.display();
     }));
-    for (const [key, persp] of Object.entries(PERSPECTIVES)) {
-      new import_obsidian.Setting(containerEl).setName(persp.title).setDesc(persp.description).addToggle((toggle) => toggle.setValue(this.plugin.settings.selectedPerspectives.includes(key)).onChange(async (value) => {
-        if (value) {
-          if (!this.plugin.settings.selectedPerspectives.includes(key)) {
-            this.plugin.settings.selectedPerspectives.push(key);
+    for (const [groupKey, group] of Object.entries(PERSPECTIVE_GROUPS)) {
+      new import_obsidian.Setting(containerEl).setName(group.title).setDesc(group.description).setHeading();
+      for (const [key, persp] of Object.entries(PERSPECTIVES).filter(([, perspective]) => perspective.group === groupKey)) {
+        new import_obsidian.Setting(containerEl).setName(persp.title).setDesc(persp.description).addToggle((toggle) => toggle.setValue(this.plugin.settings.selectedPerspectives.includes(key)).onChange(async (value) => {
+          if (value) {
+            if (!this.plugin.settings.selectedPerspectives.includes(key)) {
+              this.plugin.settings.selectedPerspectives.push(key);
+            }
+          } else {
+            this.plugin.settings.selectedPerspectives = this.plugin.settings.selectedPerspectives.filter((p) => p !== key);
           }
-        } else {
-          this.plugin.settings.selectedPerspectives = this.plugin.settings.selectedPerspectives.filter((p) => p !== key);
-        }
-        await this.plugin.saveSettings();
-      }));
+          await this.plugin.saveSettings();
+        }));
+      }
     }
   }
 };
