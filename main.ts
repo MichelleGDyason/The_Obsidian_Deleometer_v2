@@ -231,6 +231,7 @@ interface AnalysisPayload {
   philosophicalReaccumulation: string;
   authorMemorySummary: string;
   goalSuggestions: GoalSuggestion[];
+  analysisWarnings: string[];
 }
 interface GoalFileData {
   file: TFile;
@@ -287,6 +288,8 @@ interface ConversationMessage {
   role: 'user' | 'assistant';
   content: string;
 }
+
+type AnalysisProgressCallback = (message: string) => void | Promise<void>;
 
 export default class DeleometerPlugin extends Plugin {
   settings: DeleometerSettings;
@@ -391,7 +394,9 @@ export default class DeleometerPlugin extends Plugin {
     const content = editor.getValue();
     new Notice('Analyzing emotions with multiple perspectives...');
     try {
-      const analysis = await this.getMultiPerspectiveAnalysis(content);
+      const analysis = await this.getMultiPerspectiveAnalysis(content, (message) => {
+        new Notice(message);
+      });
       new AnalysisResultModal(this.app, this, analysis, content).open();
     } catch (error) {
       new Notice(this.getOpenAIErrorMessage(error, 'Error analyzing emotions'));
@@ -428,7 +433,7 @@ export default class DeleometerPlugin extends Plugin {
     }
   }
 
-  async getMultiPerspectiveAnalysis(content: string): Promise<AnalysisPayload> {
+  async getMultiPerspectiveAnalysis(content: string, onProgress?: AnalysisProgressCallback): Promise<AnalysisPayload> {
     if (!this.openai) throw new Error('OpenAI not initialized');
     const perspectives = this.settings.selectedPerspectives
       .map((key) => ({ key, perspective: PERSPECTIVES[key] }))
@@ -441,10 +446,12 @@ export default class DeleometerPlugin extends Plugin {
         groupSyntheses: {},
         philosophicalReaccumulation: '',
         authorMemorySummary: this.settings.authorMemorySummary,
-        goalSuggestions: []
+        goalSuggestions: [],
+        analysisWarnings: []
       };
     }
 
+    const analysisContent = await this.prepareJournalContentForAnalysis(content, onProgress);
     const selectedGroupKeys = [...new Set(perspectives.map(({ perspective }) => perspective.group))]
       .filter((groupKey) => PERSPECTIVE_GROUPS[groupKey]);
     const personalityContext = this.settings.personalityProfile
@@ -457,21 +464,50 @@ export default class DeleometerPlugin extends Plugin {
     const results: Record<string, string> = {};
     const furtherReadings: Record<string, string[]> = {};
     const groupSyntheses: Record<string, string> = {};
+    const analysisWarnings: string[] = [];
 
-    for (const groupKey of selectedGroupKeys) {
+    for (let groupIndex = 0; groupIndex < selectedGroupKeys.length; groupIndex += 1) {
+      const groupKey = selectedGroupKeys[groupIndex];
+      const group = PERSPECTIVE_GROUPS[groupKey];
       const groupPerspectives = perspectives.filter(({ perspective }) => perspective.group === groupKey);
-      const groupResult = await this.getGroupPerspectiveAnalysis(content, groupKey, groupPerspectives, personalityContext, authorMemoryContext, readerContext);
-      Object.assign(results, groupResult.perspectives);
-      Object.assign(furtherReadings, groupResult.furtherReadings);
-      if (groupResult.groupSynthesis) {
-        groupSyntheses[groupKey] = groupResult.groupSynthesis;
+      const groupChunks = this.chunkArray(groupPerspectives, 4);
+      const chunkSyntheses: string[] = [];
+
+      await onProgress?.(`Analyzing ${group?.title || groupKey} (${groupIndex + 1}/${selectedGroupKeys.length})...`);
+
+      for (let chunkIndex = 0; chunkIndex < groupChunks.length; chunkIndex += 1) {
+        const chunk = groupChunks[chunkIndex];
+        try {
+          await onProgress?.(`Analyzing ${group?.title || groupKey}, batch ${chunkIndex + 1}/${groupChunks.length}...`);
+          const groupResult = await this.getGroupPerspectiveAnalysis(analysisContent, groupKey, chunk, personalityContext, authorMemoryContext, readerContext);
+          Object.assign(results, groupResult.perspectives);
+          Object.assign(furtherReadings, groupResult.furtherReadings);
+          if (groupResult.groupSynthesis) {
+            chunkSyntheses.push(groupResult.groupSynthesis);
+          }
+        } catch (error) {
+          const warning = `${group?.title || groupKey} batch ${chunkIndex + 1} could not be generated: ${this.getErrorMessage(error)}`;
+          analysisWarnings.push(warning);
+          console.error(error);
+        }
+      }
+
+      if (chunkSyntheses.length > 0) {
+        groupSyntheses[groupKey] = chunkSyntheses.join('\n\n');
       }
 
       const missingPerspectives = groupPerspectives.filter(({ key }) => !results[key]);
       for (const item of missingPerspectives) {
-        const fallback = await this.getSingleGeneratedPerspectiveAnalysis(content, item.key, item.perspective, personalityContext, authorMemoryContext, readerContext);
-        if (fallback.analysis) results[item.key] = fallback.analysis;
-        if (fallback.furtherReadings.length > 0) furtherReadings[item.key] = fallback.furtherReadings;
+        try {
+          await onProgress?.(`Recovering omitted perspective: ${item.perspective.title}...`);
+          const fallback = await this.getSingleGeneratedPerspectiveAnalysis(analysisContent, item.key, item.perspective, personalityContext, authorMemoryContext, readerContext);
+          if (fallback.analysis) results[item.key] = fallback.analysis;
+          if (fallback.furtherReadings.length > 0) furtherReadings[item.key] = fallback.furtherReadings;
+        } catch (error) {
+          const warning = `${item.perspective.title} could not be generated: ${this.getErrorMessage(error)}`;
+          analysisWarnings.push(warning);
+          console.error(error);
+        }
       }
     }
 
@@ -479,7 +515,8 @@ export default class DeleometerPlugin extends Plugin {
       throw new Error('Analysis response did not include any usable perspectives');
     }
 
-    const synthesis = await this.getWholeAnalysisSynthesis(content, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext);
+    await onProgress?.('Synthesizing the full analysis and three proposed goals...');
+    const synthesis = await this.getWholeAnalysisSynthesis(analysisContent, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext);
     const authorMemorySummary = synthesis.authorMemorySummary || this.settings.authorMemorySummary;
 
     if (authorMemorySummary && authorMemorySummary !== this.settings.authorMemorySummary) {
@@ -493,8 +530,73 @@ export default class DeleometerPlugin extends Plugin {
       groupSyntheses,
       philosophicalReaccumulation: synthesis.philosophicalReaccumulation,
       authorMemorySummary,
-      goalSuggestions: synthesis.goalSuggestions
+      goalSuggestions: synthesis.goalSuggestions,
+      analysisWarnings
     };
+  }
+
+  chunkArray<T>(items: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+    for (let index = 0; index < items.length; index += size) {
+      chunks.push(items.slice(index, index + size));
+    }
+    return chunks;
+  }
+
+  async prepareJournalContentForAnalysis(content: string, onProgress?: AnalysisProgressCallback): Promise<string> {
+    if (!this.openai) throw new Error('OpenAI not initialized');
+    const maxDirectAnalysisChars = 12000;
+    if (content.length <= maxDirectAnalysisChars) return content;
+
+    await onProgress?.('Creating a compact analysis brief for this long journal entry...');
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        response_format: { type: 'json_object' },
+        max_tokens: 2500,
+        messages: [
+          {
+            role: 'system',
+            content: 'You prepare faithful analysis briefs for long journal entries. Return valid JSON only.'
+          },
+          {
+            role: 'user',
+            content:
+              `Create a compact but specific analysis brief for the journal entry below.\n\n` +
+              `Return JSON with key analysis_brief. The brief must preserve concrete events, images, emotional turns, voice, repeated phrases, conflicts, questions, material conditions, relationships, and possible stakes. Do not diagnose. Do not flatten the author's style.\n\n` +
+              `Journal entry:\n${content}`
+          }
+        ]
+      });
+      const rawContent = response.choices[0]?.message?.content;
+      if (!rawContent) throw new Error('No analysis brief returned');
+      const parsed = JSON.parse(rawContent) as Record<string, unknown>;
+      const brief = typeof parsed.analysis_brief === 'string' ? parsed.analysis_brief.trim() : '';
+      if (!brief) throw new Error('Analysis brief was empty');
+
+      return [
+        'Long journal entry analysis brief:',
+        brief,
+        '',
+        'Opening excerpt from the original entry:',
+        content.slice(0, 3000),
+        '',
+        'Closing excerpt from the original entry:',
+        content.slice(-3000)
+      ].join('\n');
+    } catch (error) {
+      console.error(error);
+      await onProgress?.('Could not create a long-entry brief; analyzing opening and closing excerpts instead...');
+      return [
+        'Long journal entry excerpted for analysis because compact briefing failed.',
+        '',
+        'Opening excerpt:',
+        content.slice(0, 6000),
+        '',
+        'Closing excerpt:',
+        content.slice(-6000)
+      ].join('\n');
+    }
   }
 
   getReaderContextPrompt(): string {
@@ -927,7 +1029,8 @@ export default class DeleometerPlugin extends Plugin {
         groupSyntheses: {},
         philosophicalReaccumulation: '',
         authorMemorySummary: '',
-        goalSuggestions: []
+        goalSuggestions: [],
+        analysisWarnings: []
       };
     }
 
@@ -973,8 +1076,17 @@ export default class DeleometerPlugin extends Plugin {
       groupSyntheses: {},
       philosophicalReaccumulation: '',
       authorMemorySummary: '',
-      goalSuggestions: []
+      goalSuggestions: [],
+      analysisWarnings: []
     };
+  }
+
+  getErrorMessage(error: unknown): string {
+    if (error && typeof error === 'object' && 'message' in error) {
+      const message = (error as { message?: unknown }).message;
+      if (typeof message === 'string' && message.trim()) return message.trim();
+    }
+    return 'Unknown error';
   }
 
   getOpenAIErrorMessage(error: unknown, fallback: string): string {
@@ -1928,6 +2040,19 @@ ${event.kind === 'goal_due'
     await this.ensurePerspectiveChatLinks(sourceFile, analysis);
   }
 
+  async writeAnalysisStatusToFile(sourceFile: TFile, status: string) {
+    const currentContent = await this.app.vault.read(sourceFile);
+    const analysisStart = this.findAnalysisSectionStart(currentContent);
+    const statusMarkdown = `\n\n---\n\n## 🔍 AI Analysis\n\n*Status: ${status}*\n\n`;
+
+    if (analysisStart !== -1) {
+      const cleaned = currentContent.slice(0, analysisStart).trimEnd();
+      await this.app.vault.modify(sourceFile, `${cleaned.trimEnd()}${statusMarkdown}`);
+    } else {
+      await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${statusMarkdown}`);
+    }
+  }
+
   buildAnalysisMarkdown(analysis: AnalysisPayload): string {
     let analysisMarkdown = '\n\n---\n\n## 🔍 AI Analysis\n\n';
     analysisMarkdown += `*Analyzed: ${new Date().toLocaleString()}*\n\n`;
@@ -1956,6 +2081,11 @@ ${event.kind === 'goal_due'
 
     if (analysis.philosophicalReaccumulation) {
       analysisMarkdown += `## Philosophy Re-accumulation\n\n${analysis.philosophicalReaccumulation}\n\n`;
+    }
+
+    if (analysis.analysisWarnings.length > 0) {
+      analysisMarkdown += `## Analysis Notes\n\n`;
+      analysisMarkdown += `${analysis.analysisWarnings.map((warning) => `- ${warning}`).join('\n')}\n\n`;
     }
 
     if (analysis.goalSuggestions.length > 0) {
@@ -2741,13 +2871,18 @@ ${this.content}
         }
         new Notice('Analyzing with multiple perspectives...');
         try {
+          await this.plugin.writeAnalysisStatusToFile(file, 'Analysis started. Longer entries can take several minutes.');
           const savedContent = await this.app.vault.read(file);
           const journalContent = this.plugin.stripFrontmatter(savedContent);
-          const analysis = await this.plugin.getMultiPerspectiveAnalysis(journalContent);
+          const analysis = await this.plugin.getMultiPerspectiveAnalysis(journalContent, async (message) => {
+            new Notice(message);
+            await this.plugin.writeAnalysisStatusToFile(file, message);
+          });
           await this.plugin.appendAnalysisToFile(file, analysis);
           new AnalysisResultModal(this.app, this.plugin, analysis, journalContent, file).open();
           new Notice('Analysis added to the note');
         } catch (error) {
+          await this.plugin.writeAnalysisStatusToFile(file, `Analysis could not be completed: ${this.plugin.getErrorMessage(error)}`);
           new Notice(this.plugin.getOpenAIErrorMessage(error, 'Error analyzing journal entry'));
           console.error(error);
         }
@@ -3308,6 +3443,15 @@ class AnalysisResultModal extends Modal {
       const philosophySection = contentEl.createDiv({ cls: 'analysis-section' });
       philosophySection.createEl('h3', { text: 'Philosophy re-accumulation' });
       philosophySection.createEl('p', { text: this.analysis.philosophicalReaccumulation });
+    }
+
+    if (this.analysis.analysisWarnings.length > 0) {
+      const warningSection = contentEl.createDiv({ cls: 'analysis-section' });
+      warningSection.createEl('h3', { text: 'Analysis notes' });
+      const warningList = warningSection.createEl('ul');
+      for (const warning of this.analysis.analysisWarnings) {
+        warningList.createEl('li', { text: warning });
+      }
     }
 
     if (this.analysis.authorMemorySummary) {

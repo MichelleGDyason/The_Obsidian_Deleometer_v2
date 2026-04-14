@@ -6727,7 +6727,9 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     const content = editor.getValue();
     new import_obsidian.Notice("Analyzing emotions with multiple perspectives...");
     try {
-      const analysis = await this.getMultiPerspectiveAnalysis(content);
+      const analysis = await this.getMultiPerspectiveAnalysis(content, (message) => {
+        new import_obsidian.Notice(message);
+      });
       new AnalysisResultModal(this.app, this, analysis, content).open();
     } catch (error) {
       new import_obsidian.Notice(this.getOpenAIErrorMessage(error, "Error analyzing emotions"));
@@ -6760,7 +6762,7 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
       console.error(error);
     }
   }
-  async getMultiPerspectiveAnalysis(content) {
+  async getMultiPerspectiveAnalysis(content, onProgress) {
     if (!this.openai)
       throw new Error("OpenAI not initialized");
     const perspectives = this.settings.selectedPerspectives.map((key) => ({ key, perspective: PERSPECTIVES[key] })).filter((item) => item.perspective);
@@ -6771,9 +6773,11 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
         groupSyntheses: {},
         philosophicalReaccumulation: "",
         authorMemorySummary: this.settings.authorMemorySummary,
-        goalSuggestions: []
+        goalSuggestions: [],
+        analysisWarnings: []
       };
     }
+    const analysisContent = await this.prepareJournalContentForAnalysis(content, onProgress);
     const selectedGroupKeys = [...new Set(perspectives.map(({ perspective }) => perspective.group))].filter((groupKey) => PERSPECTIVE_GROUPS[groupKey]);
     const personalityContext = this.settings.personalityProfile ? `Personality profile:
 - Type: ${this.settings.personalityProfile.psychological_type}
@@ -6785,27 +6789,54 @@ ${this.settings.authorMemorySummary}` : "Existing author memory summary: none ye
     const results = {};
     const furtherReadings = {};
     const groupSyntheses = {};
-    for (const groupKey of selectedGroupKeys) {
+    const analysisWarnings = [];
+    for (let groupIndex = 0; groupIndex < selectedGroupKeys.length; groupIndex += 1) {
+      const groupKey = selectedGroupKeys[groupIndex];
+      const group = PERSPECTIVE_GROUPS[groupKey];
       const groupPerspectives = perspectives.filter(({ perspective }) => perspective.group === groupKey);
-      const groupResult = await this.getGroupPerspectiveAnalysis(content, groupKey, groupPerspectives, personalityContext, authorMemoryContext, readerContext);
-      Object.assign(results, groupResult.perspectives);
-      Object.assign(furtherReadings, groupResult.furtherReadings);
-      if (groupResult.groupSynthesis) {
-        groupSyntheses[groupKey] = groupResult.groupSynthesis;
+      const groupChunks = this.chunkArray(groupPerspectives, 4);
+      const chunkSyntheses = [];
+      await (onProgress == null ? void 0 : onProgress(`Analyzing ${(group == null ? void 0 : group.title) || groupKey} (${groupIndex + 1}/${selectedGroupKeys.length})...`));
+      for (let chunkIndex = 0; chunkIndex < groupChunks.length; chunkIndex += 1) {
+        const chunk = groupChunks[chunkIndex];
+        try {
+          await (onProgress == null ? void 0 : onProgress(`Analyzing ${(group == null ? void 0 : group.title) || groupKey}, batch ${chunkIndex + 1}/${groupChunks.length}...`));
+          const groupResult = await this.getGroupPerspectiveAnalysis(analysisContent, groupKey, chunk, personalityContext, authorMemoryContext, readerContext);
+          Object.assign(results, groupResult.perspectives);
+          Object.assign(furtherReadings, groupResult.furtherReadings);
+          if (groupResult.groupSynthesis) {
+            chunkSyntheses.push(groupResult.groupSynthesis);
+          }
+        } catch (error) {
+          const warning = `${(group == null ? void 0 : group.title) || groupKey} batch ${chunkIndex + 1} could not be generated: ${this.getErrorMessage(error)}`;
+          analysisWarnings.push(warning);
+          console.error(error);
+        }
+      }
+      if (chunkSyntheses.length > 0) {
+        groupSyntheses[groupKey] = chunkSyntheses.join("\n\n");
       }
       const missingPerspectives = groupPerspectives.filter(({ key }) => !results[key]);
       for (const item of missingPerspectives) {
-        const fallback = await this.getSingleGeneratedPerspectiveAnalysis(content, item.key, item.perspective, personalityContext, authorMemoryContext, readerContext);
-        if (fallback.analysis)
-          results[item.key] = fallback.analysis;
-        if (fallback.furtherReadings.length > 0)
-          furtherReadings[item.key] = fallback.furtherReadings;
+        try {
+          await (onProgress == null ? void 0 : onProgress(`Recovering omitted perspective: ${item.perspective.title}...`));
+          const fallback = await this.getSingleGeneratedPerspectiveAnalysis(analysisContent, item.key, item.perspective, personalityContext, authorMemoryContext, readerContext);
+          if (fallback.analysis)
+            results[item.key] = fallback.analysis;
+          if (fallback.furtherReadings.length > 0)
+            furtherReadings[item.key] = fallback.furtherReadings;
+        } catch (error) {
+          const warning = `${item.perspective.title} could not be generated: ${this.getErrorMessage(error)}`;
+          analysisWarnings.push(warning);
+          console.error(error);
+        }
       }
     }
     if (Object.keys(results).length === 0) {
       throw new Error("Analysis response did not include any usable perspectives");
     }
-    const synthesis = await this.getWholeAnalysisSynthesis(content, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext);
+    await (onProgress == null ? void 0 : onProgress("Synthesizing the full analysis and three proposed goals..."));
+    const synthesis = await this.getWholeAnalysisSynthesis(analysisContent, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext);
     const authorMemorySummary = synthesis.authorMemorySummary || this.settings.authorMemorySummary;
     if (authorMemorySummary && authorMemorySummary !== this.settings.authorMemorySummary) {
       this.settings.authorMemorySummary = authorMemorySummary;
@@ -6817,8 +6848,76 @@ ${this.settings.authorMemorySummary}` : "Existing author memory summary: none ye
       groupSyntheses,
       philosophicalReaccumulation: synthesis.philosophicalReaccumulation,
       authorMemorySummary,
-      goalSuggestions: synthesis.goalSuggestions
+      goalSuggestions: synthesis.goalSuggestions,
+      analysisWarnings
     };
+  }
+  chunkArray(items, size) {
+    const chunks = [];
+    for (let index = 0; index < items.length; index += size) {
+      chunks.push(items.slice(index, index + size));
+    }
+    return chunks;
+  }
+  async prepareJournalContentForAnalysis(content, onProgress) {
+    var _a2, _b;
+    if (!this.openai)
+      throw new Error("OpenAI not initialized");
+    const maxDirectAnalysisChars = 12e3;
+    if (content.length <= maxDirectAnalysisChars)
+      return content;
+    await (onProgress == null ? void 0 : onProgress("Creating a compact analysis brief for this long journal entry..."));
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        response_format: { type: "json_object" },
+        max_tokens: 2500,
+        messages: [
+          {
+            role: "system",
+            content: "You prepare faithful analysis briefs for long journal entries. Return valid JSON only."
+          },
+          {
+            role: "user",
+            content: `Create a compact but specific analysis brief for the journal entry below.
+
+Return JSON with key analysis_brief. The brief must preserve concrete events, images, emotional turns, voice, repeated phrases, conflicts, questions, material conditions, relationships, and possible stakes. Do not diagnose. Do not flatten the author's style.
+
+Journal entry:
+${content}`
+          }
+        ]
+      });
+      const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
+      if (!rawContent)
+        throw new Error("No analysis brief returned");
+      const parsed = JSON.parse(rawContent);
+      const brief = typeof parsed.analysis_brief === "string" ? parsed.analysis_brief.trim() : "";
+      if (!brief)
+        throw new Error("Analysis brief was empty");
+      return [
+        "Long journal entry analysis brief:",
+        brief,
+        "",
+        "Opening excerpt from the original entry:",
+        content.slice(0, 3e3),
+        "",
+        "Closing excerpt from the original entry:",
+        content.slice(-3e3)
+      ].join("\n");
+    } catch (error) {
+      console.error(error);
+      await (onProgress == null ? void 0 : onProgress("Could not create a long-entry brief; analyzing opening and closing excerpts instead..."));
+      return [
+        "Long journal entry excerpted for analysis because compact briefing failed.",
+        "",
+        "Opening excerpt:",
+        content.slice(0, 6e3),
+        "",
+        "Closing excerpt:",
+        content.slice(-6e3)
+      ].join("\n");
+    }
   }
   getReaderContextPrompt() {
     const level = ZPD_LEVELS[this.settings.zpdLevel] || ZPD_LEVELS.tertiary_year_2;
@@ -7183,7 +7282,8 @@ ${journalContext}`
         groupSyntheses: {},
         philosophicalReaccumulation: "",
         authorMemorySummary: "",
-        goalSuggestions: []
+        goalSuggestions: [],
+        analysisWarnings: []
       };
     }
     const analysisSection = content.slice(analysisStart);
@@ -7216,8 +7316,17 @@ ${journalContext}`
       groupSyntheses: {},
       philosophicalReaccumulation: "",
       authorMemorySummary: "",
-      goalSuggestions: []
+      goalSuggestions: [],
+      analysisWarnings: []
     };
+  }
+  getErrorMessage(error) {
+    if (error && typeof error === "object" && "message" in error) {
+      const message = error.message;
+      if (typeof message === "string" && message.trim())
+        return message.trim();
+    }
+    return "Unknown error";
   }
   getOpenAIErrorMessage(error, fallback) {
     if (error && typeof error === "object") {
@@ -8008,6 +8117,25 @@ ${chatBlock}
     }
     await this.ensurePerspectiveChatLinks(sourceFile, analysis);
   }
+  async writeAnalysisStatusToFile(sourceFile, status) {
+    const currentContent = await this.app.vault.read(sourceFile);
+    const analysisStart = this.findAnalysisSectionStart(currentContent);
+    const statusMarkdown = `
+
+---
+
+## \u{1F50D} AI Analysis
+
+*Status: ${status}*
+
+`;
+    if (analysisStart !== -1) {
+      const cleaned = currentContent.slice(0, analysisStart).trimEnd();
+      await this.app.vault.modify(sourceFile, `${cleaned.trimEnd()}${statusMarkdown}`);
+    } else {
+      await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${statusMarkdown}`);
+    }
+  }
   buildAnalysisMarkdown(analysis) {
     var _a2;
     let analysisMarkdown = "\n\n---\n\n## \u{1F50D} AI Analysis\n\n";
@@ -8054,6 +8182,14 @@ ${content}
       analysisMarkdown += `## Philosophy Re-accumulation
 
 ${analysis.philosophicalReaccumulation}
+
+`;
+    }
+    if (analysis.analysisWarnings.length > 0) {
+      analysisMarkdown += `## Analysis Notes
+
+`;
+      analysisMarkdown += `${analysis.analysisWarnings.map((warning) => `- ${warning}`).join("\n")}
 
 `;
     }
@@ -8863,13 +8999,18 @@ ${this.content}
         }
         new import_obsidian.Notice("Analyzing with multiple perspectives...");
         try {
+          await this.plugin.writeAnalysisStatusToFile(file, "Analysis started. Longer entries can take several minutes.");
           const savedContent = await this.app.vault.read(file);
           const journalContent = this.plugin.stripFrontmatter(savedContent);
-          const analysis = await this.plugin.getMultiPerspectiveAnalysis(journalContent);
+          const analysis = await this.plugin.getMultiPerspectiveAnalysis(journalContent, async (message) => {
+            new import_obsidian.Notice(message);
+            await this.plugin.writeAnalysisStatusToFile(file, message);
+          });
           await this.plugin.appendAnalysisToFile(file, analysis);
           new AnalysisResultModal(this.app, this.plugin, analysis, journalContent, file).open();
           new import_obsidian.Notice("Analysis added to the note");
         } catch (error) {
+          await this.plugin.writeAnalysisStatusToFile(file, `Analysis could not be completed: ${this.plugin.getErrorMessage(error)}`);
           new import_obsidian.Notice(this.plugin.getOpenAIErrorMessage(error, "Error analyzing journal entry"));
           console.error(error);
         }
@@ -9392,6 +9533,14 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
       const philosophySection = contentEl.createDiv({ cls: "analysis-section" });
       philosophySection.createEl("h3", { text: "Philosophy re-accumulation" });
       philosophySection.createEl("p", { text: this.analysis.philosophicalReaccumulation });
+    }
+    if (this.analysis.analysisWarnings.length > 0) {
+      const warningSection = contentEl.createDiv({ cls: "analysis-section" });
+      warningSection.createEl("h3", { text: "Analysis notes" });
+      const warningList = warningSection.createEl("ul");
+      for (const warning of this.analysis.analysisWarnings) {
+        warningList.createEl("li", { text: warning });
+      }
     }
     if (this.analysis.authorMemorySummary) {
       const memorySection = contentEl.createDiv({ cls: "analysis-section" });
