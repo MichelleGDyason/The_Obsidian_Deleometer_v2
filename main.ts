@@ -461,6 +461,7 @@ export default class DeleometerPlugin extends Plugin {
       ? `Existing author memory summary:\n${this.settings.authorMemorySummary}`
       : 'Existing author memory summary: none yet';
     const readerContext = this.getReaderContextPrompt();
+    const dateContext = this.getLocalDateContext();
     const results: Record<string, string> = {};
     const furtherReadings: Record<string, string[]> = {};
     const groupSyntheses: Record<string, string> = {};
@@ -516,7 +517,7 @@ export default class DeleometerPlugin extends Plugin {
     }
 
     await onProgress?.('Synthesizing the full analysis and three proposed goals...');
-    const synthesis = await this.getWholeAnalysisSynthesis(analysisContent, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext);
+    const synthesis = await this.getWholeAnalysisSynthesis(analysisContent, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext, dateContext);
     const authorMemorySummary = synthesis.authorMemorySummary || this.settings.authorMemorySummary;
 
     if (authorMemorySummary && authorMemorySummary !== this.settings.authorMemorySummary) {
@@ -602,6 +603,17 @@ export default class DeleometerPlugin extends Plugin {
   getReaderContextPrompt(): string {
     const level = ZPD_LEVELS[this.settings.zpdLevel] || ZPD_LEVELS.tertiary_year_2;
     return `Reader zone of proximal development: ${level.label}. ${level.prompt}`;
+  }
+
+  getLocalDateContext(): string {
+    const now = new Date();
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'local timezone';
+    return [
+      `Current local date: ${this.formatDateOnly(now)}`,
+      `Current local date and time: ${now.toLocaleString()}`,
+      `User timezone: ${timezone}`,
+      'All generated goal targetDate values must be in YYYY-MM-DD format and must be today or a future date in the user timezone. Do not use dates before the current local date.'
+    ].join('\n');
   }
 
   async getGroupPerspectiveAnalysis(
@@ -743,7 +755,8 @@ export default class DeleometerPlugin extends Plugin {
     groupSyntheses: Record<string, string>,
     personalityContext: string,
     authorMemoryContext: string,
-    readerContext: string
+    readerContext: string,
+    dateContext: string
   ): Promise<{ philosophicalReaccumulation: string; authorMemorySummary: string; goalSuggestions: GoalSuggestion[] }> {
     if (!this.openai) throw new Error('OpenAI not initialized');
     const groupList = selectedGroupKeys
@@ -769,8 +782,8 @@ export default class DeleometerPlugin extends Plugin {
             `Return JSON with exactly these keys:\n` +
             `- philosophical_reaccumulation: 360-520 words. Iteratively recombine the group syntheses into Philosophy as the first discipline. Treat this as an archeo-genealogical recombination of subdisciplines, theories, and analyses into an overarching philosophical orientation. Include interpretation, critique, implications, likely outcomes, further steps, and imaginative futures.\n` +
             `- author_memory_summary: under 220 words, updating enduring patterns, strengths, values, risks, supports, and recurring concerns.\n` +
-            `- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(', ')}. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.\n\n` +
-            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n` +
+            `- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(', ')}. targetDate must be YYYY-MM-DD and must be today or later in the user's timezone. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.\n\n` +
+            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${dateContext}\n\n` +
             `Group syntheses:\n${groupList}\n\n` +
             `Individual analysis excerpts:\n${perspectiveSummaries}\n\n` +
             `Journal entry:\n${content}`
@@ -806,9 +819,10 @@ export default class DeleometerPlugin extends Plugin {
         const category = typeof suggestion.category === 'string' && GOAL_CATEGORIES[suggestion.category]
           ? suggestion.category
           : 'personal_growth';
-        const targetDate = typeof suggestion.targetDate === 'string' && suggestion.targetDate.trim()
+        const rawTargetDate = typeof suggestion.targetDate === 'string' && suggestion.targetDate.trim()
           ? suggestion.targetDate.trim()
           : '';
+        const targetDate = this.isUsableGoalTargetDate(rawTargetDate) ? rawTargetDate : '';
         const milestones = Array.isArray(suggestion.milestones)
           ? suggestion.milestones.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
           : [];
@@ -1298,6 +1312,13 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join('\n') || '- [ ] 
 
   isValidDateString(value: unknown): value is string {
     return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim());
+  }
+
+  isUsableGoalTargetDate(value: string): boolean {
+    if (!this.isValidDateString(value)) return false;
+    const today = this.parseDateOnly(this.formatDateOnly(new Date()));
+    const target = this.parseDateOnly(value);
+    return target.getTime() >= today.getTime();
   }
 
   parseDateOnly(value: string): Date {

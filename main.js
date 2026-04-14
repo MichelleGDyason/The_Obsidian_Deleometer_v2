@@ -6786,6 +6786,7 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     const authorMemoryContext = this.settings.authorMemorySummary ? `Existing author memory summary:
 ${this.settings.authorMemorySummary}` : "Existing author memory summary: none yet";
     const readerContext = this.getReaderContextPrompt();
+    const dateContext = this.getLocalDateContext();
     const results = {};
     const furtherReadings = {};
     const groupSyntheses = {};
@@ -6836,7 +6837,7 @@ ${this.settings.authorMemorySummary}` : "Existing author memory summary: none ye
       throw new Error("Analysis response did not include any usable perspectives");
     }
     await (onProgress == null ? void 0 : onProgress("Synthesizing the full analysis and three proposed goals..."));
-    const synthesis = await this.getWholeAnalysisSynthesis(analysisContent, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext);
+    const synthesis = await this.getWholeAnalysisSynthesis(analysisContent, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext, dateContext);
     const authorMemorySummary = synthesis.authorMemorySummary || this.settings.authorMemorySummary;
     if (authorMemorySummary && authorMemorySummary !== this.settings.authorMemorySummary) {
       this.settings.authorMemorySummary = authorMemorySummary;
@@ -6922,6 +6923,16 @@ ${content}`
   getReaderContextPrompt() {
     const level = ZPD_LEVELS[this.settings.zpdLevel] || ZPD_LEVELS.tertiary_year_2;
     return `Reader zone of proximal development: ${level.label}. ${level.prompt}`;
+  }
+  getLocalDateContext() {
+    const now = new Date();
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "local timezone";
+    return [
+      `Current local date: ${this.formatDateOnly(now)}`,
+      `Current local date and time: ${now.toLocaleString()}`,
+      `User timezone: ${timezone}`,
+      "All generated goal targetDate values must be in YYYY-MM-DD format and must be today or a future date in the user timezone. Do not use dates before the current local date."
+    ].join("\n");
   }
   async getGroupPerspectiveAnalysis(content, groupKey, perspectives, personalityContext, authorMemoryContext, readerContext) {
     var _a2, _b;
@@ -7038,7 +7049,7 @@ ${content}`
     const furtherReadings = Array.isArray(parsed.further_readings) ? parsed.further_readings.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 5) : [];
     return { analysis, furtherReadings };
   }
-  async getWholeAnalysisSynthesis(content, selectedGroupKeys, perspectives, groupSyntheses, personalityContext, authorMemoryContext, readerContext) {
+  async getWholeAnalysisSynthesis(content, selectedGroupKeys, perspectives, groupSyntheses, personalityContext, authorMemoryContext, readerContext, dateContext) {
     var _a2, _b;
     if (!this.openai)
       throw new Error("OpenAI not initialized");
@@ -7064,13 +7075,15 @@ ${groupSyntheses[groupKey] || "No group synthesis returned."}`;
 Return JSON with exactly these keys:
 - philosophical_reaccumulation: 360-520 words. Iteratively recombine the group syntheses into Philosophy as the first discipline. Treat this as an archeo-genealogical recombination of subdisciplines, theories, and analyses into an overarching philosophical orientation. Include interpretation, critique, implications, likely outcomes, further steps, and imaginative futures.
 - author_memory_summary: under 220 words, updating enduring patterns, strengths, values, risks, supports, and recurring concerns.
-- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(", ")}. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.
+- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(", ")}. targetDate must be YYYY-MM-DD and must be today or later in the user's timezone. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.
 
 ${personalityContext}
 
 ${authorMemoryContext}
 
 ${readerContext}
+
+${dateContext}
 
 Group syntheses:
 ${groupList}
@@ -7103,7 +7116,8 @@ ${content}`
       if (!title || !description)
         return null;
       const category = typeof suggestion.category === "string" && GOAL_CATEGORIES[suggestion.category] ? suggestion.category : "personal_growth";
-      const targetDate = typeof suggestion.targetDate === "string" && suggestion.targetDate.trim() ? suggestion.targetDate.trim() : "";
+      const rawTargetDate = typeof suggestion.targetDate === "string" && suggestion.targetDate.trim() ? suggestion.targetDate.trim() : "";
+      const targetDate = this.isUsableGoalTargetDate(rawTargetDate) ? rawTargetDate : "";
       const milestones = Array.isArray(suggestion.milestones) ? suggestion.milestones.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean) : [];
       const sourcePerspectives = Array.isArray(suggestion.sourcePerspectives) ? suggestion.sourcePerspectives.filter((item) => typeof item === "string").filter((item) => !!PERSPECTIVES[item]) : [];
       return { title, description, category, targetDate, milestones, sourcePerspectives };
@@ -7499,6 +7513,13 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
   }
   isValidDateString(value) {
     return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.trim());
+  }
+  isUsableGoalTargetDate(value) {
+    if (!this.isValidDateString(value))
+      return false;
+    const today = this.parseDateOnly(this.formatDateOnly(new Date()));
+    const target = this.parseDateOnly(value);
+    return target.getTime() >= today.getTime();
   }
   parseDateOnly(value) {
     return new Date(`${value}T00:00:00`);
