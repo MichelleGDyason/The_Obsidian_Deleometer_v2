@@ -6453,7 +6453,7 @@ var PERSPECTIVE_GROUPS = {
   }
 };
 var PERSPECTIVES = {
-  aristotle_argonic_teachings: { title: "Aristotle's Argonic Teachings", description: "Purpose, function, virtue, practical wisdom, and flourishing", group: PHILOSOPHY_GROUP_KEY },
+  aristotle_argonic_teachings: { title: "Aristotle's Argonic Teachings", description: "Rhetoric, demonstration, causes, material conditions, practical judgment, virtue, persuasion, and action", group: PHILOSOPHY_GROUP_KEY },
   platonic_perspective: { title: "Platonic Philosophy", description: "Forms, dialectic, eros, education, justice, and ascent toward truth", group: PHILOSOPHY_GROUP_KEY },
   spinoza_theologic_ethico_perspective: { title: "Spinoza's Theologic-Ethico Philosophy", description: "Immanence, affect, necessity, freedom, substance, and ethical life", group: PHILOSOPHY_GROUP_KEY },
   bible_teachings_perspective: { title: "Bible Teachings", description: "Wisdom, covenant, prophecy, parable, care, justice, and spiritual discernment", group: PHILOSOPHY_GROUP_KEY },
@@ -6468,6 +6468,7 @@ var PERSPECTIVES = {
   nietzschean_perspective: { title: "Nietzschean Philosophy", description: "Will to power, values, and self-overcoming", group: PHILOSOPHY_GROUP_KEY },
   stoicism_perspective: { title: "Stoic Philosophy", description: "Virtue, acceptance, and inner peace", group: PHILOSOPHY_GROUP_KEY },
   hermeneutics_perspective: { title: "Hermeneutics", description: "Interpretation and understanding", group: PHILOSOPHY_GROUP_KEY },
+  topological_analysis: { title: "Topological Analysis", description: "Relations, surfaces, thresholds, folds, nearness, boundaries, and spatial transformations of meaning", group: PHILOSOPHY_GROUP_KEY },
   foucaultian_analysis: { title: "Foucaultian Analysis", description: "Power, discourse, discipline, subject formation, and historical conditions of truth", group: "archeo_genealogical_deconstruction" },
   derridian_analysis: { title: "Derridian Analysis", description: "Deconstruction, differance, trace, supplement, undecidability, and textual instability", group: "archeo_genealogical_deconstruction" },
   zizekian_analysis: { title: "\u017Di\u017Eekian Analysis", description: "Ideology, fantasy, contradiction, enjoyment, subjectivity, and the Real", group: "archeo_genealogical_deconstruction" },
@@ -6502,6 +6503,7 @@ var PERSPECTIVES = {
   fat_studies: { title: "Fat Studies", description: "Anti-fat bias, embodiment, health norms, stigma, access, and fat liberation", group: "race_coloniality_embodiment" },
   narrative_psychology_perspective: { title: "Narrative Psychology", description: "Life stories and meaning-making", group: "narrative_media_frame" },
   creative_nonfiction_perspective: { title: "Creative Non-Fiction", description: "Scene, voice, witness, memory, essaying, and truthful narrative craft", group: "narrative_media_frame" },
+  idiotextual_analysis: { title: "Idiotextual Analysis", description: "The singular texture of a text: idiosyncratic voice, private idiom, recurring phrases, and self-made meanings", group: "narrative_media_frame" },
   media_studies: { title: "Media Studies", description: "Platforms, mediation, publics, representation, attention, circulation, and media power", group: "narrative_media_frame" },
   frame_analysis: { title: "Frame Analysis", description: "Interpretive frames, salience, boundaries, alignment, and meaning organization", group: "narrative_media_frame" },
   goffman_frame_analysis: { title: "Erving Goffman's Frame Analysis", description: "Interaction order, presentation of self, keyed events, footing, and everyday frames", group: "narrative_media_frame" },
@@ -6580,6 +6582,32 @@ var ENTRY_TYPES = {
   breakthrough_moment: "Breakthrough moment",
   free_form: "Free form"
 };
+var ZPD_LEVELS = {
+  primary_year_5: {
+    label: "Grade 5 primary student",
+    prompt: "Write for a curious Grade 5 primary student. Use plain everyday language, explain every key term, and gently stretch the reader one step beyond what a beginner would know."
+  },
+  secondary_year_5: {
+    label: "Year 5 secondary student",
+    prompt: "Write for a Year 5 secondary student. Use clear school-level explanations, define specialist terms, and connect abstractions to concrete examples from the journal entry."
+  },
+  tertiary_year_2: {
+    label: "Second-year tertiary student",
+    prompt: "Write for a second-year tertiary student. Teach the frame carefully, define key terms in context, and show how the interpretation was built from details in the journal entry."
+  },
+  postgraduate: {
+    label: "Postgraduate",
+    prompt: "Write for a postgraduate reader. Use disciplinary vocabulary, but still gloss key terms and make the interpretive method explicit."
+  },
+  postdoc: {
+    label: "Postdoc",
+    prompt: "Write for a postdoctoral reader. Permit technical nuance and methodological density while still explaining how each claim follows from the journal entry."
+  },
+  professor: {
+    label: "Professor",
+    prompt: "Write for a professor. Use advanced theoretical language, but avoid name-dropping without interpretation and make the transdisciplinary stakes explicit."
+  }
+};
 var DEFAULT_SETTINGS = {
   openaiApiKey: "",
   journalFolder: "Deleometer/Journal",
@@ -6588,6 +6616,7 @@ var DEFAULT_SETTINGS = {
   fullCalendarFolder: "Deleometer",
   autoSyncGoalsToFullCalendar: true,
   selectedPerspectives: Object.keys(PERSPECTIVES),
+  zpdLevel: "tertiary_year_2",
   personalityProfile: null,
   authorMemorySummary: ""
 };
@@ -6732,13 +6761,13 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     }
   }
   async getMultiPerspectiveAnalysis(content) {
-    var _a2, _b;
     if (!this.openai)
       throw new Error("OpenAI not initialized");
     const perspectives = this.settings.selectedPerspectives.map((key) => ({ key, perspective: PERSPECTIVES[key] })).filter((item) => item.perspective);
     if (perspectives.length === 0) {
       return {
         perspectives: {},
+        furtherReadings: {},
         groupSyntheses: {},
         philosophicalReaccumulation: "",
         authorMemorySummary: this.settings.authorMemorySummary,
@@ -6746,45 +6775,98 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
       };
     }
     const selectedGroupKeys = [...new Set(perspectives.map(({ perspective }) => perspective.group))].filter((groupKey) => PERSPECTIVE_GROUPS[groupKey]);
-    const perspectiveList = perspectives.map(({ key, perspective }) => {
-      var _a3;
-      const groupTitle = ((_a3 = PERSPECTIVE_GROUPS[perspective.group]) == null ? void 0 : _a3.title) || perspective.group;
-      return `- ${key}: ${perspective.title} [${groupTitle}] - ${perspective.description}`;
-    }).join("\n");
-    const groupList = selectedGroupKeys.map((groupKey) => `- ${groupKey}: ${PERSPECTIVE_GROUPS[groupKey].title} - ${PERSPECTIVE_GROUPS[groupKey].description}`).join("\n");
     const personalityContext = this.settings.personalityProfile ? `Personality profile:
 - Type: ${this.settings.personalityProfile.psychological_type}
 - Dominant traits: ${this.settings.personalityProfile.dominant_traits.join(", ")}
 - Growth areas: ${this.settings.personalityProfile.growth_areas.join(", ")}` : "Personality profile: unavailable";
     const authorMemoryContext = this.settings.authorMemorySummary ? `Existing author memory summary:
 ${this.settings.authorMemorySummary}` : "Existing author memory summary: none yet";
+    const readerContext = this.getReaderContextPrompt();
+    const results = {};
+    const furtherReadings = {};
+    const groupSyntheses = {};
+    for (const groupKey of selectedGroupKeys) {
+      const groupPerspectives = perspectives.filter(({ perspective }) => perspective.group === groupKey);
+      const groupResult = await this.getGroupPerspectiveAnalysis(content, groupKey, groupPerspectives, personalityContext, authorMemoryContext, readerContext);
+      Object.assign(results, groupResult.perspectives);
+      Object.assign(furtherReadings, groupResult.furtherReadings);
+      if (groupResult.groupSynthesis) {
+        groupSyntheses[groupKey] = groupResult.groupSynthesis;
+      }
+      const missingPerspectives = groupPerspectives.filter(({ key }) => !results[key]);
+      for (const item of missingPerspectives) {
+        const fallback = await this.getSingleGeneratedPerspectiveAnalysis(content, item.key, item.perspective, personalityContext, authorMemoryContext, readerContext);
+        if (fallback.analysis)
+          results[item.key] = fallback.analysis;
+        if (fallback.furtherReadings.length > 0)
+          furtherReadings[item.key] = fallback.furtherReadings;
+      }
+    }
+    if (Object.keys(results).length === 0) {
+      throw new Error("Analysis response did not include any usable perspectives");
+    }
+    const synthesis = await this.getWholeAnalysisSynthesis(content, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext);
+    const authorMemorySummary = synthesis.authorMemorySummary || this.settings.authorMemorySummary;
+    if (authorMemorySummary && authorMemorySummary !== this.settings.authorMemorySummary) {
+      this.settings.authorMemorySummary = authorMemorySummary;
+      await this.saveSettings();
+    }
+    return {
+      perspectives: results,
+      furtherReadings,
+      groupSyntheses,
+      philosophicalReaccumulation: synthesis.philosophicalReaccumulation,
+      authorMemorySummary,
+      goalSuggestions: synthesis.goalSuggestions
+    };
+  }
+  getReaderContextPrompt() {
+    const level = ZPD_LEVELS[this.settings.zpdLevel] || ZPD_LEVELS.tertiary_year_2;
+    return `Reader zone of proximal development: ${level.label}. ${level.prompt}`;
+  }
+  async getGroupPerspectiveAnalysis(content, groupKey, perspectives, personalityContext, authorMemoryContext, readerContext) {
+    var _a2, _b;
+    if (!this.openai)
+      throw new Error("OpenAI not initialized");
+    const group = PERSPECTIVE_GROUPS[groupKey];
+    const perspectiveList = perspectives.map(({ key, perspective }) => `- ${key}: ${perspective.title} - ${perspective.description}`).join("\n");
     const response = await this.openai.chat.completions.create({
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
+      max_tokens: 12e3,
       messages: [
         {
           role: "system",
-          content: "You are an empathetic interdisciplinary analysis assistant. Return valid JSON only. Produce concise, useful outputs that can be shown directly in an app."
+          content: "You are an empathetic interdisciplinary analysis assistant. Return valid JSON only. Teach the analytic frame instead of name-dropping it. Produce useful outputs that can be shown directly in an app."
         },
         {
           role: "user",
-          content: `Analyze the following journal entry from each requested perspective.
+          content: `Analyze the journal entry from every requested perspective in this group.
 
 Return JSON with exactly these top-level keys:
-- perspectives: an object where each key is the exact perspective key and each value is a string under 120 words with insight, emotional interpretation, and one practical next step.
-- group_syntheses: an object where each key is the exact group key and each value is a string under 170 words. First synthesize the outputs of the perspectives inside that group after they have been individually explicated.
-- philosophical_reaccumulation: a string under 240 words that iteratively recombines the group syntheses into Philosophy as the first discipline. Treat this as an archeo-genealogical recombination of subdisciplines, theories, and analyses into an overarching philosophical orientation.
-- author_memory_summary: a compact summary under 180 words describing enduring patterns, recurring concerns, strengths, values, and helpful supports for the journal author. Update the existing memory rather than repeating temporary details.
-- goal_suggestions: an array of 0-5 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(", ")}. milestones must be an array of short strings. sourcePerspectives must be an array of the perspective keys that informed the goal.
+- perspectives: an object where each key is the exact perspective key and each value is a string of 220-360 words.
+- further_readings: an object where each key is the exact perspective key and each value is an array of 3-5 reading suggestions. Each suggestion should name an author and work, then briefly say why it helps with this frame.
+- group_synthesis: a string of 260-420 words that synthesizes this group's individual analyses after they have all been explicated.
+
+For each perspective:
+- create a synthetic interpretation of the entry through that frame, not a generic psychological reading.
+- explain key terms in reader-friendly language and show how the interpretation was built from details, voice, images, tensions, or omissions in the entry.
+- include interpretation, implication, likely outcome if the pattern continues, and a precise next step.
+- empower the author, but also offer a fair critique where the frame warrants it.
+- when a phrase like "pathway", "practice", "boundary", or "agency" appears, explain what it means materially and practically.
+- for Aristotle, include Rhetoric where relevant: ethos, pathos, logos, audience, persuasion, demonstration, causes, practical judgment, material conditions, and action.
+- for Plato, avoid broad Platonism; show the specific dialectical movement, image, desire, education, appearance, or form being used.
+- avoid stopping early. Return one complete individual analysis for every requested key.
 
 ${personalityContext}
 
 ${authorMemoryContext}
 
-Perspective groups:
-${groupList}
+${readerContext}
 
-Requested perspectives:
+Perspective group: ${groupKey}: ${(group == null ? void 0 : group.title) || groupKey} - ${(group == null ? void 0 : group.description) || ""}
+
+Requested perspectives in this group:
 ${perspectiveList}
 
 Journal entry:
@@ -6804,21 +6886,116 @@ ${content}`
         results[key] = value.trim();
       }
     }
-    if (Object.keys(results).length === 0) {
-      throw new Error("Analysis response did not include any usable perspectives");
-    }
-    const parsedGroupSyntheses = parsed.group_syntheses && typeof parsed.group_syntheses === "object" ? parsed.group_syntheses : {};
-    const groupSyntheses = {};
-    for (const groupKey of selectedGroupKeys) {
-      const value = parsedGroupSyntheses[groupKey];
-      if (typeof value === "string" && value.trim()) {
-        groupSyntheses[groupKey] = value.trim();
+    const parsedFurtherReadings = parsed.further_readings && typeof parsed.further_readings === "object" ? parsed.further_readings : {};
+    const furtherReadings = {};
+    for (const { key } of perspectives) {
+      const value = parsedFurtherReadings[key];
+      if (Array.isArray(value)) {
+        furtherReadings[key] = value.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 5);
       }
     }
+    const groupSynthesis = typeof parsed.group_synthesis === "string" ? parsed.group_synthesis.trim() : "";
+    return { perspectives: results, furtherReadings, groupSynthesis };
+  }
+  async getSingleGeneratedPerspectiveAnalysis(content, key, perspective, personalityContext, authorMemoryContext, readerContext) {
+    var _a2, _b;
+    if (!this.openai)
+      throw new Error("OpenAI not initialized");
+    const response = await this.openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      response_format: { type: "json_object" },
+      max_tokens: 2500,
+      messages: [
+        {
+          role: "system",
+          content: "You are an empathetic interdisciplinary analysis assistant. Return valid JSON only."
+        },
+        {
+          role: "user",
+          content: `The previous batch omitted this perspective. Analyze the journal entry through this exact frame.
+
+Return JSON with keys analysis and further_readings.
+- analysis must be 220-360 words, teach the frame, explain key terms, interpret the entry, show implications, predict likely outcomes, and give a precise next step.
+- further_readings must be an array of 3-5 strings naming author/work and why it helps.
+
+${personalityContext}
+
+${authorMemoryContext}
+
+${readerContext}
+
+Perspective: ${key}: ${perspective.title} - ${perspective.description}
+
+Journal entry:
+${content}`
+        }
+      ]
+    });
+    const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
+    if (!rawContent)
+      return { analysis: "", furtherReadings: [] };
+    const parsed = JSON.parse(rawContent);
+    const analysis = typeof parsed.analysis === "string" ? parsed.analysis.trim() : "";
+    const furtherReadings = Array.isArray(parsed.further_readings) ? parsed.further_readings.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 5) : [];
+    return { analysis, furtherReadings };
+  }
+  async getWholeAnalysisSynthesis(content, selectedGroupKeys, perspectives, groupSyntheses, personalityContext, authorMemoryContext, readerContext) {
+    var _a2, _b;
+    if (!this.openai)
+      throw new Error("OpenAI not initialized");
+    const groupList = selectedGroupKeys.map((groupKey) => {
+      var _a3;
+      return `- ${groupKey}: ${((_a3 = PERSPECTIVE_GROUPS[groupKey]) == null ? void 0 : _a3.title) || groupKey}
+${groupSyntheses[groupKey] || "No group synthesis returned."}`;
+    }).join("\n\n");
+    const perspectiveSummaries = Object.entries(perspectives).map(([key, value]) => `- ${key}: ${value.slice(0, 700)}`).join("\n");
+    const response = await this.openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      response_format: { type: "json_object" },
+      max_tokens: 4500,
+      messages: [
+        {
+          role: "system",
+          content: "You are an empathetic interdisciplinary analysis assistant. Return valid JSON only."
+        },
+        {
+          role: "user",
+          content: `Synthesize the completed individual and group analyses of a journal entry.
+
+Return JSON with exactly these keys:
+- philosophical_reaccumulation: 360-520 words. Iteratively recombine the group syntheses into Philosophy as the first discipline. Treat this as an archeo-genealogical recombination of subdisciplines, theories, and analyses into an overarching philosophical orientation. Include interpretation, critique, implications, likely outcomes, further steps, and imaginative futures.
+- author_memory_summary: under 220 words, updating enduring patterns, strengths, values, risks, supports, and recurring concerns.
+- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(", ")}. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.
+
+${personalityContext}
+
+${authorMemoryContext}
+
+${readerContext}
+
+Group syntheses:
+${groupList}
+
+Individual analysis excerpts:
+${perspectiveSummaries}
+
+Journal entry:
+${content}`
+        }
+      ]
+    });
+    const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
+    if (!rawContent) {
+      return { philosophicalReaccumulation: "", authorMemorySummary: this.settings.authorMemorySummary, goalSuggestions: [] };
+    }
+    const parsed = JSON.parse(rawContent);
     const philosophicalReaccumulation = typeof parsed.philosophical_reaccumulation === "string" ? parsed.philosophical_reaccumulation.trim() : "";
     const authorMemorySummary = typeof parsed.author_memory_summary === "string" ? parsed.author_memory_summary.trim() : this.settings.authorMemorySummary;
-    const rawGoalSuggestions = Array.isArray(parsed.goal_suggestions) ? parsed.goal_suggestions : [];
-    const goalSuggestions = rawGoalSuggestions.map((goal) => {
+    const goalSuggestions = this.parseGoalSuggestions(parsed.goal_suggestions).slice(0, 3);
+    return { philosophicalReaccumulation, authorMemorySummary, goalSuggestions };
+  }
+  parseGoalSuggestions(rawGoalSuggestions) {
+    return (Array.isArray(rawGoalSuggestions) ? rawGoalSuggestions : []).map((goal) => {
       if (!goal || typeof goal !== "object")
         return null;
       const suggestion = goal;
@@ -6832,17 +7009,6 @@ ${content}`
       const sourcePerspectives = Array.isArray(suggestion.sourcePerspectives) ? suggestion.sourcePerspectives.filter((item) => typeof item === "string").filter((item) => !!PERSPECTIVES[item]) : [];
       return { title, description, category, targetDate, milestones, sourcePerspectives };
     }).filter((goal) => !!goal);
-    if (authorMemorySummary && authorMemorySummary !== this.settings.authorMemorySummary) {
-      this.settings.authorMemorySummary = authorMemorySummary;
-      await this.saveSettings();
-    }
-    return {
-      perspectives: results,
-      groupSyntheses,
-      philosophicalReaccumulation,
-      authorMemorySummary,
-      goalSuggestions
-    };
   }
   async getSinglePerspectiveResponse(messages, perspective) {
     var _a2, _b;
@@ -7013,6 +7179,7 @@ ${journalContext}`
     if (analysisStart === -1) {
       return {
         perspectives,
+        furtherReadings: {},
         groupSyntheses: {},
         philosophicalReaccumulation: "",
         authorMemorySummary: "",
@@ -7038,13 +7205,14 @@ ${journalContext}`
         continue;
       const bodyStart = currentHeading.index + currentHeading.fullMatch.length;
       const nextHeadingIndex = index + 1 < headingMatches.length ? headingMatches[index + 1].index : analysisSection.length;
-      const sectionBody = analysisSection.slice(bodyStart, nextHeadingIndex).replace(/\*\*Linked Chat:\*\*.*(?:\n|$)/g, "").replace(/\*\*Start Chat:\*\*.*(?:\n|$)/g, "").trim();
+      const sectionBody = analysisSection.slice(bodyStart, nextHeadingIndex).replace(/\*\*Linked Chat:\*\*.*(?:\n|$)/g, "").replace(/\*\*Start Chat:\*\*.*(?:\n|$)/g, "").replace(/\*\*Continue Chat:\*\*.*(?:\n|$)/g, "").replace(/#### Further readings[\s\S]*?(?=\n####|\n###|$)/g, "").replace(/#### Latest AI Chat[\s\S]*$/m, "").trim();
       if (sectionBody && !perspectives[perspectiveKey]) {
         perspectives[perspectiveKey] = sectionBody;
       }
     }
     return {
       perspectives,
+      furtherReadings: {},
       groupSyntheses: {},
       philosophicalReaccumulation: "",
       authorMemorySummary: "",
@@ -7860,6 +8028,14 @@ ${chatBlock}
       analysisMarkdown += `${content}
 
 `;
+      const readings = analysis.furtherReadings[perspKey] || [];
+      if (readings.length > 0) {
+        analysisMarkdown += `#### Further readings
+
+${readings.map((reading) => `- ${reading}`).join("\n")}
+
+`;
+      }
     }
     if (Object.keys(analysis.groupSyntheses).length > 0) {
       analysisMarkdown += `## Group Syntheses
@@ -7965,6 +8141,9 @@ ${goal.description}
   async loadSettings() {
     const savedData = await this.loadData();
     this.settings = Object.assign({}, DEFAULT_SETTINGS, savedData != null ? savedData : {});
+    if (!ZPD_LEVELS[this.settings.zpdLevel]) {
+      this.settings.zpdLevel = DEFAULT_SETTINGS.zpdLevel;
+    }
     const perspectiveKeys = Object.keys(PERSPECTIVES);
     if (!Array.isArray(this.settings.selectedPerspectives) || this.settings.selectedPerspectives.length === 0) {
       this.settings.selectedPerspectives = perspectiveKeys;
@@ -8847,9 +9026,18 @@ var GoalDraftsModal = class extends import_obsidian.Modal {
     contentEl.addClass("deleometer-modal-wide");
     contentEl.createEl("h2", { text: "Draft goals from analysis" });
     contentEl.createEl("p", { text: "Edit these AI-generated goals before saving them to your goals folder.", cls: "analysis-source" });
+    if (this.drafts.length === 0) {
+      contentEl.createEl("p", { text: "No proposed goals remain. Close this modal or return to the analysis.", cls: "analysis-source" });
+    }
     this.drafts.forEach((draft, index) => {
       const section = contentEl.createDiv({ cls: "analysis-section" });
-      section.createEl("h4", { text: `Goal ${index + 1}` });
+      const header = section.createDiv({ cls: "perspective-header" });
+      header.createEl("h4", { text: `Goal ${index + 1}` });
+      const deleteBtn = header.createEl("button", { text: "Delete proposed goal", cls: "btn-secondary" });
+      deleteBtn.onclick = () => {
+        this.drafts.splice(index, 1);
+        this.onOpen();
+      };
       const titleGroup = section.createDiv({ cls: "form-group" });
       titleGroup.createEl("label", { text: "Title" });
       const titleInput = titleGroup.createEl("input", { type: "text", value: draft.title });
@@ -8900,6 +9088,7 @@ var GoalDraftsModal = class extends import_obsidian.Modal {
     const cancelBtn = btnRow.createEl("button", { text: "Cancel", cls: "btn-secondary" });
     cancelBtn.onclick = () => this.close();
     const saveBtn = btnRow.createEl("button", { text: "Save draft goals", cls: "btn-primary" });
+    saveBtn.disabled = this.drafts.length === 0;
     saveBtn.onclick = () => {
       void this.saveGoals();
     };
@@ -9180,6 +9369,14 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
           void this.openChatWithPerspective(perspKey, analysisContent);
         };
         card.createEl("p", { text: analysisContent });
+        const readings = this.analysis.furtherReadings[perspKey] || [];
+        if (readings.length > 0) {
+          card.createEl("h5", { text: "Further readings" });
+          const readingsList = card.createEl("ul");
+          for (const reading of readings) {
+            readingsList.createEl("li", { text: reading });
+          }
+        }
       }
     }
     if (Object.keys(this.analysis.groupSyntheses).length > 0) {
@@ -9284,6 +9481,15 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
     })).addButton((button) => button.setButtonText("Sync now").onClick(async () => {
       await this.plugin.syncAllGoalsToFullCalendar(true);
     }));
+    new import_obsidian.Setting(containerEl).setName("Analysis reader level").setDesc("Sets the zone of proximal development for analysis explanations, so key terms are taught at the right level.").addDropdown((dropdown) => {
+      for (const [key, level] of Object.entries(ZPD_LEVELS)) {
+        dropdown.addOption(key, level.label);
+      }
+      dropdown.setValue(this.plugin.settings.zpdLevel).onChange(async (value) => {
+        this.plugin.settings.zpdLevel = ZPD_LEVELS[value] ? value : "tertiary_year_2";
+        await this.plugin.saveSettings();
+      });
+    });
     new import_obsidian.Setting(containerEl).setName("Analysis perspectives").setHeading();
     containerEl.createEl("p", { text: "Select which perspectives to use for journal analysis:", cls: "setting-item-description" });
     new import_obsidian.Setting(containerEl).setName("Enable all perspectives").setDesc("Turn on every available analysis type.").addButton((button) => button.setButtonText("Enable all").onClick(async () => {
@@ -9292,7 +9498,20 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       this.display();
     }));
     for (const [groupKey, group] of Object.entries(PERSPECTIVE_GROUPS)) {
-      new import_obsidian.Setting(containerEl).setName(group.title).setDesc(group.description).setHeading();
+      new import_obsidian.Setting(containerEl).setName(group.title).setDesc(group.description).setHeading().addButton((button) => button.setButtonText("Enable group").onClick(async () => {
+        const groupPerspectiveKeys = Object.entries(PERSPECTIVES).filter(([, perspective]) => perspective.group === groupKey).map(([key]) => key);
+        this.plugin.settings.selectedPerspectives = Array.from(/* @__PURE__ */ new Set([
+          ...this.plugin.settings.selectedPerspectives,
+          ...groupPerspectiveKeys
+        ]));
+        await this.plugin.saveSettings();
+        this.display();
+      })).addButton((button) => button.setButtonText("Disable group").onClick(async () => {
+        const groupPerspectiveKeys = new Set(Object.entries(PERSPECTIVES).filter(([, perspective]) => perspective.group === groupKey).map(([key]) => key));
+        this.plugin.settings.selectedPerspectives = this.plugin.settings.selectedPerspectives.filter((key) => !groupPerspectiveKeys.has(key));
+        await this.plugin.saveSettings();
+        this.display();
+      }));
       for (const [key, persp] of Object.entries(PERSPECTIVES).filter(([, perspective]) => perspective.group === groupKey)) {
         new import_obsidian.Setting(containerEl).setName(persp.title).setDesc(persp.description).addToggle((toggle) => toggle.setValue(this.plugin.settings.selectedPerspectives.includes(key)).onChange(async (value) => {
           if (value) {
