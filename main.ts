@@ -20,17 +20,25 @@ interface PerspectiveDefinition {
 const PHILOSOPHY_GROUP_KEY = 'philosophy_first_discipline';
 
 const PERSPECTIVE_GROUPS: Record<string, PerspectiveGroup> = {
+  religious_mythic_interpretation: {
+    title: 'Religious, Mythic, and Pagan Interpretations',
+    description: 'Ancient religions, mythic patterns, sacred texts, ritual worlds, divinities, covenant, revelation, and comparative spiritual meaning'
+  },
   [PHILOSOPHY_GROUP_KEY]: {
     title: 'Philosophy as First Discipline',
     description: 'First principles, being, ethics, mind, theology, and metaphysical orientation'
   },
-  archeo_genealogical_deconstruction: {
-    title: 'Archeo-Genealogical and Deconstructive Thought',
-    description: 'Power, discourse, difference, ideology, critique, and the recombination of inherited forms'
+  narrative_media_frame: {
+    title: 'Narrative, Media, and Frame Studies',
+    description: 'Language, signs, story, mediation, public presentation, framing, nonfiction practice, and interaction order'
   },
   psychoanalytic_clinical: {
     title: 'Psychoanalytic and Clinical Psychologies',
     description: 'Desire, attachment, symptom, personality, cognition, embodiment, and therapeutic interpretation'
+  },
+  archeo_genealogical_deconstruction: {
+    title: 'Archeo-Genealogical and Deconstructive Thought',
+    description: 'Power, discourse, difference, ideology, critique, and the recombination of inherited forms'
   },
   gender_sexuality_queer: {
     title: 'Gender, Sexuality, and Queer Studies',
@@ -40,17 +48,9 @@ const PERSPECTIVE_GROUPS: Record<string, PerspectiveGroup> = {
     title: 'Race, Coloniality, and Embodiment Studies',
     description: 'Race, decoloniality, disability, madness, fatness, embodiment, and situated power'
   },
-  narrative_media_frame: {
-    title: 'Narrative, Media, and Frame Studies',
-    description: 'Story, mediation, public presentation, framing, nonfiction practice, and interaction order'
-  },
   systems_ecology_food: {
     title: 'Systems, Ecology, and Food Futures',
     description: 'Actor-networks, food systems, biomimicry, ecopoiesis, resilience, and ecological transition'
-  },
-  religious_mythic_interpretation: {
-    title: 'Religious, Mythic, and Pagan Interpretations',
-    description: 'Ancient religions, mythic patterns, sacred texts, ritual worlds, divinities, covenant, revelation, and comparative spiritual meaning'
   },
   strategy_method_organisation: {
     title: 'Strategy, Method, and Organisation',
@@ -59,89 +59,91 @@ const PERSPECTIVE_GROUPS: Record<string, PerspectiveGroup> = {
 };
 
 const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
-  aristotle_argonic_teachings: { title: "Aristotle's Argonic Teachings", description: 'Rhetoric, demonstration, causes, material conditions, practical judgment, virtue, persuasion, and action', group: PHILOSOPHY_GROUP_KEY },
+  ancient_religious_interpretation: { title: 'Ancient Religious Interpretation', description: 'Ritual, sacrifice, omen, sacred order, taboo, ancestor, cosmology, and ancient religious imagination', group: 'religious_mythic_interpretation' },
+  first_testament_hebrew_interpretation: { title: 'First Testament / Hebrew Interpretation', description: 'Covenant, law, prophecy, lament, wisdom, exile, justice, creation, and faithful argument with God', group: 'religious_mythic_interpretation' },
+  greek_gods_interpretation: { title: 'Greek Gods Interpretation', description: 'Olympian powers, mythic archetypes, fate, hubris, patronage, conflict, desire, and heroic consequence', group: 'religious_mythic_interpretation' },
+  roman_gods_interpretation: { title: 'Roman Gods Interpretation', description: 'Civic religion, household gods, pietas, omen, duty, empire, ritual order, and public virtue', group: 'religious_mythic_interpretation' },
+  druidic_interpretation: { title: 'Druidic Interpretation', description: 'Oral wisdom, trees, land memory, bardic speech, seasonal rites, kinship, sovereignty, and ecological divination', group: 'religious_mythic_interpretation' },
+  second_testament_christian_interpretation: { title: 'Second Testament / Christian Interpretation', description: 'Gospel, parable, grace, discipleship, incarnation, forgiveness, community, resurrection, and ethical transformation', group: 'religious_mythic_interpretation' },
+  muslim_interpretation: { title: 'Muslim Interpretation', description: 'Tawhid, submission, mercy, intention, justice, prayer, ummah, prophetic example, and disciplined remembrance', group: 'religious_mythic_interpretation' },
+  pagan_interpretation: { title: 'Pagan Interpretation', description: 'Seasonal cycles, polytheism, land, animacy, ritual practice, reciprocity, craft, and embodied sacred life', group: 'religious_mythic_interpretation' },
+
+  buddhist_psychology_perspective: { title: 'Buddhist Psychology', description: 'Mindfulness, suffering, and liberation', group: PHILOSOPHY_GROUP_KEY },
   platonic_perspective: { title: 'Platonic Philosophy', description: 'Forms, dialectic, eros, education, justice, and ascent toward truth', group: PHILOSOPHY_GROUP_KEY },
-  spinoza_theologic_ethico_perspective: { title: "Spinoza's Theologic-Ethico Philosophy", description: 'Immanence, affect, necessity, freedom, substance, and ethical life', group: PHILOSOPHY_GROUP_KEY },
+  aristotle_argonic_teachings: { title: "Aristotle's Argonic Teachings", description: 'Rhetoric, demonstration, causes, material conditions, practical judgment, virtue, persuasion, and action', group: PHILOSOPHY_GROUP_KEY },
+  cynics_perspective: { title: "Cynics' Philosophy", description: 'Plain living, shameless truth-telling, social convention, need, freedom, and embodied critique', group: PHILOSOPHY_GROUP_KEY },
+  stoicism_perspective: { title: 'Stoic Philosophy', description: 'Virtue, acceptance, and inner peace', group: PHILOSOPHY_GROUP_KEY },
   bible_teachings_perspective: { title: 'Bible Teachings', description: 'Wisdom, covenant, prophecy, parable, care, justice, and spiritual discernment', group: PHILOSOPHY_GROUP_KEY },
   metaphysical_analysis: { title: 'Metaphysical Analysis', description: 'Reality, causality, substance, possibility, identity, and ultimate commitments', group: PHILOSOPHY_GROUP_KEY },
   ontological_analysis: { title: 'Ontological Analysis', description: 'Modes of being, entities, relations, becoming, and existential structure', group: PHILOSOPHY_GROUP_KEY },
   ethical_analysis: { title: 'Ethical Analysis', description: 'Obligation, virtue, care, harm, responsibility, and practical judgment', group: PHILOSOPHY_GROUP_KEY },
   philosophy_of_mind_perspective: { title: 'Philosophy of Mind', description: 'Consciousness, intention, emotion, agency, selfhood, and mental causation', group: PHILOSOPHY_GROUP_KEY },
-  process_philosophical_analysis: { title: 'Process Philosophical Analysis', description: 'Becoming, relation, event, creativity, temporality, and emergent order', group: PHILOSOPHY_GROUP_KEY },
-  phenomenology_perspective: { title: 'Phenomenology', description: 'Lived experience and consciousness', group: PHILOSOPHY_GROUP_KEY },
-  existential_perspective: { title: 'Existential Analysis', description: 'Authenticity, freedom, and meaning', group: PHILOSOPHY_GROUP_KEY },
-  buddhist_psychology_perspective: { title: 'Buddhist Psychology', description: 'Mindfulness, suffering, and liberation', group: PHILOSOPHY_GROUP_KEY },
+  spinoza_theologic_ethico_perspective: { title: "Spinoza's Theologic-Ethico Philosophy", description: 'Immanence, affect, necessity, freedom, substance, and ethical life', group: PHILOSOPHY_GROUP_KEY },
   nietzschean_perspective: { title: 'Nietzschean Philosophy', description: 'Will to power, values, and self-overcoming', group: PHILOSOPHY_GROUP_KEY },
-  stoicism_perspective: { title: 'Stoic Philosophy', description: 'Virtue, acceptance, and inner peace', group: PHILOSOPHY_GROUP_KEY },
-  cynics_perspective: { title: "Cynics' Philosophy", description: 'Plain living, shameless truth-telling, social convention, need, freedom, and embodied critique', group: PHILOSOPHY_GROUP_KEY },
+  phenomenology_perspective: { title: 'Phenomenology', description: 'Lived experience and consciousness', group: PHILOSOPHY_GROUP_KEY },
   hermeneutics_perspective: { title: 'Hermeneutics', description: 'Interpretation and understanding', group: PHILOSOPHY_GROUP_KEY },
+  existential_perspective: { title: 'Existential Analysis', description: 'Authenticity, freedom, and meaning', group: PHILOSOPHY_GROUP_KEY },
+  process_philosophical_analysis: { title: 'Process Philosophical Analysis', description: 'Becoming, relation, event, creativity, temporality, and emergent order', group: PHILOSOPHY_GROUP_KEY },
   topological_analysis: { title: 'Topological Analysis', description: 'Relations, surfaces, thresholds, folds, nearness, boundaries, and spatial transformations of meaning', group: PHILOSOPHY_GROUP_KEY },
 
-  foucaultian_analysis: { title: 'Foucaultian Analysis', description: 'Power, discourse, discipline, subject formation, and historical conditions of truth', group: 'archeo_genealogical_deconstruction' },
-  derridian_analysis: { title: 'Derridian Analysis', description: 'Deconstruction, differance, trace, supplement, undecidability, and textual instability', group: 'archeo_genealogical_deconstruction' },
-  zizekian_analysis: { title: 'Žižekian Analysis', description: 'Ideology, fantasy, contradiction, enjoyment, subjectivity, and the Real', group: 'archeo_genealogical_deconstruction' },
-  simondonian_analysis: { title: 'Simondonian Analysis', description: 'Individuation, preindividual fields, technics, relation, and collective becoming', group: 'archeo_genealogical_deconstruction' },
-  schizoanalytic_insights: { title: 'Deleuzian Schizoanalysis', description: 'Rhizomatic thinking, lines of flight, and becoming', group: 'archeo_genealogical_deconstruction' },
-  critical_theory_perspective: { title: 'Critical Theory', description: 'Social critique and emancipation', group: 'archeo_genealogical_deconstruction' },
-  posthumanism_perspective: { title: 'Posthumanism', description: 'Beyond human-centered thinking', group: 'archeo_genealogical_deconstruction' },
+  linguistic_analysis: { title: 'Linguistic Analysis', description: 'Words, grammar, naming, register, metaphor, speech acts, code-switching, silence, and how language organizes experience', group: 'narrative_media_frame' },
+  semiotic_analysis: { title: 'Semiotic Analysis', description: 'Signs, symbols, signifier and signified, codes, icons, indexes, myths, and how meaning is made and circulated', group: 'narrative_media_frame' },
+  narrative_psychology_perspective: { title: 'Narrative Psychology', description: 'Life stories and meaning-making', group: 'narrative_media_frame' },
+  creative_nonfiction_perspective: { title: 'Creative Non-Fiction', description: 'Scene, voice, witness, memory, essaying, and truthful narrative craft', group: 'narrative_media_frame' },
+  idiotextual_analysis: { title: 'Idiotextual Analysis', description: 'The singular texture of a text: idiosyncratic voice, private idiom, recurring phrases, and self-made meanings', group: 'narrative_media_frame' },
+  frame_analysis: { title: 'Frame Analysis', description: 'Interpretive frames, salience, boundaries, alignment, and meaning organization', group: 'narrative_media_frame' },
+  goffman_frame_analysis: { title: "Erving Goffman's Frame Analysis", description: 'Interaction order, presentation of self, keyed events, footing, and everyday frames', group: 'narrative_media_frame' },
+  media_studies: { title: 'Media Studies', description: 'Platforms, mediation, publics, representation, attention, circulation, and media power', group: 'narrative_media_frame' },
 
-  lacanian_perspective: { title: 'Lacanian Psychoanalysis', description: 'Analysis through desire, the Other, and symbolic order', group: 'psychoanalytic_clinical' },
   freudian_psychoanalysis: { title: 'Freudian Psychoanalysis', description: 'Unconscious conflict, repression, dream-work, sexuality, and symptom formation', group: 'psychoanalytic_clinical' },
   jungian_perspective: { title: 'Jungian Analysis', description: 'Archetypes, shadow, and individuation', group: 'psychoanalytic_clinical' },
+  lacanian_perspective: { title: 'Lacanian Psychoanalysis', description: 'Analysis through desire, the Other, and symbolic order', group: 'psychoanalytic_clinical' },
+  psychiatry_perspective: { title: 'Psychiatric Assessment', description: 'Clinical patterns and mental health', group: 'psychoanalytic_clinical' },
   attachment_theory_perspective: { title: 'Attachment Theory', description: 'Attachment styles and relational patterns', group: 'psychoanalytic_clinical' },
-  positive_psychology_perspective: { title: 'Positive Psychology', description: 'Strengths, flourishing, and well-being', group: 'psychoanalytic_clinical' },
   gestalt_perspective: { title: 'Gestalt Therapy', description: 'Awareness, wholeness, and present experience', group: 'psychoanalytic_clinical' },
   transpersonal_perspective: { title: 'Transpersonal Psychology', description: 'Spiritual dimensions and peak experiences', group: 'psychoanalytic_clinical' },
-  cbt_perspective: { title: 'Cognitive Behavioral', description: 'Thoughts, behaviors, and patterns', group: 'psychoanalytic_clinical' },
-  psychiatry_perspective: { title: 'Psychiatric Assessment', description: 'Clinical patterns and mental health', group: 'psychoanalytic_clinical' },
   [MYERS_BRIGGS_PERSPECTIVE_KEY]: {
     title: 'Myers-Briggs analysis',
     description: 'Personality preferences across introversion/extraversion, sensing/intuition, thinking/feeling, and judging/perceiving',
     group: 'psychoanalytic_clinical'
   },
+  cbt_perspective: { title: 'Cognitive Behavioral', description: 'Thoughts, behaviors, and patterns', group: 'psychoanalytic_clinical' },
+  positive_psychology_perspective: { title: 'Positive Psychology', description: 'Strengths, flourishing, and well-being', group: 'psychoanalytic_clinical' },
 
-  irigarayian_perspective: { title: 'Irigarayian Feminine', description: 'Sexual difference and feminine subjectivity', group: 'gender_sexuality_queer' },
+  critical_theory_perspective: { title: 'Critical Theory', description: 'Social critique and emancipation', group: 'archeo_genealogical_deconstruction' },
+  simondonian_analysis: { title: 'Simondonian Analysis', description: 'Individuation, preindividual fields, technics, relation, and collective becoming', group: 'archeo_genealogical_deconstruction' },
+  foucaultian_analysis: { title: 'Foucaultian Analysis', description: 'Power, discourse, discipline, subject formation, and historical conditions of truth', group: 'archeo_genealogical_deconstruction' },
+  derridian_analysis: { title: 'Derridian Analysis', description: 'Deconstruction, differance, trace, supplement, undecidability, and textual instability', group: 'archeo_genealogical_deconstruction' },
+  schizoanalytic_insights: { title: 'Deleuzian Schizoanalysis', description: 'Rhizomatic thinking, lines of flight, and becoming', group: 'archeo_genealogical_deconstruction' },
+  zizekian_analysis: { title: 'Žižekian Analysis', description: 'Ideology, fantasy, contradiction, enjoyment, subjectivity, and the Real', group: 'archeo_genealogical_deconstruction' },
+  posthumanism_perspective: { title: 'Posthumanism', description: 'Beyond human-centered thinking', group: 'archeo_genealogical_deconstruction' },
+
   feminist_perspective: { title: 'Feminist Psychology', description: 'Gender, power, and social context', group: 'gender_sexuality_queer' },
-  queer_theory_perspective: { title: 'Queer Theory', description: 'Norms, identity, fluidity, and the politics of desire', group: 'gender_sexuality_queer' },
+  irigarayian_perspective: { title: 'Irigarayian Feminine', description: 'Sexual difference and feminine subjectivity', group: 'gender_sexuality_queer' },
   lgbtq_studies_perspective: { title: 'Lesbian & Gay Studies', description: 'Lesbian and gay histories, cultures, communities, marginalization, resilience, and affirmation', group: 'gender_sexuality_queer' },
   sexualities_studies: { title: 'Sexualities Studies', description: 'Sexual cultures, practices, identities, norms, pleasure, stigma, and social regulation', group: 'gender_sexuality_queer' },
   gender_studies: { title: 'Gender Studies', description: 'Gender systems, identities, embodiment, institutions, power, and everyday life', group: 'gender_sexuality_queer' },
+  queer_theory_perspective: { title: 'Queer Theory', description: 'Norms, identity, fluidity, and the politics of desire', group: 'gender_sexuality_queer' },
   trans_studies: { title: 'Trans Studies', description: 'Trans life, embodiment, transition, self-determination, institutions, and gender variance', group: 'gender_sexuality_queer' },
 
   critical_race_studies: { title: 'Critical Race Studies', description: 'Racial formation, structural racism, intersectionality, law, culture, and lived experience', group: 'race_coloniality_embodiment' },
   decolonial_studies: { title: 'Decolonial Studies', description: 'Coloniality, land, knowledge, sovereignty, extraction, repair, and pluriversal futures', group: 'race_coloniality_embodiment' },
-  mad_studies: { title: 'Mad Studies', description: 'Psychiatric power, mad knowledge, distress, survival, and alternatives to pathologization', group: 'race_coloniality_embodiment' },
   fat_studies: { title: 'Fat Studies', description: 'Anti-fat bias, embodiment, health norms, stigma, access, and fat liberation', group: 'race_coloniality_embodiment' },
-
-  narrative_psychology_perspective: { title: 'Narrative Psychology', description: 'Life stories and meaning-making', group: 'narrative_media_frame' },
-  creative_nonfiction_perspective: { title: 'Creative Non-Fiction', description: 'Scene, voice, witness, memory, essaying, and truthful narrative craft', group: 'narrative_media_frame' },
-  idiotextual_analysis: { title: 'Idiotextual Analysis', description: 'The singular texture of a text: idiosyncratic voice, private idiom, recurring phrases, and self-made meanings', group: 'narrative_media_frame' },
-  media_studies: { title: 'Media Studies', description: 'Platforms, mediation, publics, representation, attention, circulation, and media power', group: 'narrative_media_frame' },
-  frame_analysis: { title: 'Frame Analysis', description: 'Interpretive frames, salience, boundaries, alignment, and meaning organization', group: 'narrative_media_frame' },
-  goffman_frame_analysis: { title: "Erving Goffman's Frame Analysis", description: 'Interaction order, presentation of self, keyed events, footing, and everyday frames', group: 'narrative_media_frame' },
+  mad_studies: { title: 'Mad Studies', description: 'Psychiatric power, mad knowledge, distress, survival, and alternatives to pathologization', group: 'race_coloniality_embodiment' },
 
   latourian_analysis: { title: 'Latourian Analysis', description: 'Actor-networks, mediation, translation, nonhuman agency, and assembled realities', group: 'systems_ecology_food' },
+  resilience_analysis: { title: 'Resilience', description: 'Adaptive capacity, recovery, redundancy, stress response, and durable support systems', group: 'systems_ecology_food' },
   critical_food_systems_analysis: { title: 'Critical Food Systems Analysis', description: 'Food justice, supply chains, agriculture, labor, ecology, access, and power', group: 'systems_ecology_food' },
   biomimicry_perspective: { title: 'Biomimicry', description: 'Learning from living systems, adaptation, form, function, and regenerative design', group: 'systems_ecology_food' },
   ecopoiesis_perspective: { title: 'Ecopoiesis', description: 'World-making ecologies, habitat creation, planetary repair, and life-supporting systems', group: 'systems_ecology_food' },
-  resilience_analysis: { title: 'Resilience', description: 'Adaptive capacity, recovery, redundancy, stress response, and durable support systems', group: 'systems_ecology_food' },
 
-  ancient_religious_interpretation: { title: 'Ancient Religious Interpretation', description: 'Ritual, sacrifice, omen, sacred order, taboo, ancestor, cosmology, and ancient religious imagination', group: 'religious_mythic_interpretation' },
-  greek_gods_interpretation: { title: 'Greek Gods Interpretation', description: 'Olympian powers, mythic archetypes, fate, hubris, patronage, conflict, desire, and heroic consequence', group: 'religious_mythic_interpretation' },
-  roman_gods_interpretation: { title: 'Roman Gods Interpretation', description: 'Civic religion, household gods, pietas, omen, duty, empire, ritual order, and public virtue', group: 'religious_mythic_interpretation' },
-  pagan_interpretation: { title: 'Pagan Interpretation', description: 'Seasonal cycles, polytheism, land, animacy, ritual practice, reciprocity, craft, and embodied sacred life', group: 'religious_mythic_interpretation' },
-  druidic_interpretation: { title: 'Druidic Interpretation', description: 'Oral wisdom, trees, land memory, bardic speech, seasonal rites, kinship, sovereignty, and ecological divination', group: 'religious_mythic_interpretation' },
-  first_testament_hebrew_interpretation: { title: 'First Testament / Hebrew Interpretation', description: 'Covenant, law, prophecy, lament, wisdom, exile, justice, creation, and faithful argument with God', group: 'religious_mythic_interpretation' },
-  second_testament_christian_interpretation: { title: 'Second Testament / Christian Interpretation', description: 'Gospel, parable, grace, discipleship, incarnation, forgiveness, community, resurrection, and ethical transformation', group: 'religious_mythic_interpretation' },
-  muslim_interpretation: { title: 'Muslim Interpretation', description: 'Tawhid, submission, mercy, intention, justice, prayer, ummah, prophetic example, and disciplined remembrance', group: 'religious_mythic_interpretation' },
-
-  tacktical_methodological_analysis: { title: 'Tacktical Methodological Analysis', description: "Louisa Bufardeci's tactical method, situated procedure, constraints, mapping, and action", group: 'strategy_method_organisation' },
   swot_analysis: { title: 'SWOT Analysis', description: 'Strengths, weaknesses, opportunities, threats, and strategic positioning', group: 'strategy_method_organisation' },
   feasibility_analysis: { title: 'Feasibility Analysis', description: 'Practical viability, resources, constraints, dependencies, costs, and implementation readiness', group: 'strategy_method_organisation' },
   risk_analysis: { title: 'Risk Analysis', description: 'Likelihood, impact, uncertainty, exposure, prevention, mitigation, and contingency', group: 'strategy_method_organisation' },
   transitional_theory: { title: 'Transitional Theory', description: 'Liminal movement, phased change, rites of passage, continuity, and transformation', group: 'strategy_method_organisation' },
-  social_movement_theories: { title: 'Theories Growing a Social Movement', description: 'Collective action, mobilization, framing, resources, leadership, and movement ecology', group: 'strategy_method_organisation' },
   organisational_theories: { title: 'Organisational Theories', description: 'Structures, culture, governance, roles, incentives, coordination, and institutional change', group: 'strategy_method_organisation' },
+  social_movement_theories: { title: 'Theories Growing a Social Movement', description: 'Collective action, mobilization, framing, resources, leadership, and movement ecology', group: 'strategy_method_organisation' },
+  tacktical_methodological_analysis: { title: 'Tacktical Methodological Analysis', description: "Louisa Bufardeci's tactical method, situated procedure, constraints, mapping, and action", group: 'strategy_method_organisation' },
   transformative_futures: { title: 'Imagining Transformative Futures', description: 'Speculation, prefiguration, scenario imagination, world-building, and emancipatory possibility', group: 'strategy_method_organisation' }
 };
 
@@ -150,6 +152,8 @@ const PERSPECTIVE_HEADING_ALIASES: Record<string, string[]> = {
   feasibility_analysis: ['Feasability Analysis'],
   tacktical_methodological_analysis: ['Tactical Methodological Analysis']
 };
+
+const SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS = ['linguistic_analysis', 'semiotic_analysis'];
 
 const PRE_HIERARCHY_PERSPECTIVE_KEYS = [
   'lacanian_perspective',
@@ -469,7 +473,9 @@ export default class DeleometerPlugin extends Plugin {
 
   async getMultiPerspectiveAnalysis(content: string, onProgress?: AnalysisProgressCallback): Promise<AnalysisPayload> {
     if (!this.openai) throw new Error('OpenAI not initialized');
-    const perspectives = this.settings.selectedPerspectives
+    const selectedPerspectiveKeys = new Set(this.settings.selectedPerspectives);
+    const perspectives = Object.keys(PERSPECTIVES)
+      .filter((key) => selectedPerspectiveKeys.has(key))
       .map((key) => ({ key, perspective: PERSPECTIVES[key] }))
       .filter((item) => item.perspective);
 
@@ -684,6 +690,7 @@ export default class DeleometerPlugin extends Plugin {
             `- further_readings: an object where each key is the exact perspective key and each value is an array of 3-5 reading suggestions. Each suggestion should name an author and work, then briefly say why it helps with this frame.\n` +
             `- group_synthesis: a string of 260-420 words that synthesizes this group's individual analyses after they have all been explicated.\n\n` +
             `For each perspective:\n` +
+            `- preserve the requested order. The order is intentionally arranged as a rough chronology, moving from earlier traditions toward more recent theories so the reader can see a progression in thought.\n` +
             `- create a synthetic interpretation of the entry through that frame, not a generic psychological reading.\n` +
             `- explain key terms in reader-friendly language and show how the interpretation was built from details, voice, images, tensions, or omissions in the entry.\n` +
             `- include interpretation, implication, likely outcome if the pattern continues, and a precise next step.\n` +
@@ -2312,6 +2319,14 @@ ${event.kind === 'goal_due'
     const hadEveryPreHierarchyPerspective = PRE_HIERARCHY_PERSPECTIVE_KEYS
       .every((key) => selectedPerspectives.includes(key));
     if (hadEveryPreHierarchyPerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const preSemioticLinguisticPerspectiveKeys = perspectiveKeys
+      .filter((key) => !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPreSemioticLinguisticPerspective = preSemioticLinguisticPerspectiveKeys
+      .every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreSemioticLinguisticPerspective) {
       this.settings.selectedPerspectives = perspectiveKeys;
       return;
     }

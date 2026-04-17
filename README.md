@@ -155,103 +155,105 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 72 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off.
+The Deleometer currently includes 74 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off. The catalogue is ordered as a rough temporal chronology, moving from ancient religious and philosophical traditions toward more recent theories so the analyses can show a progression in thought.
+
+### Religious, Mythic, and Pagan Interpretations
+
+- Ancient Religious Interpretation
+- First Testament / Hebrew Interpretation
+- Greek Gods Interpretation
+- Roman Gods Interpretation
+- Druidic Interpretation
+- Second Testament / Christian Interpretation
+- Muslim Interpretation
+- Pagan Interpretation
 
 ### Philosophy as First Discipline
 
-- Aristotle's Argonic Teachings
+- Buddhist Psychology
 - Platonic Philosophy
-- Spinoza's Theologic-Ethico Philosophy
+- Aristotle's Argonic Teachings
+- Cynics' Philosophy
+- Stoic Philosophy
 - Bible Teachings
 - Metaphysical Analysis
 - Ontological Analysis
 - Ethical Analysis
 - Philosophy of Mind
-- Process Philosophical Analysis
-- Phenomenology
-- Existential Analysis
-- Buddhist Psychology
+- Spinoza's Theologic-Ethico Philosophy
 - Nietzschean Philosophy
-- Stoic Philosophy
-- Cynics' Philosophy
+- Phenomenology
 - Hermeneutics
+- Existential Analysis
+- Process Philosophical Analysis
 - Topological Analysis
 
-### Archeo-Genealogical and Deconstructive Thought
+### Narrative, Media, and Frame Studies
 
-- Foucaultian Analysis
-- Derridian Analysis
-- Žižekian Analysis
-- Simondonian Analysis
-- Deleuzian Schizoanalysis
-- Critical Theory
-- Posthumanism
+- Linguistic Analysis
+- Semiotic Analysis
+- Narrative Psychology
+- Creative Non-Fiction
+- Idiotextual Analysis
+- Frame Analysis
+- Erving Goffman's Frame Analysis
+- Media Studies
 
 ### Psychoanalytic and Clinical Psychologies
 
-- Lacanian Psychoanalysis
 - Freudian Psychoanalysis
 - Jungian Analysis
+- Lacanian Psychoanalysis
+- Psychiatric Assessment
 - Attachment Theory
-- Positive Psychology
 - Gestalt Therapy
 - Transpersonal Psychology
-- Cognitive Behavioral
-- Psychiatric Assessment
 - Myers-Briggs analysis
+- Cognitive Behavioral
+- Positive Psychology
+
+### Archeo-Genealogical and Deconstructive Thought
+
+- Critical Theory
+- Simondonian Analysis
+- Foucaultian Analysis
+- Derridian Analysis
+- Deleuzian Schizoanalysis
+- Žižekian Analysis
+- Posthumanism
 
 ### Gender, Sexuality, and Queer Studies
 
-- Irigarayian Feminine
 - Feminist Psychology
-- Queer Theory
+- Irigarayian Feminine
 - Lesbian & Gay Studies
 - Sexualities Studies
 - Gender Studies
+- Queer Theory
 - Trans Studies
 
 ### Race, Coloniality, and Embodiment Studies
 
 - Critical Race Studies
 - Decolonial Studies
-- Mad Studies
 - Fat Studies
-
-### Narrative, Media, and Frame Studies
-
-- Narrative Psychology
-- Creative Non-Fiction
-- Idiotextual Analysis
-- Media Studies
-- Frame Analysis
-- Erving Goffman's Frame Analysis
+- Mad Studies
 
 ### Systems, Ecology, and Food Futures
 
 - Latourian Analysis
+- Resilience
 - Critical Food Systems Analysis
 - Biomimicry
 - Ecopoiesis
-- Resilience
-
-### Religious, Mythic, and Pagan Interpretations
-
-- Ancient Religious Interpretation
-- Greek Gods Interpretation
-- Roman Gods Interpretation
-- Pagan Interpretation
-- Druidic Interpretation
-- First Testament / Hebrew Interpretation
-- Second Testament / Christian Interpretation
-- Muslim Interpretation
 
 ### Strategy, Method, and Organisation
 
-- Tacktical Methodological Analysis
 - SWOT Analysis
 - Feasibility Analysis
 - Risk Analysis
 - Transitional Theory
-- Theories Growing a Social Movement
 - Organisational Theories
+- Theories Growing a Social Movement
+- Tacktical Methodological Analysis
 - Imagining Transformative Futures
