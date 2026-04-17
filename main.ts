@@ -69,6 +69,7 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   buddhist_psychology_perspective: { title: 'Buddhist Psychology', description: 'Mindfulness, suffering, and liberation', group: PHILOSOPHY_GROUP_KEY },
   nietzschean_perspective: { title: 'Nietzschean Philosophy', description: 'Will to power, values, and self-overcoming', group: PHILOSOPHY_GROUP_KEY },
   stoicism_perspective: { title: 'Stoic Philosophy', description: 'Virtue, acceptance, and inner peace', group: PHILOSOPHY_GROUP_KEY },
+  cynics_perspective: { title: "Cynics' Philosophy", description: 'Plain living, shameless truth-telling, social convention, need, freedom, and embodied critique', group: PHILOSOPHY_GROUP_KEY },
   hermeneutics_perspective: { title: 'Hermeneutics', description: 'Interpretation and understanding', group: PHILOSOPHY_GROUP_KEY },
   topological_analysis: { title: 'Topological Analysis', description: 'Relations, surfaces, thresholds, folds, nearness, boundaries, and spatial transformations of meaning', group: PHILOSOPHY_GROUP_KEY },
 
@@ -192,6 +193,8 @@ const ENTRY_TYPES: Record<string, string> = {
   morning_reflection: 'Morning reflection', evening_analysis: 'Evening analysis',
   breakthrough_moment: 'Breakthrough moment', free_form: 'Free form'
 };
+
+const SAFETY_DISCLAIMER = 'The Deleometer is a reflective conversation and journaling tool, not a medical device, diagnosis, treatment, or substitute for medication, therapy, crisis support, or professional care. AI can make mistakes and can sound more certain than it is. Treat responses as invitations to think with, question, revise, and discuss, not as truth to absorb undiluted.';
 
 const ZPD_LEVELS: Record<string, { label: string; prompt: string }> = {
   primary_year_5: {
@@ -337,6 +340,24 @@ export default class DeleometerPlugin extends Plugin {
             await this.openChatFromSourceNote(source, perspective);
           } catch (error) {
             new Notice('Could not open chat from note link');
+            console.error(error);
+          }
+        };
+      });
+      element.querySelectorAll('a[href^="deleometer://goals?"]').forEach((linkEl) => {
+        const link = linkEl as HTMLAnchorElement;
+        link.onclick = async (event) => {
+          event.preventDefault();
+          try {
+            const url = new URL(link.href);
+            const source = url.searchParams.get('source') || '';
+            if (!source) {
+              new Notice('Missing goal draft context');
+              return;
+            }
+            await this.openGoalDraftsFromSourceNote(source);
+          } catch (error) {
+            new Notice('Could not open goal drafts from note link');
             console.error(error);
           }
         };
@@ -782,7 +803,7 @@ export default class DeleometerPlugin extends Plugin {
             `Return JSON with exactly these keys:\n` +
             `- philosophical_reaccumulation: 360-520 words. Iteratively recombine the group syntheses into Philosophy as the first discipline. Treat this as an archeo-genealogical recombination of subdisciplines, theories, and analyses into an overarching philosophical orientation. Include interpretation, critique, implications, likely outcomes, further steps, and imaginative futures.\n` +
             `- author_memory_summary: under 220 words, updating enduring patterns, strengths, values, risks, supports, and recurring concerns.\n` +
-            `- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(', ')}. targetDate must be YYYY-MM-DD and must be today or later in the user's timezone. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.\n\n` +
+            `- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(', ')}. targetDate must be YYYY-MM-DD and must be today or later in the user's timezone. When suggesting a form of activity, include concrete real-life examples of that form, such as types of groups, everyday actions, practices, scenes, public activities, mutual aid settings, study circles, creative routines, community organisations, or other realistic examples relevant to the journal entry. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.\n\n` +
             `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${dateContext}\n\n` +
             `Group syntheses:\n${groupList}\n\n` +
             `Individual analysis excerpts:\n${perspectiveSummaries}\n\n` +
@@ -841,7 +862,7 @@ export default class DeleometerPlugin extends Plugin {
     const authorContext = this.buildAuthorContext();
     const systemMessage: ChatCompletionMessageParam = {
       role: 'system',
-      content: `You are an empathetic analytical companion specializing in ${persp?.title || 'reflective analysis'}. ${persp?.description || ''}\n\nYou help users explore emotions, thoughts, experiences, contexts, and practical possibilities through this perspective. Be warm, insightful, and supportive. Ask thoughtful follow-up questions. Keep responses conversational and under 150 words unless more detail is needed.${authorContext ? `\n\nContext about the journal author:\n${authorContext}` : ''}`
+      content: `You are an empathetic analytical companion specializing in ${persp?.title || 'reflective analysis'}. ${persp?.description || ''}\n\n${this.getReaderContextPrompt()}\n\nYou help users explore emotions, thoughts, experiences, contexts, and practical possibilities through this perspective. Be warm, insightful, and supportive. Ask thoughtful follow-up questions. Keep responses conversational and under 150 words unless more detail is needed.${authorContext ? `\n\nContext about the journal author:\n${authorContext}` : ''}`
     };
     const conversation: ChatCompletionMessageParam[] = messages.map((message) => ({
       role: message.role,
@@ -932,6 +953,73 @@ export default class DeleometerPlugin extends Plugin {
     };
 
     await this.activateAIChatView();
+  }
+
+  async openGoalDraftsFromSourceNote(sourceFilePath: string) {
+    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
+    if (!(abstractFile instanceof TFile)) {
+      throw new Error('Source note not found');
+    }
+
+    const content = await this.app.vault.read(abstractFile);
+    const drafts = this.extractGoalSuggestionsFromAnalysisNote(content, sourceFilePath);
+    if (drafts.length === 0) {
+      new Notice('No suggested goals found in this analysis note');
+      return;
+    }
+
+    new GoalDraftsModal(this.app, this, drafts, sourceFilePath).open();
+  }
+
+  extractGoalSuggestionsFromAnalysisNote(content: string, sourceAnalysisPath: string = ''): GoalSuggestion[] {
+    const suggestionsStart = content.search(/^##\s+.*Suggested Goals.*$/m);
+    if (suggestionsStart === -1) return [];
+
+    const suggestionsSection = content.slice(suggestionsStart);
+    const nextSectionMatch = /^##\s+(?!.*Suggested Goals).*$/m.exec(suggestionsSection.slice(1));
+    const boundedSection = nextSectionMatch
+      ? suggestionsSection.slice(0, nextSectionMatch.index + 1)
+      : suggestionsSection;
+    const headingRegex = /^###\s+(.+)$/gm;
+    const headingMatches: { title: string; index: number; fullMatch: string }[] = [];
+    let match: RegExpExecArray | null;
+
+    while ((match = headingRegex.exec(boundedSection)) !== null) {
+      headingMatches.push({ title: match[1].trim(), index: match.index, fullMatch: match[0] });
+    }
+
+    return headingMatches
+      .map((heading, index): GoalSuggestion | null => {
+        const bodyStart = heading.index + heading.fullMatch.length;
+        const bodyEnd = index + 1 < headingMatches.length
+          ? headingMatches[index + 1].index
+          : boundedSection.length;
+        const body = boundedSection.slice(bodyStart, bodyEnd).trim();
+        const milestones = body
+          .split('\n')
+          .map((line) => line.trim())
+          .filter((line) => line.startsWith('- '))
+          .map((line) => line.replace(/^- \[[ xX]\]\s*/, '').replace(/^- /, '').trim())
+          .filter(Boolean);
+        const description = body
+          .split('\n')
+          .map((line) => line.trim())
+          .filter((line) => line && !line.startsWith('- ') && !line.startsWith('**Draft Goals:**'))
+          .join('\n')
+          .trim();
+        if (!heading.title || !description) return null;
+
+        return {
+          title: heading.title,
+          description,
+          category: 'personal_growth',
+          targetDate: '',
+          milestones,
+          sourcePerspectives: [],
+          sourceAnalysisPath
+        };
+      })
+      .filter((goal): goal is GoalSuggestion => !!goal);
   }
 
   normalizeHeadingText(value: string): string {
@@ -1996,6 +2084,11 @@ ${event.kind === 'goal_due'
     }
   }
 
+  buildGoalDraftLink(sourceFilePath: string): string {
+    const encodedPath = encodeURIComponent(sourceFilePath);
+    return `**Draft Goals:** [Open proposed goals](deleometer://goals?source=${encodedPath})`;
+  }
+
   async upsertPerspectiveSectionLine(sourceFilePath: string, perspectiveKey: string, linePrefix: string, fullLine: string) {
     const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
     if (!(abstractFile instanceof TFile)) return;
@@ -2010,7 +2103,7 @@ ${event.kind === 'goal_due'
     const lineRegex = new RegExp(`${escapedPrefix}.*(?:\\n|$)`);
     const updatedSection = lineRegex.test(section)
       ? section.replace(lineRegex, `${fullLine}\n`)
-      : `${section.trimEnd()}\n\n${fullLine}\n`;
+      : `${section.trimEnd()}\n${fullLine}\n`;
 
     await this.app.vault.modify(
       abstractFile,
@@ -2054,9 +2147,9 @@ ${event.kind === 'goal_due'
 
     if (analysisStart !== -1) {
       const cleaned = currentContent.slice(0, analysisStart).trimEnd();
-      await this.app.vault.modify(sourceFile, `${cleaned.trimEnd()}${this.buildAnalysisMarkdown(analysis)}`);
+      await this.app.vault.modify(sourceFile, `${cleaned.trimEnd()}${this.buildAnalysisMarkdown(analysis, sourceFile.path)}`);
     } else {
-      await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${this.buildAnalysisMarkdown(analysis)}`);
+      await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${this.buildAnalysisMarkdown(analysis, sourceFile.path)}`);
     }
     await this.ensurePerspectiveChatLinks(sourceFile, analysis);
   }
@@ -2074,48 +2167,51 @@ ${event.kind === 'goal_due'
     }
   }
 
-  buildAnalysisMarkdown(analysis: AnalysisPayload): string {
-    let analysisMarkdown = '\n\n---\n\n## 🔍 AI Analysis\n\n';
-    analysisMarkdown += `*Analyzed: ${new Date().toLocaleString()}*\n\n`;
+  buildAnalysisMarkdown(analysis: AnalysisPayload, sourceFilePath: string = ''): string {
+    let analysisMarkdown = '\n\n---\n## 🔍 AI Analysis\n';
+    analysisMarkdown += `*Analyzed: ${new Date().toLocaleString()}*\n`;
 
     for (const [perspKey, content] of Object.entries(analysis.perspectives)) {
       const persp = PERSPECTIVES[perspKey];
       const groupTitle = persp ? PERSPECTIVE_GROUPS[persp.group]?.title : '';
-      analysisMarkdown += `### ${persp?.title || perspKey}\n\n`;
+      analysisMarkdown += `\n### ${persp?.title || perspKey}\n`;
       if (groupTitle) {
-        analysisMarkdown += `*Group: ${groupTitle}*\n\n`;
+        analysisMarkdown += `*Group: ${groupTitle}*\n`;
       }
-      analysisMarkdown += `${content}\n\n`;
+      analysisMarkdown += `${content}\n`;
       const readings = analysis.furtherReadings[perspKey] || [];
       if (readings.length > 0) {
-        analysisMarkdown += `#### Further readings\n\n${readings.map((reading) => `- ${reading}`).join('\n')}\n\n`;
+        analysisMarkdown += `#### Further readings\n${readings.map((reading) => `- ${reading}`).join('\n')}\n`;
       }
     }
 
     if (Object.keys(analysis.groupSyntheses).length > 0) {
-      analysisMarkdown += `## Group Syntheses\n\n`;
+      analysisMarkdown += `\n## Group Syntheses\n`;
       for (const [groupKey, content] of Object.entries(analysis.groupSyntheses)) {
         const group = PERSPECTIVE_GROUPS[groupKey];
-        analysisMarkdown += `### ${group?.title || groupKey}\n\n${content}\n\n`;
+        analysisMarkdown += `### ${group?.title || groupKey}\n${content}\n`;
       }
     }
 
     if (analysis.philosophicalReaccumulation) {
-      analysisMarkdown += `## Philosophy Re-accumulation\n\n${analysis.philosophicalReaccumulation}\n\n`;
+      analysisMarkdown += `\n## Philosophy Re-accumulation\n${analysis.philosophicalReaccumulation}\n`;
     }
 
     if (analysis.analysisWarnings.length > 0) {
-      analysisMarkdown += `## Analysis Notes\n\n`;
-      analysisMarkdown += `${analysis.analysisWarnings.map((warning) => `- ${warning}`).join('\n')}\n\n`;
+      analysisMarkdown += `\n## Analysis Notes\n`;
+      analysisMarkdown += `${analysis.analysisWarnings.map((warning) => `- ${warning}`).join('\n')}\n`;
     }
 
     if (analysis.goalSuggestions.length > 0) {
-      analysisMarkdown += `## 🎯 Suggested Goals\n\n`;
+      analysisMarkdown += `\n## 🎯 Suggested Goals\n`;
       for (const goal of analysis.goalSuggestions) {
-        analysisMarkdown += `### ${goal.title}\n\n${goal.description}\n\n`;
+        analysisMarkdown += `### ${goal.title}\n${goal.description}\n`;
         if (goal.milestones.length > 0) {
-          analysisMarkdown += `${goal.milestones.map((milestone) => `- ${milestone}`).join('\n')}\n\n`;
+          analysisMarkdown += `${goal.milestones.map((milestone) => `- ${milestone}`).join('\n')}\n`;
         }
+      }
+      if (sourceFilePath) {
+        analysisMarkdown += `${this.buildGoalDraftLink(sourceFilePath)}\n`;
       }
     }
 
@@ -2582,6 +2678,19 @@ class AIChatView extends ItemView {
       this.currentPerspective = select.value;
       // Add a system message about perspective change
       this.addMessage('assistant', `I'll now respond from a ${PERSPECTIVES[this.currentPerspective].title} perspective. How can I help you?`);
+    };
+
+    const levelSelector = container.createDiv({ cls: 'perspective-selector-container' });
+    levelSelector.createEl('label', { text: 'Reader level: ' });
+    const levelSelect = levelSelector.createEl('select', { cls: 'perspective-selector' });
+    for (const [key, level] of Object.entries(ZPD_LEVELS)) {
+      const option = levelSelect.createEl('option', { text: level.label, value: key });
+      if (key === this.plugin.settings.zpdLevel) option.selected = true;
+    }
+    levelSelect.onchange = () => {
+      this.plugin.settings.zpdLevel = ZPD_LEVELS[levelSelect.value] ? levelSelect.value : 'tertiary_year_2';
+      void this.plugin.saveSettings();
+      this.addMessage('assistant', `I'll respond at the ${ZPD_LEVELS[this.plugin.settings.zpdLevel].label} level from here.`);
     };
 
     this.messagesContainer = container.createDiv({ cls: 'chat-messages' });
@@ -3544,6 +3653,10 @@ class DeleometerSettingTab extends PluginSettingTab {
       text: 'Configure journal analysis, goals, and calendar sync.',
       cls: 'setting-item-description'
     });
+    new Setting(containerEl)
+      .setName('Safety and interpretation')
+      .setDesc(SAFETY_DISCLAIMER)
+      .setHeading();
 
     new Setting(containerEl)
       .setName('API key')

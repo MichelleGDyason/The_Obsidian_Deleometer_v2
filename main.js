@@ -6467,6 +6467,7 @@ var PERSPECTIVES = {
   buddhist_psychology_perspective: { title: "Buddhist Psychology", description: "Mindfulness, suffering, and liberation", group: PHILOSOPHY_GROUP_KEY },
   nietzschean_perspective: { title: "Nietzschean Philosophy", description: "Will to power, values, and self-overcoming", group: PHILOSOPHY_GROUP_KEY },
   stoicism_perspective: { title: "Stoic Philosophy", description: "Virtue, acceptance, and inner peace", group: PHILOSOPHY_GROUP_KEY },
+  cynics_perspective: { title: "Cynics' Philosophy", description: "Plain living, shameless truth-telling, social convention, need, freedom, and embodied critique", group: PHILOSOPHY_GROUP_KEY },
   hermeneutics_perspective: { title: "Hermeneutics", description: "Interpretation and understanding", group: PHILOSOPHY_GROUP_KEY },
   topological_analysis: { title: "Topological Analysis", description: "Relations, surfaces, thresholds, folds, nearness, boundaries, and spatial transformations of meaning", group: PHILOSOPHY_GROUP_KEY },
   foucaultian_analysis: { title: "Foucaultian Analysis", description: "Power, discourse, discipline, subject formation, and historical conditions of truth", group: "archeo_genealogical_deconstruction" },
@@ -6582,6 +6583,7 @@ var ENTRY_TYPES = {
   breakthrough_moment: "Breakthrough moment",
   free_form: "Free form"
 };
+var SAFETY_DISCLAIMER = "The Deleometer is a reflective conversation and journaling tool, not a medical device, diagnosis, treatment, or substitute for medication, therapy, crisis support, or professional care. AI can make mistakes and can sound more certain than it is. Treat responses as invitations to think with, question, revise, and discuss, not as truth to absorb undiluted.";
 var ZPD_LEVELS = {
   primary_year_5: {
     label: "Grade 5 primary student",
@@ -6664,6 +6666,24 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
             await this.openChatFromSourceNote(source, perspective);
           } catch (error) {
             new import_obsidian.Notice("Could not open chat from note link");
+            console.error(error);
+          }
+        };
+      });
+      element.querySelectorAll('a[href^="deleometer://goals?"]').forEach((linkEl) => {
+        const link = linkEl;
+        link.onclick = async (event) => {
+          event.preventDefault();
+          try {
+            const url = new URL(link.href);
+            const source = url.searchParams.get("source") || "";
+            if (!source) {
+              new import_obsidian.Notice("Missing goal draft context");
+              return;
+            }
+            await this.openGoalDraftsFromSourceNote(source);
+          } catch (error) {
+            new import_obsidian.Notice("Could not open goal drafts from note link");
             console.error(error);
           }
         };
@@ -7075,7 +7095,7 @@ ${groupSyntheses[groupKey] || "No group synthesis returned."}`;
 Return JSON with exactly these keys:
 - philosophical_reaccumulation: 360-520 words. Iteratively recombine the group syntheses into Philosophy as the first discipline. Treat this as an archeo-genealogical recombination of subdisciplines, theories, and analyses into an overarching philosophical orientation. Include interpretation, critique, implications, likely outcomes, further steps, and imaginative futures.
 - author_memory_summary: under 220 words, updating enduring patterns, strengths, values, risks, supports, and recurring concerns.
-- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(", ")}. targetDate must be YYYY-MM-DD and must be today or later in the user's timezone. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.
+- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(", ")}. targetDate must be YYYY-MM-DD and must be today or later in the user's timezone. When suggesting a form of activity, include concrete real-life examples of that form, such as types of groups, everyday actions, practices, scenes, public activities, mutual aid settings, study circles, creative routines, community organisations, or other realistic examples relevant to the journal entry. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.
 
 ${personalityContext}
 
@@ -7132,6 +7152,8 @@ ${content}`
     const systemMessage = {
       role: "system",
       content: `You are an empathetic analytical companion specializing in ${(persp == null ? void 0 : persp.title) || "reflective analysis"}. ${(persp == null ? void 0 : persp.description) || ""}
+
+${this.getReaderContextPrompt()}
 
 You help users explore emotions, thoughts, experiences, contexts, and practical possibilities through this perspective. Be warm, insightful, and supportive. Ask thoughtful follow-up questions. Keep responses conversational and under 150 words unless more detail is needed.${authorContext ? `
 
@@ -7215,6 +7237,51 @@ ${journalContext}`
       sourceFilePath
     };
     await this.activateAIChatView();
+  }
+  async openGoalDraftsFromSourceNote(sourceFilePath) {
+    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
+    if (!(abstractFile instanceof import_obsidian.TFile)) {
+      throw new Error("Source note not found");
+    }
+    const content = await this.app.vault.read(abstractFile);
+    const drafts = this.extractGoalSuggestionsFromAnalysisNote(content, sourceFilePath);
+    if (drafts.length === 0) {
+      new import_obsidian.Notice("No suggested goals found in this analysis note");
+      return;
+    }
+    new GoalDraftsModal(this.app, this, drafts, sourceFilePath).open();
+  }
+  extractGoalSuggestionsFromAnalysisNote(content, sourceAnalysisPath = "") {
+    const suggestionsStart = content.search(/^##\s+.*Suggested Goals.*$/m);
+    if (suggestionsStart === -1)
+      return [];
+    const suggestionsSection = content.slice(suggestionsStart);
+    const nextSectionMatch = /^##\s+(?!.*Suggested Goals).*$/m.exec(suggestionsSection.slice(1));
+    const boundedSection = nextSectionMatch ? suggestionsSection.slice(0, nextSectionMatch.index + 1) : suggestionsSection;
+    const headingRegex = /^###\s+(.+)$/gm;
+    const headingMatches = [];
+    let match;
+    while ((match = headingRegex.exec(boundedSection)) !== null) {
+      headingMatches.push({ title: match[1].trim(), index: match.index, fullMatch: match[0] });
+    }
+    return headingMatches.map((heading, index) => {
+      const bodyStart = heading.index + heading.fullMatch.length;
+      const bodyEnd = index + 1 < headingMatches.length ? headingMatches[index + 1].index : boundedSection.length;
+      const body = boundedSection.slice(bodyStart, bodyEnd).trim();
+      const milestones = body.split("\n").map((line) => line.trim()).filter((line) => line.startsWith("- ")).map((line) => line.replace(/^- \[[ xX]\]\s*/, "").replace(/^- /, "").trim()).filter(Boolean);
+      const description = body.split("\n").map((line) => line.trim()).filter((line) => line && !line.startsWith("- ") && !line.startsWith("**Draft Goals:**")).join("\n").trim();
+      if (!heading.title || !description)
+        return null;
+      return {
+        title: heading.title,
+        description,
+        category: "personal_growth",
+        targetDate: "",
+        milestones,
+        sourcePerspectives: [],
+        sourceAnalysisPath
+      };
+    }).filter((goal) => !!goal);
   }
   normalizeHeadingText(value) {
     return value.toLowerCase().replace(/[*_`#]/g, "").replace(/[^\p{L}\p{N}\s+]/gu, " ").replace(/\s+/g, " ").trim();
@@ -8074,6 +8141,10 @@ ${event.kind === "goal_due" ? `This marks the target date for ${goalLink}.` : `R
       await this.upsertPerspectiveSectionLine(sourceFile.path, perspectiveKey, "**Continue Chat:**", this.buildPerspectiveChatLink(sourceFile.path, perspectiveKey));
     }
   }
+  buildGoalDraftLink(sourceFilePath) {
+    const encodedPath = encodeURIComponent(sourceFilePath);
+    return `**Draft Goals:** [Open proposed goals](deleometer://goals?source=${encodedPath})`;
+  }
   async upsertPerspectiveSectionLine(sourceFilePath, perspectiveKey, linePrefix, fullLine) {
     const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
     if (!(abstractFile instanceof import_obsidian.TFile))
@@ -8087,7 +8158,6 @@ ${event.kind === "goal_due" ? `This marks the target date for ${goalLink}.` : `R
     const lineRegex = new RegExp(`${escapedPrefix}.*(?:\\n|$)`);
     const updatedSection = lineRegex.test(section) ? section.replace(lineRegex, `${fullLine}
 `) : `${section.trimEnd()}
-
 ${fullLine}
 `;
     await this.app.vault.modify(
@@ -8132,9 +8202,9 @@ ${chatBlock}
     const analysisStart = this.findAnalysisSectionStart(currentContent);
     if (analysisStart !== -1) {
       const cleaned = currentContent.slice(0, analysisStart).trimEnd();
-      await this.app.vault.modify(sourceFile, `${cleaned.trimEnd()}${this.buildAnalysisMarkdown(analysis)}`);
+      await this.app.vault.modify(sourceFile, `${cleaned.trimEnd()}${this.buildAnalysisMarkdown(analysis, sourceFile.path)}`);
     } else {
-      await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${this.buildAnalysisMarkdown(analysis)}`);
+      await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${this.buildAnalysisMarkdown(analysis, sourceFile.path)}`);
     }
     await this.ensurePerspectiveChatLinks(sourceFile, analysis);
   }
@@ -8157,78 +8227,70 @@ ${chatBlock}
       await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${statusMarkdown}`);
     }
   }
-  buildAnalysisMarkdown(analysis) {
+  buildAnalysisMarkdown(analysis, sourceFilePath = "") {
     var _a2;
-    let analysisMarkdown = "\n\n---\n\n## \u{1F50D} AI Analysis\n\n";
+    let analysisMarkdown = "\n\n---\n## \u{1F50D} AI Analysis\n";
     analysisMarkdown += `*Analyzed: ${new Date().toLocaleString()}*
-
 `;
     for (const [perspKey, content] of Object.entries(analysis.perspectives)) {
       const persp = PERSPECTIVES[perspKey];
       const groupTitle = persp ? (_a2 = PERSPECTIVE_GROUPS[persp.group]) == null ? void 0 : _a2.title : "";
-      analysisMarkdown += `### ${(persp == null ? void 0 : persp.title) || perspKey}
-
+      analysisMarkdown += `
+### ${(persp == null ? void 0 : persp.title) || perspKey}
 `;
       if (groupTitle) {
         analysisMarkdown += `*Group: ${groupTitle}*
-
 `;
       }
       analysisMarkdown += `${content}
-
 `;
       const readings = analysis.furtherReadings[perspKey] || [];
       if (readings.length > 0) {
         analysisMarkdown += `#### Further readings
-
 ${readings.map((reading) => `- ${reading}`).join("\n")}
-
 `;
       }
     }
     if (Object.keys(analysis.groupSyntheses).length > 0) {
-      analysisMarkdown += `## Group Syntheses
-
+      analysisMarkdown += `
+## Group Syntheses
 `;
       for (const [groupKey, content] of Object.entries(analysis.groupSyntheses)) {
         const group = PERSPECTIVE_GROUPS[groupKey];
         analysisMarkdown += `### ${(group == null ? void 0 : group.title) || groupKey}
-
 ${content}
-
 `;
       }
     }
     if (analysis.philosophicalReaccumulation) {
-      analysisMarkdown += `## Philosophy Re-accumulation
-
+      analysisMarkdown += `
+## Philosophy Re-accumulation
 ${analysis.philosophicalReaccumulation}
-
 `;
     }
     if (analysis.analysisWarnings.length > 0) {
-      analysisMarkdown += `## Analysis Notes
-
+      analysisMarkdown += `
+## Analysis Notes
 `;
       analysisMarkdown += `${analysis.analysisWarnings.map((warning) => `- ${warning}`).join("\n")}
-
 `;
     }
     if (analysis.goalSuggestions.length > 0) {
-      analysisMarkdown += `## \u{1F3AF} Suggested Goals
-
+      analysisMarkdown += `
+## \u{1F3AF} Suggested Goals
 `;
       for (const goal of analysis.goalSuggestions) {
         analysisMarkdown += `### ${goal.title}
-
 ${goal.description}
-
 `;
         if (goal.milestones.length > 0) {
           analysisMarkdown += `${goal.milestones.map((milestone) => `- ${milestone}`).join("\n")}
-
 `;
         }
+      }
+      if (sourceFilePath) {
+        analysisMarkdown += `${this.buildGoalDraftLink(sourceFilePath)}
+`;
       }
     }
     return analysisMarkdown;
@@ -8685,6 +8747,19 @@ var AIChatView = class extends import_obsidian.ItemView {
     select.onchange = () => {
       this.currentPerspective = select.value;
       this.addMessage("assistant", `I'll now respond from a ${PERSPECTIVES[this.currentPerspective].title} perspective. How can I help you?`);
+    };
+    const levelSelector = container.createDiv({ cls: "perspective-selector-container" });
+    levelSelector.createEl("label", { text: "Reader level: " });
+    const levelSelect = levelSelector.createEl("select", { cls: "perspective-selector" });
+    for (const [key, level] of Object.entries(ZPD_LEVELS)) {
+      const option = levelSelect.createEl("option", { text: level.label, value: key });
+      if (key === this.plugin.settings.zpdLevel)
+        option.selected = true;
+    }
+    levelSelect.onchange = () => {
+      this.plugin.settings.zpdLevel = ZPD_LEVELS[levelSelect.value] ? levelSelect.value : "tertiary_year_2";
+      void this.plugin.saveSettings();
+      this.addMessage("assistant", `I'll respond at the ${ZPD_LEVELS[this.plugin.settings.zpdLevel].label} level from here.`);
     };
     this.messagesContainer = container.createDiv({ cls: "chat-messages" });
     if (context) {
@@ -9626,6 +9701,7 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       text: "Configure journal analysis, goals, and calendar sync.",
       cls: "setting-item-description"
     });
+    new import_obsidian.Setting(containerEl).setName("Safety and interpretation").setDesc(SAFETY_DISCLAIMER).setHeading();
     new import_obsidian.Setting(containerEl).setName("API key").setDesc(this.plugin.settings.openaiApiKey ? "Your API key for AI analysis. A key is currently stored in plugin data and reloaded on startup." : "Your API key for AI analysis.").addText((text) => text.setPlaceholder("Paste your API key").setValue(this.plugin.settings.openaiApiKey).onChange(async (value) => {
       this.plugin.settings.openaiApiKey = value;
       await this.plugin.saveSettings();

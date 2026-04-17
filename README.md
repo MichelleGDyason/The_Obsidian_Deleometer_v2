@@ -5,6 +5,12 @@ AI-powered journaling, multi-perspective analysis, goal generation, and reflecti
 Active repository:
 [github.com/MichelleGDyason/The_Obsidian_Deleometer_v2](https://github.com/MichelleGDyason/The_Obsidian_Deleometer_v2)
 
+## Safety and Interpretation
+
+The Deleometer is a reflective conversation and journaling tool. It is not a medical device, diagnosis, treatment, or substitute for medication, therapy, crisis support, or professional care already used by the journal author.
+
+AI can make mistakes and can sound more certain than it is. Treat Deleometer responses as invitations to think with, question, revise, and discuss, not as truth to absorb undiluted. Use it like a rigorous conversation with a thoughtful friend, not an all-knowing or infallible robot. Continuing to chat with the AI can help mistakes become clearer, because you can challenge the response, ask for evidence, request a simpler explanation, or ask it to reinterpret the same entry through another frame.
+
 ## License Position
 
 This project is licensed under the GNU Affero General Public License v3.0.
@@ -28,6 +34,8 @@ The Deleometer helps you:
 - turn analysis suggestions into editable goals
 - track goals in notes and optionally sync them into the Full Calendar plugin
 - review activity in an emotional intelligence dashboard
+
+The plugin keeps an author memory summary so later analyses can respond as part of an ongoing reflective conversation with previous analyses. This is meant to help recurring themes, values, supports, risks, and patterns become easier to notice over time.
 
 ## Requirements
 
@@ -88,6 +96,14 @@ After enabling the plugin:
 6. Draft goals from the analysis.
 7. Optionally sync goals and milestones into Full Calendar.
 
+Analyses can be extensive. If every frame is enabled, an appended note may produce around 15,000 words, roughly a 70-minute read. Settings let you enable or disable whole analysis groups, or choose individual analyses inside each group, so you can tune the output to the time and attention you have.
+
+The analysis reader level can also be changed in settings. The available levels range from Grade 5 primary through professor-level analysis. This changes how much the AI explains specialist terms and how far it tries to guide the reader beyond their current zone of proximal development.
+
+## Why This Exists
+
+A short personal note about why the plugin was made would be useful for other people. The Deleometer is unusual because it treats a journal entry as something that can be read through many disciplines, not only as mood tracking or productivity data. Explaining the reason for making it can help users understand that the plugin is designed for reflective agency: the author is meant to argue with the AI, learn from it, reject parts of it, and use the conversation to make their own meanings clearer.
+
 ## Full Calendar Integration
 
 The plugin can create dated goal and milestone event notes that the [Full Calendar](https://github.com/obsidian-community/obsidian-full-calendar) plugin can display.
@@ -136,3 +152,95 @@ You may also want to add:
 ## License
 
 This project is licensed under the GNU Affero General Public License v3.0. See [LICENSE](LICENSE).
+
+## Analysis Catalogue
+
+The Deleometer currently includes 64 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off.
+
+### Philosophy as First Discipline
+
+- Aristotle's Argonic Teachings
+- Platonic Philosophy
+- Spinoza's Theologic-Ethico Philosophy
+- Bible Teachings
+- Metaphysical Analysis
+- Ontological Analysis
+- Ethical Analysis
+- Philosophy of Mind
+- Process Philosophical Analysis
+- Phenomenology
+- Existential Analysis
+- Buddhist Psychology
+- Nietzschean Philosophy
+- Stoic Philosophy
+- Cynics' Philosophy
+- Hermeneutics
+- Topological Analysis
+
+### Archeo-Genealogical and Deconstructive Thought
+
+- Foucaultian Analysis
+- Derridian Analysis
+- Žižekian Analysis
+- Simondonian Analysis
+- Deleuzian Schizoanalysis
+- Critical Theory
+- Posthumanism
+
+### Psychoanalytic and Clinical Psychologies
+
+- Lacanian Psychoanalysis
+- Freudian Psychoanalysis
+- Jungian Analysis
+- Attachment Theory
+- Positive Psychology
+- Gestalt Therapy
+- Transpersonal Psychology
+- Cognitive Behavioral
+- Psychiatric Assessment
+- Myers-Briggs analysis
+
+### Gender, Sexuality, and Queer Studies
+
+- Irigarayian Feminine
+- Feminist Psychology
+- Queer Theory
+- Lesbian & Gay Studies
+- Sexualities Studies
+- Gender Studies
+- Trans Studies
+
+### Race, Coloniality, and Embodiment Studies
+
+- Critical Race Studies
+- Decolonial Studies
+- Mad Studies
+- Fat Studies
+
+### Narrative, Media, and Frame Studies
+
+- Narrative Psychology
+- Creative Non-Fiction
+- Idiotextual Analysis
+- Media Studies
+- Frame Analysis
+- Erving Goffman's Frame Analysis
+
+### Systems, Ecology, and Food Futures
+
+- Latourian Analysis
+- Critical Food Systems Analysis
+- Biomimicry
+- Ecopoiesis
+- Resilience
+
+### Strategy, Method, and Organisation
+
+- Tacktical Methodological Analysis
+- SWOT Analysis
+- Feasibility Analysis
+- Risk Analysis
+- Transitional Theory
+- Theories Growing a Social Movement
+- Organisational Theories
+- Imagining Transformative Futures
