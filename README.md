@@ -155,7 +155,7 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 64 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off.
+The Deleometer currently includes 72 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off.
 
 ### Philosophy as First Discipline
 
@@ -233,6 +233,17 @@ The Deleometer currently includes 64 individual analysis frames. They are groupe
 - Biomimicry
 - Ecopoiesis
 - Resilience
+
+### Religious, Mythic, and Pagan Interpretations
+
+- Ancient Religious Interpretation
+- Greek Gods Interpretation
+- Roman Gods Interpretation
+- Pagan Interpretation
+- Druidic Interpretation
+- First Testament / Hebrew Interpretation
+- Second Testament / Christian Interpretation
+- Muslim Interpretation
 
 ### Strategy, Method, and Organisation
 

@@ -6447,6 +6447,10 @@ var PERSPECTIVE_GROUPS = {
     title: "Systems, Ecology, and Food Futures",
     description: "Actor-networks, food systems, biomimicry, ecopoiesis, resilience, and ecological transition"
   },
+  religious_mythic_interpretation: {
+    title: "Religious, Mythic, and Pagan Interpretations",
+    description: "Ancient religions, mythic patterns, sacred texts, ritual worlds, divinities, covenant, revelation, and comparative spiritual meaning"
+  },
   strategy_method_organisation: {
     title: "Strategy, Method, and Organisation",
     description: "Tactical method, risk, feasibility, SWOT, organisations, movements, and transformative futures"
@@ -6513,6 +6517,14 @@ var PERSPECTIVES = {
   biomimicry_perspective: { title: "Biomimicry", description: "Learning from living systems, adaptation, form, function, and regenerative design", group: "systems_ecology_food" },
   ecopoiesis_perspective: { title: "Ecopoiesis", description: "World-making ecologies, habitat creation, planetary repair, and life-supporting systems", group: "systems_ecology_food" },
   resilience_analysis: { title: "Resilience", description: "Adaptive capacity, recovery, redundancy, stress response, and durable support systems", group: "systems_ecology_food" },
+  ancient_religious_interpretation: { title: "Ancient Religious Interpretation", description: "Ritual, sacrifice, omen, sacred order, taboo, ancestor, cosmology, and ancient religious imagination", group: "religious_mythic_interpretation" },
+  greek_gods_interpretation: { title: "Greek Gods Interpretation", description: "Olympian powers, mythic archetypes, fate, hubris, patronage, conflict, desire, and heroic consequence", group: "religious_mythic_interpretation" },
+  roman_gods_interpretation: { title: "Roman Gods Interpretation", description: "Civic religion, household gods, pietas, omen, duty, empire, ritual order, and public virtue", group: "religious_mythic_interpretation" },
+  pagan_interpretation: { title: "Pagan Interpretation", description: "Seasonal cycles, polytheism, land, animacy, ritual practice, reciprocity, craft, and embodied sacred life", group: "religious_mythic_interpretation" },
+  druidic_interpretation: { title: "Druidic Interpretation", description: "Oral wisdom, trees, land memory, bardic speech, seasonal rites, kinship, sovereignty, and ecological divination", group: "religious_mythic_interpretation" },
+  first_testament_hebrew_interpretation: { title: "First Testament / Hebrew Interpretation", description: "Covenant, law, prophecy, lament, wisdom, exile, justice, creation, and faithful argument with God", group: "religious_mythic_interpretation" },
+  second_testament_christian_interpretation: { title: "Second Testament / Christian Interpretation", description: "Gospel, parable, grace, discipleship, incarnation, forgiveness, community, resurrection, and ethical transformation", group: "religious_mythic_interpretation" },
+  muslim_interpretation: { title: "Muslim Interpretation", description: "Tawhid, submission, mercy, intention, justice, prayer, ummah, prophetic example, and disciplined remembrance", group: "religious_mythic_interpretation" },
   tacktical_methodological_analysis: { title: "Tacktical Methodological Analysis", description: "Louisa Bufardeci's tactical method, situated procedure, constraints, mapping, and action", group: "strategy_method_organisation" },
   swot_analysis: { title: "SWOT Analysis", description: "Strengths, weaknesses, opportunities, threats, and strategic positioning", group: "strategy_method_organisation" },
   feasibility_analysis: { title: "Feasibility Analysis", description: "Practical viability, resources, constraints, dependencies, costs, and implementation readiness", group: "strategy_method_organisation" },
@@ -6986,6 +6998,7 @@ For each perspective:
 - when a phrase like "pathway", "practice", "boundary", or "agency" appears, explain what it means materially and practically.
 - for Aristotle, include Rhetoric where relevant: ethos, pathos, logos, audience, persuasion, demonstration, causes, practical judgment, material conditions, and action.
 - for Plato, avoid broad Platonism; show the specific dialectical movement, image, desire, education, appearance, or form being used.
+- for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.
 - avoid stopping early. Return one complete individual analysis for every requested key.
 
 ${personalityContext}
