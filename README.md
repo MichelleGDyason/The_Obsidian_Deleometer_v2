@@ -192,7 +192,7 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 130 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off. The catalogue is ordered as a rough temporal chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought.
+The Deleometer currently includes 131 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off. The catalogue is ordered as a rough temporal chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought.
 
 ### Philosophy as First Discipline
 
@@ -244,6 +244,7 @@ The Deleometer currently includes 130 individual analysis frames. They are group
 - Adriana Cavarero's Relational Uniqueness
 - Dan Zahavi's Minimal Self
 - Shaun Gallagher's Embodied Self
+- Shaun Gallagher's Pattern Theory of Self
 - Rosi Braidotti's Nomadic Subjectivity
 - Topological Analysis
 

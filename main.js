@@ -6509,6 +6509,7 @@ var PERSPECTIVES = {
   adriana_cavarero_relational_uniqueness: { title: "Adriana Cavarero's Relational Uniqueness", description: "Narratable self, uniqueness, voice, exposure, relationality, birth, and the who that appears through others", group: PHILOSOPHY_GROUP_KEY },
   dan_zahavi_minimal_self: { title: "Dan Zahavi's Minimal Self", description: "First-person givenness, pre-reflective self-awareness, phenomenology, embodiment, selfhood, and the minimal structure of experience", group: PHILOSOPHY_GROUP_KEY },
   shaun_gallagher_embodied_self: { title: "Shaun Gallagher's Embodied Self", description: "Body schema, agency, ownership, intersubjectivity, cognition, enactivism, and the self as embodied action", group: PHILOSOPHY_GROUP_KEY },
+  gallagher_pattern_theory_self: { title: "Shaun Gallagher's Pattern Theory of Self", description: "Self-pattern, embodied, experiential, affective, intersubjective, narrative, extended, ecological, and normative dimensions of selfhood as a dynamic configuration", group: PHILOSOPHY_GROUP_KEY },
   rosi_braidotti_nomadic_subjectivity: { title: "Rosi Braidotti's Nomadic Subjectivity", description: "Nomadic subject, posthuman feminism, becoming, embodiment, difference, affirmative ethics, and non-unitary selfhood", group: PHILOSOPHY_GROUP_KEY },
   topological_analysis: { title: "Topological Analysis", description: "Relations, surfaces, thresholds, folds, nearness, boundaries, and spatial transformations of meaning", group: PHILOSOPHY_GROUP_KEY },
   ancient_religious_interpretation: { title: "Ancient Religious Interpretation", description: "Ritual, sacrifice, omen, sacred order, taboo, ancestor, cosmology, and ancient religious imagination", group: "religious_mythic_interpretation" },
@@ -6609,7 +6610,8 @@ var PERSPECTIVE_HEADING_ALIASES = {
   habermasian_communicative_subject: ["Habermas' Communicative Subject", "Habermasian Communicative Subject"],
   jean_luc_nancy_being_with: ["Jean Luc Nancy's Being-With", "Jean-Luc Nancy"],
   fanonian_analysis: ["Franz Fanon Analysis", "Frantz Fanon Analysis"],
-  kristevan_abjection_semiotic: ["Julia Kristeva's Abjection and the Semiotic", "Kristevan Analysis", "Julia Kristeva"]
+  kristevan_abjection_semiotic: ["Julia Kristeva's Abjection and the Semiotic", "Kristevan Analysis", "Julia Kristeva"],
+  gallagher_pattern_theory_self: ["Gallagher's Pattern Theory of Self", "A Pattern Theory of Self", "Pattern Theory of Self"]
 };
 var SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS = ["linguistic_analysis", "semiotic_analysis"];
 var ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS = [
@@ -6652,6 +6654,7 @@ var SELF_SUBJECTIVITY_PERSPECTIVE_KEYS = [
   "adriana_cavarero_relational_uniqueness",
   "dan_zahavi_minimal_self",
   "shaun_gallagher_embodied_self",
+  "gallagher_pattern_theory_self",
   "rosi_braidotti_nomadic_subjectivity"
 ];
 var MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS = [
@@ -7138,6 +7141,7 @@ For each perspective:
 - for Aristotle, include Rhetoric where relevant: ethos, pathos, logos, audience, persuasion, demonstration, causes, practical judgment, material conditions, and action.
 - for Plato, avoid broad Platonism; show the specific dialectical movement, image, desire, education, appearance, or form being used.
 - for self and subjectivity philosophers, distinguish self, person, subject, identity, agency, embodiment, autonomy, continuity, recognition, and responsibility. Teach the philosopher's method through the journal entry rather than turning every frame into ordinary psychology.
+- for Gallagher's Pattern Theory of Self, map the entry across embodied, experiential, affective, intersubjective, narrative, extended, ecological, and normative dimensions without reducing the self to one single essence.
 - for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.
 - for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.
 - for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.
