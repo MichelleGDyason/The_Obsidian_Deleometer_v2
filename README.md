@@ -155,7 +155,7 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 112 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off. The catalogue is ordered as a rough temporal chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought.
+The Deleometer currently includes 123 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off. The catalogue is ordered as a rough temporal chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought.
 
 ### Philosophy as First Discipline
 
@@ -172,13 +172,16 @@ The Deleometer currently includes 112 individual analysis frames. They are group
 - Philosophy of Mind
 - René Descartes' Cogito and Subject
 - Spinoza's Theologic-Ethico Philosophy
+- Gottfried Wilhelm Leibniz's Monadology
 - John Locke's Personal Identity
 - David Hume's Bundle Theory of Self
+- Moral Naturalism
 - Immanuel Kant's Transcendental Subject
 - G.W.F. Hegel's Recognition and Subjectivity
 - Nietzschean Philosophy
 - Phenomenology
 - Martin Heidegger's Dasein Analysis
+- Emmanuel Levinas' Ethics of the Other
 - Hermeneutics
 - Existential Analysis
 - Jean-Paul Sartre's Subjectivity
@@ -191,8 +194,10 @@ The Deleometer currently includes 112 individual analysis frames. They are group
 - Bernard Williams' Personal Identity
 - Paul Ricoeur's Narrative Identity
 - Derek Parfit's Reductionist Identity
+- Jürgen Habermas' Communicative Subject
 - Charles Taylor's Sources of the Self
 - Alasdair MacIntyre's Narrative Self
+- Jean-Luc Nancy's Being-With
 - Judith Butler's Performativity and Subjectivation
 - Catriona Mackenzie's Relational Autonomy
 - Christine Korsgaard's Self-Constitution
@@ -222,6 +227,7 @@ The Deleometer currently includes 112 individual analysis frames. They are group
 - Semiotic Analysis
 - Narrative Psychology
 - Creative Non-Fiction
+- Music Songwriting Analysis
 - Idiotextual Analysis
 - Frame Analysis
 - Erving Goffman's Frame Analysis
@@ -249,6 +255,8 @@ The Deleometer currently includes 112 individual analysis frames. They are group
 
 ### Archeo-Genealogical and Deconstructive Thought
 
+- Marxian Analysis
+- Georges Bataillean Analysis
 - Critical Theory
 - Simondonian Analysis
 - Foucaultian Analysis
@@ -270,6 +278,7 @@ The Deleometer currently includes 112 individual analysis frames. They are group
 ### Race, Coloniality, and Embodiment Studies
 
 - Critical Race Studies
+- Frantz Fanonian Analysis
 - Decolonial Studies
 - Fat Studies
 - Mad Studies
@@ -277,7 +286,9 @@ The Deleometer currently includes 112 individual analysis frames. They are group
 ### Systems, Ecology, and Food Futures
 
 - Ecology
+- Quantum Theory Analysis
 - Latourian Analysis
+- Karen Barad's Agential Realism
 - Resilience
 - Social-Ecological Systems Theory
 - Critical Food Systems Analysis

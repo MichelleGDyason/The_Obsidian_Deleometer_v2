@@ -76,13 +76,16 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   philosophy_of_mind_perspective: { title: 'Philosophy of Mind', description: 'Consciousness, intention, emotion, agency, selfhood, and mental causation', group: PHILOSOPHY_GROUP_KEY },
   descartes_cogito_subject: { title: "René Descartes' Cogito and Subject", description: 'Doubt, certainty, mind-body distinction, thinking substance, inwardness, rational selfhood, and the cogito as a ground of knowledge', group: PHILOSOPHY_GROUP_KEY },
   spinoza_theologic_ethico_perspective: { title: "Spinoza's Theologic-Ethico Philosophy", description: 'Immanence, affect, necessity, freedom, substance, and ethical life', group: PHILOSOPHY_GROUP_KEY },
+  leibniz_monadology_perspective: { title: "Gottfried Wilhelm Leibniz's Monadology", description: 'Monads, pre-established harmony, sufficient reason, possible worlds, perception, appetite, relation, and rational order', group: PHILOSOPHY_GROUP_KEY },
   lockean_personal_identity: { title: "John Locke's Personal Identity", description: 'Consciousness, memory, personhood, accountability, continuity, moral responsibility, and the self over time', group: PHILOSOPHY_GROUP_KEY },
   humean_bundle_self: { title: "David Hume's Bundle Theory of Self", description: 'Impressions, perceptions, habit, continuity, skepticism, identity as fiction, and the self as a bundle of experiences', group: PHILOSOPHY_GROUP_KEY },
+  moral_naturalism_perspective: { title: 'Moral Naturalism', description: 'Moral facts, natural properties, human flourishing, reasons, science, normativity, value, and ethical life without supernatural grounding', group: PHILOSOPHY_GROUP_KEY },
   kantian_transcendental_subject: { title: "Immanuel Kant's Transcendental Subject", description: 'Apperception, categories, autonomy, moral law, conditions of experience, and the self that organizes knowledge', group: PHILOSOPHY_GROUP_KEY },
   hegelian_recognition_subject: { title: "G.W.F. Hegel's Recognition and Subjectivity", description: 'Recognition, self-consciousness, lordship and bondage, dialectic, social freedom, history, and becoming a subject through others', group: PHILOSOPHY_GROUP_KEY },
   nietzschean_perspective: { title: 'Nietzschean Philosophy', description: 'Will to power, values, and self-overcoming', group: PHILOSOPHY_GROUP_KEY },
   phenomenology_perspective: { title: 'Phenomenology', description: 'Lived experience and consciousness', group: PHILOSOPHY_GROUP_KEY },
   heideggerian_dasein_analysis: { title: "Martin Heidegger's Dasein Analysis", description: 'Being-in-the-world, thrownness, care, everydayness, authenticity, temporality, and the self as situated existence', group: PHILOSOPHY_GROUP_KEY },
+  levinasian_ethics: { title: "Emmanuel Levinas' Ethics of the Other", description: 'Face-to-face encounter, infinite responsibility, alterity, vulnerability, ethics before ontology, and the demand of the Other', group: PHILOSOPHY_GROUP_KEY },
   hermeneutics_perspective: { title: 'Hermeneutics', description: 'Interpretation and understanding', group: PHILOSOPHY_GROUP_KEY },
   existential_perspective: { title: 'Existential Analysis', description: 'Authenticity, freedom, and meaning', group: PHILOSOPHY_GROUP_KEY },
   sartrean_subjectivity: { title: "Jean-Paul Sartre's Subjectivity", description: 'Freedom, bad faith, nothingness, the look, responsibility, choice, and the self as project rather than essence', group: PHILOSOPHY_GROUP_KEY },
@@ -95,8 +98,10 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   bernard_williams_personal_identity: { title: "Bernard Williams' Personal Identity", description: 'Bodily continuity, character, practical concern, thought experiments, fear, survival, and identity as lived from the first person', group: PHILOSOPHY_GROUP_KEY },
   paul_ricoeur_narrative_identity: { title: "Paul Ricoeur's Narrative Identity", description: 'Selfhood, sameness, narrative time, promise, memory, interpretation, and identity as the story one can answer for', group: PHILOSOPHY_GROUP_KEY },
   derek_parfit_reductionist_identity: { title: "Derek Parfit's Reductionist Identity", description: 'Psychological continuity, connectedness, survival, reductionism, relation R, and why identity may matter less than we think', group: PHILOSOPHY_GROUP_KEY },
+  habermasian_communicative_subject: { title: "Jürgen Habermas' Communicative Subject", description: 'Communicative action, discourse ethics, public reason, validity claims, lifeworld, recognition, and subjectivity formed through dialogue', group: PHILOSOPHY_GROUP_KEY },
   charles_taylor_sources_self: { title: "Charles Taylor's Sources of the Self", description: 'Moral horizons, strong evaluation, authenticity, recognition, modern identity, and the goods that orient selfhood', group: PHILOSOPHY_GROUP_KEY },
   macintyre_narrative_self: { title: "Alasdair MacIntyre's Narrative Self", description: 'Virtue, tradition, practices, narrative unity, intelligibility, moral agency, and a life understood as an unfolding story', group: PHILOSOPHY_GROUP_KEY },
+  jean_luc_nancy_being_with: { title: "Jean-Luc Nancy's Being-With", description: 'Being singular plural, exposure, community, finitude, co-existence, touch, spacing, and the self as always with others', group: PHILOSOPHY_GROUP_KEY },
   judith_butler_performativity: { title: "Judith Butler's Performativity and Subjectivation", description: 'Performativity, norms, recognizability, gendered subject formation, repetition, vulnerability, and livable life', group: PHILOSOPHY_GROUP_KEY },
   catriona_mackenzie_relational_autonomy: { title: "Catriona Mackenzie's Relational Autonomy", description: 'Autonomy, vulnerability, self-trust, social recognition, agency, relational support, and how conditions enable or block self-direction', group: PHILOSOPHY_GROUP_KEY },
   christine_korsgaard_self_constitution: { title: "Christine Korsgaard's Self-Constitution", description: 'Practical identity, agency, normativity, action, self-legislation, integrity, and making oneself through commitments', group: PHILOSOPHY_GROUP_KEY },
@@ -122,6 +127,7 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   semiotic_analysis: { title: 'Semiotic Analysis', description: 'Signs, symbols, signifier and signified, codes, icons, indexes, myths, and how meaning is made and circulated', group: 'narrative_media_frame' },
   narrative_psychology_perspective: { title: 'Narrative Psychology', description: 'Life stories and meaning-making', group: 'narrative_media_frame' },
   creative_nonfiction_perspective: { title: 'Creative Non-Fiction', description: 'Scene, voice, witness, memory, essaying, and truthful narrative craft', group: 'narrative_media_frame' },
+  music_songwriting_analysis: { title: 'Music Songwriting Analysis', description: 'Melody, lyric, rhythm, refrain, hook, voice, affect, arrangement, genre, performance, and how songs turn feeling into form', group: 'narrative_media_frame' },
   idiotextual_analysis: { title: 'Idiotextual Analysis', description: 'The singular texture of a text: idiosyncratic voice, private idiom, recurring phrases, and self-made meanings', group: 'narrative_media_frame' },
   frame_analysis: { title: 'Frame Analysis', description: 'Interpretive frames, salience, boundaries, alignment, and meaning organization', group: 'narrative_media_frame' },
   goffman_frame_analysis: { title: "Erving Goffman's Frame Analysis", description: 'Interaction order, presentation of self, keyed events, footing, and everyday frames', group: 'narrative_media_frame' },
@@ -147,6 +153,8 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   african_zimbabwean_parental_guidance: { title: 'African / Zimbabwean Parental Guidance Practices', description: 'Ubuntu, extended kinship, respect, communal responsibility, oral teaching, discipline, survival, and intergenerational guidance in Zimbabwean and wider African contexts', group: 'family_care_guidance' },
   western_parental_guidance: { title: 'Western Parental Guidance Theories', description: 'Attachment, autonomy, authoritative guidance, boundaries, praise, discipline, rights, developmental milestones, and individual self-formation', group: 'family_care_guidance' },
 
+  marxian_analysis: { title: 'Marxian Analysis', description: 'Class, labor, alienation, material conditions, ideology, commodity form, exploitation, social reproduction, and historical change', group: 'archeo_genealogical_deconstruction' },
+  bataillean_analysis: { title: 'Georges Bataillean Analysis', description: 'Excess, expenditure, transgression, sovereignty, taboo, sacrifice, eroticism, base materialism, and the limits of utility', group: 'archeo_genealogical_deconstruction' },
   critical_theory_perspective: { title: 'Critical Theory', description: 'Social critique and emancipation', group: 'archeo_genealogical_deconstruction' },
   simondonian_analysis: { title: 'Simondonian Analysis', description: 'Individuation, preindividual fields, technics, relation, and collective becoming', group: 'archeo_genealogical_deconstruction' },
   foucaultian_analysis: { title: 'Foucaultian Analysis', description: 'Power, discourse, discipline, subject formation, and historical conditions of truth', group: 'archeo_genealogical_deconstruction' },
@@ -164,12 +172,15 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   trans_studies: { title: 'Trans Studies', description: 'Trans life, embodiment, transition, self-determination, institutions, and gender variance', group: 'gender_sexuality_queer' },
 
   critical_race_studies: { title: 'Critical Race Studies', description: 'Racial formation, structural racism, intersectionality, law, culture, and lived experience', group: 'race_coloniality_embodiment' },
+  fanonian_analysis: { title: 'Frantz Fanonian Analysis', description: 'Colonial violence, racialization, alienation, recognition, embodiment, national consciousness, liberation, and the psychic life of colonial power', group: 'race_coloniality_embodiment' },
   decolonial_studies: { title: 'Decolonial Studies', description: 'Coloniality, land, knowledge, sovereignty, extraction, repair, and pluriversal futures', group: 'race_coloniality_embodiment' },
   fat_studies: { title: 'Fat Studies', description: 'Anti-fat bias, embodiment, health norms, stigma, access, and fat liberation', group: 'race_coloniality_embodiment' },
   mad_studies: { title: 'Mad Studies', description: 'Psychiatric power, mad knowledge, distress, survival, and alternatives to pathologization', group: 'race_coloniality_embodiment' },
 
   ecology_perspective: { title: 'Ecology', description: 'Organisms, habitats, interdependence, niches, energy flows, disturbance, adaptation, and relations between living systems and environments', group: 'systems_ecology_food' },
+  quantum_theory_analysis: { title: 'Quantum Theory Analysis', description: 'Observation, indeterminacy, probability, entanglement, measurement, fields, scale, uncertainty, and the limits of classical causality', group: 'systems_ecology_food' },
   latourian_analysis: { title: 'Latourian Analysis', description: 'Actor-networks, mediation, translation, nonhuman agency, and assembled realities', group: 'systems_ecology_food' },
+  karen_barad_agential_realism: { title: "Karen Barad's Agential Realism", description: 'Intra-action, apparatus, diffraction, mattering, entanglement, ethics, material-discursive practice, and quantum feminist theory', group: 'systems_ecology_food' },
   resilience_analysis: { title: 'Resilience', description: 'Adaptive capacity, recovery, redundancy, stress response, and durable support systems', group: 'systems_ecology_food' },
   social_ecological_systems_theory: { title: 'Social-Ecological Systems Theory', description: 'Linked human and ecological systems, feedback loops, thresholds, adaptive governance, resilience, institutions, and environmental change', group: 'systems_ecology_food' },
   critical_food_systems_analysis: { title: 'Critical Food Systems Analysis', description: 'Food justice, supply chains, agriculture, labor, ecology, access, and power', group: 'systems_ecology_food' },
@@ -196,7 +207,12 @@ const PERSPECTIVE_HEADING_ALIASES: Record<string, string[]> = {
   tacktical_methodological_analysis: ['Tactical Methodological Analysis'],
   descartes_cogito_subject: ["Rene Descartes' Cogito and Subject"],
   bernard_williams_personal_identity: ["Barnard Williams' Personal Identity", 'Barnard Williams Personal Identity'],
-  pf_strawson_personhood: ["P.F. Strawson's Personhood", "PF Strawson's Personhood"]
+  pf_strawson_personhood: ["P.F. Strawson's Personhood", "PF Strawson's Personhood"],
+  leibniz_monadology_perspective: ["Leibniz's Monadology", 'Leibniz'],
+  levinasian_ethics: ["Levinas' Ethics of the Other", 'Levinasian Ethics'],
+  habermasian_communicative_subject: ["Habermas' Communicative Subject", 'Habermasian Communicative Subject'],
+  jean_luc_nancy_being_with: ["Jean Luc Nancy's Being-With", 'Jean-Luc Nancy'],
+  fanonian_analysis: ['Franz Fanon Analysis', 'Frantz Fanon Analysis']
 };
 
 const SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS = ['linguistic_analysis', 'semiotic_analysis'];
@@ -241,6 +257,19 @@ const SELF_SUBJECTIVITY_PERSPECTIVE_KEYS = [
   'dan_zahavi_minimal_self',
   'shaun_gallagher_embodied_self',
   'rosi_braidotti_nomadic_subjectivity'
+];
+const MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS = [
+  'leibniz_monadology_perspective',
+  'moral_naturalism_perspective',
+  'levinasian_ethics',
+  'habermasian_communicative_subject',
+  'jean_luc_nancy_being_with',
+  'music_songwriting_analysis',
+  'marxian_analysis',
+  'bataillean_analysis',
+  'fanonian_analysis',
+  'quantum_theory_analysis',
+  'karen_barad_agential_realism'
 ];
 
 const PRE_HIERARCHY_PERSPECTIVE_KEYS = [
@@ -789,6 +818,9 @@ export default class DeleometerPlugin extends Plugin {
             `- for self and subjectivity philosophers, distinguish self, person, subject, identity, agency, embodiment, autonomy, continuity, recognition, and responsibility. Teach the philosopher's method through the journal entry rather than turning every frame into ordinary psychology.\n` +
             `- for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.\n` +
             `- for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.\n` +
+            `- for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.\n` +
+            `- for music songwriting, interpret the entry as potential song material: voice, rhythm, image, emotional arc, refrain, lyric tension, possible structure, and what a listener could feel.\n` +
+            `- for quantum theory and Barad, avoid fake scientific certainty. Use quantum concepts carefully as analytic models for measurement, relation, indeterminacy, apparatus, entanglement, and mattering.\n` +
             `- for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.\n` +
             `- for parental guidance practices, avoid stereotypes. Explain each cultural frame as a situated set of practices and expectations, and compare guidance, care, discipline, autonomy, obligation, kinship, and social belonging materially.\n` +
             `- for legal, engineering, ecological, social-ecological, grounded theory, and autoethnographic frames, make the method visible: show what counts as evidence, what the frame notices, what it misses, and what practical consequence follows.\n` +
@@ -2415,8 +2447,16 @@ ${event.kind === 'goal_due'
       this.settings.selectedPerspectives = perspectiveKeys;
       return;
     }
+    const preMaterialDiscursivePerspectiveKeys = perspectiveKeys
+      .filter((key) => !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPreMaterialDiscursivePerspective = preMaterialDiscursivePerspectiveKeys
+      .every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreMaterialDiscursivePerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
     const preSelfSubjectivityPerspectiveKeys = perspectiveKeys
-      .filter((key) => !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key));
+      .filter((key) => !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key));
     const hadEveryPreSelfSubjectivityPerspective = preSelfSubjectivityPerspectiveKeys
       .every((key) => selectedPerspectives.includes(key));
     if (hadEveryPreSelfSubjectivityPerspective) {
@@ -2424,7 +2464,7 @@ ${event.kind === 'goal_due'
       return;
     }
     const preAccumulatedChronologyPerspectiveKeys = perspectiveKeys
-      .filter((key) => !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key));
+      .filter((key) => !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key));
     const hadEveryPreAccumulatedChronologyPerspective = preAccumulatedChronologyPerspectiveKeys
       .every((key) => selectedPerspectives.includes(key));
     if (hadEveryPreAccumulatedChronologyPerspective) {
@@ -2432,7 +2472,7 @@ ${event.kind === 'goal_due'
       return;
     }
     const preSemioticLinguisticPerspectiveKeys = perspectiveKeys
-      .filter((key) => !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key) && !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key));
+      .filter((key) => !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key) && !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key));
     const hadEveryPreSemioticLinguisticPerspective = preSemioticLinguisticPerspectiveKeys
       .every((key) => selectedPerspectives.includes(key));
     if (hadEveryPreSemioticLinguisticPerspective) {
