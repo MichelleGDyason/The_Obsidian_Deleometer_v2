@@ -28,6 +28,10 @@ const PERSPECTIVE_GROUPS: Record<string, PerspectiveGroup> = {
     title: 'Religious, Mythic, and Pagan Interpretations',
     description: 'Ancient religions, mythic patterns, sacred texts, ritual worlds, divinities, covenant, revelation, and comparative spiritual meaning'
   },
+  social_spatial_research: {
+    title: 'Social, Spatial, and Research Methods',
+    description: 'Maps, places, social structures, institutions, fieldwork, evidence, positionality, and methods for studying lived worlds'
+  },
   narrative_media_frame: {
     title: 'Narrative, Media, and Frame Studies',
     description: 'Language, signs, story, mediation, public presentation, framing, nonfiction practice, and interaction order'
@@ -123,6 +127,11 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   second_testament_christian_interpretation: { title: 'Second Testament / Christian Interpretation', description: 'Gospel, parable, grace, discipleship, incarnation, forgiveness, community, resurrection, and ethical transformation', group: 'religious_mythic_interpretation' },
   muslim_interpretation: { title: 'Muslim Interpretation', description: 'Tawhid, submission, mercy, intention, justice, prayer, ummah, prophetic example, and disciplined remembrance', group: 'religious_mythic_interpretation' },
   pagan_interpretation: { title: 'Pagan Interpretation', description: 'Seasonal cycles, polytheism, land, animacy, ritual practice, reciprocity, craft, and embodied sacred life', group: 'religious_mythic_interpretation' },
+
+  cartographic_analysis: { title: 'Cartographic Analysis', description: 'Maps, scale, projection, legend, boundary-making, orientation, territory, omission, routes, and how mapping turns experience into spatial knowledge', group: 'social_spatial_research' },
+  geography_analysis: { title: 'Geography', description: 'Place, space, landscape, region, mobility, environment, human geography, physical geography, uneven development, and relations between people and land', group: 'social_spatial_research' },
+  sociology_analysis: { title: 'Sociology', description: 'Social structure, institutions, norms, class, status, roles, groups, interaction, social change, power, and the patterning of everyday life', group: 'social_spatial_research' },
+  social_research_methods: { title: 'Social Research Methods', description: 'Research questions, interviews, observation, surveys, sampling, ethics, coding, reflexivity, validity, positionality, and evidence-building in social inquiry', group: 'social_spatial_research' },
 
   linguistic_analysis: { title: 'Linguistic Analysis', description: 'Words, grammar, naming, register, metaphor, speech acts, code-switching, silence, and how language organizes experience', group: 'narrative_media_frame' },
   semiotic_analysis: { title: 'Semiotic Analysis', description: 'Signs, symbols, signifier and signified, codes, icons, indexes, myths, and how meaning is made and circulated', group: 'narrative_media_frame' },
@@ -231,6 +240,8 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'ancient_religious_interpretation',
   'first_testament_hebrew_interpretation',
   'greek_gods_interpretation',
+  'cartographic_analysis',
+  'geography_analysis',
   'buddhist_psychology_perspective',
   'platonic_perspective',
   'aristotle_argonic_teachings',
@@ -255,6 +266,7 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'kantian_transcendental_subject',
   'hegelian_recognition_subject',
   'marxian_analysis',
+  'sociology_analysis',
   'nietzschean_perspective',
   'freudian_psychoanalysis',
   'jungian_perspective',
@@ -273,6 +285,7 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'kristevan_abjection_semiotic',
   'process_philosophical_analysis',
   'critical_theory_perspective',
+  'social_research_methods',
   'feminist_perspective',
   'montessori_method',
   'piaget_developmental_theory',
@@ -1008,6 +1021,8 @@ export default class DeleometerPlugin extends Plugin {
             `- for music songwriting, interpret the entry as potential song material: voice, rhythm, image, emotional arc, refrain, lyric tension, possible structure, and what a listener could feel.\n` +
             `- for quantum theory and Barad, avoid fake scientific certainty. Use quantum concepts carefully as analytic models for measurement, relation, indeterminacy, apparatus, entanglement, and mattering.\n` +
             `- for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.\n` +
+            `- for cartography and geography, interpret place, scale, orientation, borders, movement, landscape, and omission. Explain how maps and spatial thinking make some relations visible while hiding others.\n` +
+            `- for sociology and social research methods, identify social structures, institutions, norms, groups, roles, evidence, ethics, positionality, fieldwork, and what kind of inquiry could test or deepen the interpretation.\n` +
             `- for parental guidance practices, avoid stereotypes. Explain each cultural frame as a situated set of practices and expectations, and compare guidance, care, discipline, autonomy, obligation, kinship, and social belonging materially.\n` +
             `- for legal, engineering, ecological, social-ecological, grounded theory, and autoethnographic frames, make the method visible: show what counts as evidence, what the frame notices, what it misses, and what practical consequence follows.\n` +
             `- avoid stopping early. Return one complete individual analysis for every requested key.\n\n` +
@@ -1114,6 +1129,8 @@ export default class DeleometerPlugin extends Plugin {
             `- for music songwriting, interpret the entry as potential song material: voice, rhythm, image, emotional arc, refrain, lyric tension, possible structure, and what a listener could feel.\n` +
             `- for quantum theory and Barad, avoid fake scientific certainty. Use quantum concepts carefully as analytic models for measurement, relation, indeterminacy, apparatus, entanglement, and mattering.\n` +
             `- for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.\n` +
+            `- for cartography and geography, interpret place, scale, orientation, borders, movement, landscape, and omission. Explain how maps and spatial thinking make some relations visible while hiding others.\n` +
+            `- for sociology and social research methods, identify social structures, institutions, norms, groups, roles, evidence, ethics, positionality, fieldwork, and what kind of inquiry could test or deepen the interpretation.\n` +
             `- for parental guidance practices, avoid stereotypes. Explain each cultural frame as a situated set of practices and expectations, and compare guidance, care, discipline, autonomy, obligation, kinship, and social belonging materially.\n` +
             `- for legal, engineering, ecological, social-ecological, grounded theory, and autoethnographic frames, make the method visible: show what counts as evidence, what the frame notices, what it misses, and what practical consequence follows.\n` +
             `- avoid stopping early. Return one complete individual analysis for every requested key.\n\n` +
