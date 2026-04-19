@@ -192,7 +192,7 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 124 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off. The catalogue is ordered as a rough temporal chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought.
+The Deleometer currently includes 129 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off. The catalogue is ordered as a rough temporal chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought.
 
 ### Philosophy as First Discipline
 
@@ -281,12 +281,16 @@ The Deleometer currently includes 124 individual analysis frames. They are group
 - Attachment Theory
 - Gestalt Therapy
 - Transpersonal Psychology
+- Maslow's Hierarchy of Needs
 - Myers-Briggs analysis
 - Cognitive Behavioral
 - Positive Psychology
 
 ### Family, Care, and Guidance Theories
 
+- Montessori Method
+- Jean Piaget's Developmental Theory
+- Lev Vygotsky's Sociocultural Theory
 - Asian / Japanese Parental Guidance Practices
 - African / Zimbabwean Parental Guidance Practices
 - Western Parental Guidance Theories
@@ -344,6 +348,7 @@ The Deleometer currently includes 124 individual analysis frames. They are group
 - Risk Analysis
 - Transitional Theory
 - Organisational Theories
+- Organisational Transformation
 - Theories Growing a Social Movement
 - Tacktical Methodological Analysis
 - Imagining Transformative Futures

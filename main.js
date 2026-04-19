@@ -6537,6 +6537,7 @@ var PERSPECTIVES = {
   attachment_theory_perspective: { title: "Attachment Theory", description: "Attachment styles and relational patterns", group: "psychoanalytic_clinical" },
   gestalt_perspective: { title: "Gestalt Therapy", description: "Awareness, wholeness, and present experience", group: "psychoanalytic_clinical" },
   transpersonal_perspective: { title: "Transpersonal Psychology", description: "Spiritual dimensions and peak experiences", group: "psychoanalytic_clinical" },
+  maslow_hierarchy_needs: { title: "Maslow's Hierarchy of Needs", description: "Physiological needs, safety, belonging, esteem, self-actualization, motivation, deprivation, growth, and the conditions that support human flourishing", group: "psychoanalytic_clinical" },
   [MYERS_BRIGGS_PERSPECTIVE_KEY]: {
     title: "Myers-Briggs analysis",
     description: "Personality preferences across introversion/extraversion, sensing/intuition, thinking/feeling, and judging/perceiving",
@@ -6544,6 +6545,9 @@ var PERSPECTIVES = {
   },
   cbt_perspective: { title: "Cognitive Behavioral", description: "Thoughts, behaviors, and patterns", group: "psychoanalytic_clinical" },
   positive_psychology_perspective: { title: "Positive Psychology", description: "Strengths, flourishing, and well-being", group: "psychoanalytic_clinical" },
+  montessori_method: { title: "Montessori Method", description: "Prepared environment, self-directed activity, sensitive periods, observation, independence, practical life, embodied learning, and respect for the child", group: "family_care_guidance" },
+  piaget_developmental_theory: { title: "Jean Piaget's Developmental Theory", description: "Schemas, assimilation, accommodation, stages of cognitive development, constructivism, play, reasoning, and how children build knowledge", group: "family_care_guidance" },
+  vygotsky_sociocultural_theory: { title: "Lev Vygotsky's Sociocultural Theory", description: "Zone of proximal development, scaffolding, language, social learning, cultural tools, mediation, collaboration, and guided development", group: "family_care_guidance" },
   asian_japanese_parental_guidance: { title: "Asian / Japanese Parental Guidance Practices", description: "Interdependence, family obligation, amae, discipline, social harmony, education, respect, and relational guidance in Japanese and wider Asian contexts", group: "family_care_guidance" },
   african_zimbabwean_parental_guidance: { title: "African / Zimbabwean Parental Guidance Practices", description: "Ubuntu, extended kinship, respect, communal responsibility, oral teaching, discipline, survival, and intergenerational guidance in Zimbabwean and wider African contexts", group: "family_care_guidance" },
   western_parental_guidance: { title: "Western Parental Guidance Theories", description: "Attachment, autonomy, authoritative guidance, boundaries, praise, discipline, rights, developmental milestones, and individual self-formation", group: "family_care_guidance" },
@@ -6586,6 +6590,7 @@ var PERSPECTIVES = {
   risk_analysis: { title: "Risk Analysis", description: "Likelihood, impact, uncertainty, exposure, prevention, mitigation, and contingency", group: "strategy_method_organisation" },
   transitional_theory: { title: "Transitional Theory", description: "Liminal movement, phased change, rites of passage, continuity, and transformation", group: "strategy_method_organisation" },
   organisational_theories: { title: "Organisational Theories", description: "Structures, culture, governance, roles, incentives, coordination, and institutional change", group: "strategy_method_organisation" },
+  organisational_transformation: { title: "Organisational Transformation", description: "Change processes, leadership, culture shift, stakeholder alignment, resistance, capability building, implementation, and sustained institutional renewal", group: "strategy_method_organisation" },
   social_movement_theories: { title: "Theories Growing a Social Movement", description: "Collective action, mobilization, framing, resources, leadership, and movement ecology", group: "strategy_method_organisation" },
   tacktical_methodological_analysis: { title: "Tacktical Methodological Analysis", description: "Louisa Bufardeci's tactical method, situated procedure, constraints, mapping, and action", group: "strategy_method_organisation" },
   transformative_futures: { title: "Imagining Transformative Futures", description: "Speculation, prefiguration, scenario imagination, world-building, and emancipatory possibility", group: "strategy_method_organisation" }
@@ -6594,6 +6599,7 @@ var PERSPECTIVE_HEADING_ALIASES = {
   lgbtq_studies_perspective: ["LGBTQ+ Studies"],
   feasibility_analysis: ["Feasability Analysis"],
   tacktical_methodological_analysis: ["Tactical Methodological Analysis"],
+  maslow_hierarchy_needs: ["Marlow's Hierarchy of Needs", "Maslow's Hierarchy of Human Needs"],
   descartes_cogito_subject: ["Rene Descartes' Cogito and Subject"],
   bernard_williams_personal_identity: ["Barnard Williams' Personal Identity", "Barnard Williams Personal Identity"],
   pf_strawson_personhood: ["P.F. Strawson's Personhood", "PF Strawson's Personhood"],
@@ -6661,6 +6667,13 @@ var MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS = [
   "quantum_theory_analysis",
   "karen_barad_agential_realism"
 ];
+var DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS = [
+  "maslow_hierarchy_needs",
+  "montessori_method",
+  "piaget_developmental_theory",
+  "vygotsky_sociocultural_theory"
+];
+var ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS = ["organisational_transformation"];
 var PRE_HIERARCHY_PERSPECTIVE_KEYS = [
   "lacanian_perspective",
   "schizoanalytic_insights",
@@ -7127,6 +7140,8 @@ For each perspective:
 - for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.
 - for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.
 - for Julia Kristeva, explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, and revolt through concrete details in the entry.
+- for Maslow, Montessori, Piaget, and Vygotsky, interpret needs, development, learning, environment, scaffolding, independence, play, and social support as practical conditions, not abstract labels.
+- for organisational transformation, connect culture, structure, leadership, resistance, capability, implementation, and sustained change to specific patterns in the entry.
 - for music songwriting, interpret the entry as potential song material: voice, rhythm, image, emotional arc, refrain, lyric tension, possible structure, and what a listener could feel.
 - for quantum theory and Barad, avoid fake scientific certainty. Use quantum concepts carefully as analytic models for measurement, relation, indeterminacy, apparatus, entanglement, and mattering.
 - for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.
@@ -8520,25 +8535,37 @@ ${goal.description}
       this.settings.selectedPerspectives = perspectiveKeys;
       return;
     }
-    const preMaterialDiscursivePerspectiveKeys = perspectiveKeys.filter((key) => !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key));
+    const preOrganisationalTransformationPerspectiveKeys = perspectiveKeys.filter((key) => !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPreOrganisationalTransformationPerspective = preOrganisationalTransformationPerspectiveKeys.every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreOrganisationalTransformationPerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const preDevelopmentalGuidancePerspectiveKeys = perspectiveKeys.filter((key) => !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPreDevelopmentalGuidancePerspective = preDevelopmentalGuidancePerspectiveKeys.every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreDevelopmentalGuidancePerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const preMaterialDiscursivePerspectiveKeys = perspectiveKeys.filter((key) => !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key) && !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
     const hadEveryPreMaterialDiscursivePerspective = preMaterialDiscursivePerspectiveKeys.every((key) => selectedPerspectives.includes(key));
     if (hadEveryPreMaterialDiscursivePerspective) {
       this.settings.selectedPerspectives = perspectiveKeys;
       return;
     }
-    const preSelfSubjectivityPerspectiveKeys = perspectiveKeys.filter((key) => !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key));
+    const preSelfSubjectivityPerspectiveKeys = perspectiveKeys.filter((key) => !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key) && !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
     const hadEveryPreSelfSubjectivityPerspective = preSelfSubjectivityPerspectiveKeys.every((key) => selectedPerspectives.includes(key));
     if (hadEveryPreSelfSubjectivityPerspective) {
       this.settings.selectedPerspectives = perspectiveKeys;
       return;
     }
-    const preAccumulatedChronologyPerspectiveKeys = perspectiveKeys.filter((key) => !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key));
+    const preAccumulatedChronologyPerspectiveKeys = perspectiveKeys.filter((key) => !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key) && !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
     const hadEveryPreAccumulatedChronologyPerspective = preAccumulatedChronologyPerspectiveKeys.every((key) => selectedPerspectives.includes(key));
     if (hadEveryPreAccumulatedChronologyPerspective) {
       this.settings.selectedPerspectives = perspectiveKeys;
       return;
     }
-    const preSemioticLinguisticPerspectiveKeys = perspectiveKeys.filter((key) => !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key) && !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key));
+    const preSemioticLinguisticPerspectiveKeys = perspectiveKeys.filter((key) => !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key) && !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key) && !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
     const hadEveryPreSemioticLinguisticPerspective = preSemioticLinguisticPerspectiveKeys.every((key) => selectedPerspectives.includes(key));
     if (hadEveryPreSemioticLinguisticPerspective) {
       this.settings.selectedPerspectives = perspectiveKeys;
