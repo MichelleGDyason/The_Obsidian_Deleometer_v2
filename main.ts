@@ -137,6 +137,7 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   freudian_psychoanalysis: { title: 'Freudian Psychoanalysis', description: 'Unconscious conflict, repression, dream-work, sexuality, and symptom formation', group: 'psychoanalytic_clinical' },
   jungian_perspective: { title: 'Jungian Analysis', description: 'Archetypes, shadow, and individuation', group: 'psychoanalytic_clinical' },
   lacanian_perspective: { title: 'Lacanian Psychoanalysis', description: 'Analysis through desire, the Other, and symbolic order', group: 'psychoanalytic_clinical' },
+  kristevan_abjection_semiotic: { title: "Julia Kristeva's Abjection and Semiotic", description: 'Abjection, the semiotic and symbolic, maternal body, borders of self, revolt, intertextuality, foreignness, and subject formation through language and affect', group: 'psychoanalytic_clinical' },
   psychiatry_perspective: { title: 'Psychiatric Assessment', description: 'Clinical patterns and mental health', group: 'psychoanalytic_clinical' },
   attachment_theory_perspective: { title: 'Attachment Theory', description: 'Attachment styles and relational patterns', group: 'psychoanalytic_clinical' },
   gestalt_perspective: { title: 'Gestalt Therapy', description: 'Awareness, wholeness, and present experience', group: 'psychoanalytic_clinical' },
@@ -212,7 +213,8 @@ const PERSPECTIVE_HEADING_ALIASES: Record<string, string[]> = {
   levinasian_ethics: ["Levinas' Ethics of the Other", 'Levinasian Ethics'],
   habermasian_communicative_subject: ["Habermas' Communicative Subject", 'Habermasian Communicative Subject'],
   jean_luc_nancy_being_with: ["Jean Luc Nancy's Being-With", 'Jean-Luc Nancy'],
-  fanonian_analysis: ['Franz Fanon Analysis', 'Frantz Fanon Analysis']
+  fanonian_analysis: ['Franz Fanon Analysis', 'Frantz Fanon Analysis'],
+  kristevan_abjection_semiotic: ["Julia Kristeva's Abjection and the Semiotic", 'Kristevan Analysis', 'Julia Kristeva']
 };
 
 const SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS = ['linguistic_analysis', 'semiotic_analysis'];
@@ -264,6 +266,7 @@ const MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS = [
   'levinasian_ethics',
   'habermasian_communicative_subject',
   'jean_luc_nancy_being_with',
+  'kristevan_abjection_semiotic',
   'music_songwriting_analysis',
   'marxian_analysis',
   'bataillean_analysis',
@@ -819,6 +822,7 @@ export default class DeleometerPlugin extends Plugin {
             `- for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.\n` +
             `- for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.\n` +
             `- for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.\n` +
+            `- for Julia Kristeva, explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, and revolt through concrete details in the entry.\n` +
             `- for music songwriting, interpret the entry as potential song material: voice, rhythm, image, emotional arc, refrain, lyric tension, possible structure, and what a listener could feel.\n` +
             `- for quantum theory and Barad, avoid fake scientific certainty. Use quantum concepts carefully as analytic models for measurement, relation, indeterminacy, apparatus, entanglement, and mattering.\n` +
             `- for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.\n` +
