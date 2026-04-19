@@ -226,6 +226,159 @@ const PERSPECTIVE_HEADING_ALIASES: Record<string, string[]> = {
   gallagher_pattern_theory_self: ["Gallagher's Pattern Theory of Self", 'A Pattern Theory of Self', 'Pattern Theory of Self']
 };
 
+const PERSPECTIVE_CHRONOLOGY: string[] = [
+  'indigenous_australian_philosophy_accumulated',
+  'ancient_religious_interpretation',
+  'first_testament_hebrew_interpretation',
+  'greek_gods_interpretation',
+  'buddhist_psychology_perspective',
+  'platonic_perspective',
+  'aristotle_argonic_teachings',
+  'cynics_perspective',
+  'stoicism_perspective',
+  'roman_gods_interpretation',
+  'druidic_interpretation',
+  'second_testament_christian_interpretation',
+  'bible_teachings_perspective',
+  'muslim_interpretation',
+  'pagan_interpretation',
+  'metaphysical_analysis',
+  'ontological_analysis',
+  'ethical_analysis',
+  'philosophy_of_mind_perspective',
+  'descartes_cogito_subject',
+  'spinoza_theologic_ethico_perspective',
+  'leibniz_monadology_perspective',
+  'lockean_personal_identity',
+  'humean_bundle_self',
+  'moral_naturalism_perspective',
+  'kantian_transcendental_subject',
+  'hegelian_recognition_subject',
+  'marxian_analysis',
+  'nietzschean_perspective',
+  'freudian_psychoanalysis',
+  'jungian_perspective',
+  'linguistic_analysis',
+  'semiotic_analysis',
+  'phenomenology_perspective',
+  'heideggerian_dasein_analysis',
+  'bataillean_analysis',
+  'levinasian_ethics',
+  'hermeneutics_perspective',
+  'existential_perspective',
+  'sartrean_subjectivity',
+  'de_beauvoir_situated_subject',
+  'merleau_ponty_embodied_subject',
+  'lacanian_perspective',
+  'kristevan_abjection_semiotic',
+  'process_philosophical_analysis',
+  'critical_theory_perspective',
+  'feminist_perspective',
+  'montessori_method',
+  'piaget_developmental_theory',
+  'vygotsky_sociocultural_theory',
+  'pf_strawson_personhood',
+  'harry_frankfurt_volitional_self',
+  'sydney_shoemaker_self_knowledge',
+  'bernard_williams_personal_identity',
+  'paul_ricoeur_narrative_identity',
+  'derek_parfit_reductionist_identity',
+  'habermasian_communicative_subject',
+  'charles_taylor_sources_self',
+  'macintyre_narrative_self',
+  'jean_luc_nancy_being_with',
+  'irigarayian_perspective',
+  'judith_butler_performativity',
+  'catriona_mackenzie_relational_autonomy',
+  'christine_korsgaard_self_constitution',
+  'marya_schechtman_narrative_self',
+  'linda_alcoff_visible_identities',
+  'anthony_appiah_identity_ethics',
+  'adriana_cavarero_relational_uniqueness',
+  'dan_zahavi_minimal_self',
+  'shaun_gallagher_embodied_self',
+  'gallagher_pattern_theory_self',
+  'rosi_braidotti_nomadic_subjectivity',
+  'topological_analysis',
+  'narrative_psychology_perspective',
+  'creative_nonfiction_perspective',
+  'music_songwriting_analysis',
+  'idiotextual_analysis',
+  'frame_analysis',
+  'goffman_frame_analysis',
+  'media_studies',
+  'tessa_laird_cinemal',
+  'psychiatry_perspective',
+  'attachment_theory_perspective',
+  'gestalt_perspective',
+  'transpersonal_perspective',
+  'maslow_hierarchy_needs',
+  MYERS_BRIGGS_PERSPECTIVE_KEY,
+  'cbt_perspective',
+  'positive_psychology_perspective',
+  'asian_japanese_parental_guidance',
+  'african_zimbabwean_parental_guidance',
+  'western_parental_guidance',
+  'simondonian_analysis',
+  'foucaultian_analysis',
+  'derridian_analysis',
+  'schizoanalytic_insights',
+  'zizekian_analysis',
+  'posthumanism_perspective',
+  'lgbtq_studies_perspective',
+  'sexualities_studies',
+  'gender_studies',
+  'queer_theory_perspective',
+  'trans_studies',
+  'fanonian_analysis',
+  'critical_race_studies',
+  'decolonial_studies',
+  'fat_studies',
+  'mad_studies',
+  'ecology_perspective',
+  'quantum_theory_analysis',
+  'gregory_bateson_ecology_mind',
+  'latourian_analysis',
+  'karen_barad_agential_realism',
+  'resilience_analysis',
+  'social_ecological_systems_theory',
+  'critical_food_systems_analysis',
+  'biomimicry_perspective',
+  'ecopoiesis_perspective',
+  'mechanical_engineering_analysis',
+  'australian_legal_discourse',
+  'swot_analysis',
+  'grounded_theory',
+  'autoethnography',
+  'feasibility_analysis',
+  'risk_analysis',
+  'transitional_theory',
+  'organisational_theories',
+  'organisational_transformation',
+  'social_movement_theories',
+  'tacktical_methodological_analysis',
+  'transformative_futures'
+];
+
+function getChronologicalPerspectiveKeys(): string[] {
+  const knownPerspectiveKeys = Object.keys(PERSPECTIVES);
+  const seen = new Set<string>();
+  const orderedKeys = PERSPECTIVE_CHRONOLOGY.filter((key) => {
+    if (!PERSPECTIVES[key] || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  for (const key of knownPerspectiveKeys) {
+    if (!seen.has(key)) {
+      orderedKeys.push(key);
+      seen.add(key);
+    }
+  }
+
+  return orderedKeys;
+}
+
 const SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS = ['linguistic_analysis', 'semiotic_analysis'];
 const ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS = [
   'indigenous_australian_philosophy_accumulated',
@@ -430,7 +583,7 @@ interface DeleometerSettings {
 const DEFAULT_SETTINGS: DeleometerSettings = {
   openaiApiKey: '', journalFolder: 'Deleometer/Journal', goalsFolder: 'Deleometer/Goals',
   chatsFolder: 'Deleometer/Chats', fullCalendarFolder: 'Deleometer', autoSyncGoalsToFullCalendar: true,
-  selectedPerspectives: Object.keys(PERSPECTIVES), zpdLevel: 'tertiary_year_2',
+  selectedPerspectives: getChronologicalPerspectiveKeys(), zpdLevel: 'tertiary_year_2',
   personalityProfile: null,
   authorMemorySummary: ''
 };
@@ -612,7 +765,7 @@ export default class DeleometerPlugin extends Plugin {
   async getMultiPerspectiveAnalysis(content: string, onProgress?: AnalysisProgressCallback): Promise<AnalysisPayload> {
     if (!this.openai) throw new Error('OpenAI not initialized');
     const selectedPerspectiveKeys = new Set(this.settings.selectedPerspectives);
-    const perspectives = Object.keys(PERSPECTIVES)
+    const perspectives = getChronologicalPerspectiveKeys()
       .filter((key) => selectedPerspectiveKeys.has(key))
       .map((key) => ({ key, perspective: PERSPECTIVES[key] }))
       .filter((item) => item.perspective);
@@ -644,38 +797,23 @@ export default class DeleometerPlugin extends Plugin {
     const furtherReadings: Record<string, string[]> = {};
     const groupSyntheses: Record<string, string> = {};
     const analysisWarnings: string[] = [];
+    const chronologicalChunks = this.chunkArray(perspectives, 4);
 
-    for (let groupIndex = 0; groupIndex < selectedGroupKeys.length; groupIndex += 1) {
-      const groupKey = selectedGroupKeys[groupIndex];
-      const group = PERSPECTIVE_GROUPS[groupKey];
-      const groupPerspectives = perspectives.filter(({ perspective }) => perspective.group === groupKey);
-      const groupChunks = this.chunkArray(groupPerspectives, 4);
-      const chunkSyntheses: string[] = [];
+    for (let chunkIndex = 0; chunkIndex < chronologicalChunks.length; chunkIndex += 1) {
+      const chunk = chronologicalChunks[chunkIndex];
 
-      await onProgress?.(`Analyzing ${group?.title || groupKey} (${groupIndex + 1}/${selectedGroupKeys.length})...`);
-
-      for (let chunkIndex = 0; chunkIndex < groupChunks.length; chunkIndex += 1) {
-        const chunk = groupChunks[chunkIndex];
-        try {
-          await onProgress?.(`Analyzing ${group?.title || groupKey}, batch ${chunkIndex + 1}/${groupChunks.length}...`);
-          const groupResult = await this.getGroupPerspectiveAnalysis(analysisContent, groupKey, chunk, personalityContext, authorMemoryContext, readerContext);
-          Object.assign(results, groupResult.perspectives);
-          Object.assign(furtherReadings, groupResult.furtherReadings);
-          if (groupResult.groupSynthesis) {
-            chunkSyntheses.push(groupResult.groupSynthesis);
-          }
-        } catch (error) {
-          const warning = `${group?.title || groupKey} batch ${chunkIndex + 1} could not be generated: ${this.getErrorMessage(error)}`;
-          analysisWarnings.push(warning);
-          console.error(error);
-        }
+      try {
+        await onProgress?.(`Analyzing chronological sequence, batch ${chunkIndex + 1}/${chronologicalChunks.length}...`);
+        const batchResult = await this.getChronologicalPerspectiveAnalysis(analysisContent, chunk, personalityContext, authorMemoryContext, readerContext);
+        Object.assign(results, batchResult.perspectives);
+        Object.assign(furtherReadings, batchResult.furtherReadings);
+      } catch (error) {
+        const warning = `Chronological batch ${chunkIndex + 1} could not be generated: ${this.getErrorMessage(error)}`;
+        analysisWarnings.push(warning);
+        console.error(error);
       }
 
-      if (chunkSyntheses.length > 0) {
-        groupSyntheses[groupKey] = chunkSyntheses.join('\n\n');
-      }
-
-      const missingPerspectives = groupPerspectives.filter(({ key }) => !results[key]);
+      const missingPerspectives = chunk.filter(({ key }) => !results[key]);
       for (const item of missingPerspectives) {
         try {
           await onProgress?.(`Recovering omitted perspective: ${item.perspective.title}...`);
@@ -692,6 +830,28 @@ export default class DeleometerPlugin extends Plugin {
 
     if (Object.keys(results).length === 0) {
       throw new Error('Analysis response did not include any usable perspectives');
+    }
+
+    for (let groupIndex = 0; groupIndex < selectedGroupKeys.length; groupIndex += 1) {
+      const groupKey = selectedGroupKeys[groupIndex];
+      const group = PERSPECTIVE_GROUPS[groupKey];
+      const groupPerspectiveKeys = perspectives
+        .filter(({ key, perspective }) => perspective.group === groupKey && !!results[key])
+        .map(({ key }) => key);
+
+      if (groupPerspectiveKeys.length === 0) continue;
+
+      try {
+        await onProgress?.(`Synthesizing ${group?.title || groupKey} lineage (${groupIndex + 1}/${selectedGroupKeys.length})...`);
+        const groupSynthesis = await this.getLineageGroupSynthesis(analysisContent, groupKey, groupPerspectiveKeys, results, personalityContext, authorMemoryContext, readerContext);
+        if (groupSynthesis) {
+          groupSyntheses[groupKey] = groupSynthesis;
+        }
+      } catch (error) {
+        const warning = `${group?.title || groupKey} lineage synthesis could not be generated: ${this.getErrorMessage(error)}`;
+        analysisWarnings.push(warning);
+        console.error(error);
+      }
     }
 
     await onProgress?.('Synthesizing the full analysis and three proposed goals...');
@@ -898,6 +1058,151 @@ export default class DeleometerPlugin extends Plugin {
       : '';
 
     return { perspectives: results, furtherReadings, groupSynthesis };
+  }
+
+  async getChronologicalPerspectiveAnalysis(
+    content: string,
+    perspectives: { key: string; perspective: PerspectiveDefinition }[],
+    personalityContext: string,
+    authorMemoryContext: string,
+    readerContext: string
+  ): Promise<{ perspectives: Record<string, string>; furtherReadings: Record<string, string[]> }> {
+    if (!this.openai) throw new Error('OpenAI not initialized');
+    const perspectiveList = perspectives
+      .map(({ key, perspective }) => {
+        const groupTitle = PERSPECTIVE_GROUPS[perspective.group]?.title || perspective.group;
+        return `- ${key}: ${perspective.title} [${groupTitle}] - ${perspective.description}`;
+      })
+      .join('\n');
+
+    const response = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      response_format: { type: 'json_object' },
+      max_tokens: 11000,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are an empathetic interdisciplinary analysis assistant. Return valid JSON only. ' +
+            'Teach each analytic frame instead of name-dropping it. Produce useful outputs that can be shown directly in an app.'
+        },
+        {
+          role: 'user',
+          content:
+            `Analyze the journal entry from every requested perspective in this chronological batch.\n\n` +
+            `Return JSON with exactly these top-level keys:\n` +
+            `- perspectives: an object where each key is the exact perspective key and each value is a string of 220-360 words.\n` +
+            `- further_readings: an object where each key is the exact perspective key and each value is an array of 3-5 reading suggestions. Each suggestion should name an author and work, then briefly say why it helps with this frame.\n\n` +
+            `The requested order is strict chronology. Preserve the sequence exactly, even when adjacent perspectives come from different groups. Treat each group title as a lineage marker, not as the primary order.\n\n` +
+            `For each perspective:\n` +
+            `- create a synthetic interpretation of the entry through that frame, not a generic psychological reading.\n` +
+            `- explain key terms in reader-friendly language and show how the interpretation was built from details, voice, images, tensions, or omissions in the entry.\n` +
+            `- include interpretation, implication, likely outcome if the pattern continues, and a precise next step.\n` +
+            `- empower the author, but also offer a fair critique where the frame warrants it.\n` +
+            `- when a phrase like "pathway", "practice", "boundary", or "agency" appears, explain what it means materially and practically.\n` +
+            `- for Aristotle, include Rhetoric where relevant: ethos, pathos, logos, audience, persuasion, demonstration, causes, practical judgment, material conditions, and action.\n` +
+            `- for Plato, avoid broad Platonism; show the specific dialectical movement, image, desire, education, appearance, or form being used.\n` +
+            `- for self and subjectivity philosophers, distinguish self, person, subject, identity, agency, embodiment, autonomy, continuity, recognition, and responsibility. Teach the philosopher's method through the journal entry rather than turning every frame into ordinary psychology.\n` +
+            `- for Gallagher's Pattern Theory of Self, map the entry across embodied, experiential, affective, intersubjective, narrative, extended, ecological, and normative dimensions without reducing the self to one single essence.\n` +
+            `- for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.\n` +
+            `- for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.\n` +
+            `- for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.\n` +
+            `- for Julia Kristeva, explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, and revolt through concrete details in the entry.\n` +
+            `- for Maslow, Montessori, Piaget, and Vygotsky, interpret needs, development, learning, environment, scaffolding, independence, play, and social support as practical conditions, not abstract labels.\n` +
+            `- for organisational transformation, connect culture, structure, leadership, resistance, capability, implementation, and sustained change to specific patterns in the entry.\n` +
+            `- for Gregory Bateson, interpret communication, feedback loops, learning levels, double binds, relational patterns, and ecology of mind as systems that shape the entry's situation.\n` +
+            `- for music songwriting, interpret the entry as potential song material: voice, rhythm, image, emotional arc, refrain, lyric tension, possible structure, and what a listener could feel.\n` +
+            `- for quantum theory and Barad, avoid fake scientific certainty. Use quantum concepts carefully as analytic models for measurement, relation, indeterminacy, apparatus, entanglement, and mattering.\n` +
+            `- for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.\n` +
+            `- for parental guidance practices, avoid stereotypes. Explain each cultural frame as a situated set of practices and expectations, and compare guidance, care, discipline, autonomy, obligation, kinship, and social belonging materially.\n` +
+            `- for legal, engineering, ecological, social-ecological, grounded theory, and autoethnographic frames, make the method visible: show what counts as evidence, what the frame notices, what it misses, and what practical consequence follows.\n` +
+            `- avoid stopping early. Return one complete individual analysis for every requested key.\n\n` +
+            `${personalityContext}\n\n` +
+            `${authorMemoryContext}\n\n` +
+            `${readerContext}\n\n` +
+            `Requested perspectives in strict chronological order:\n${perspectiveList}\n\n` +
+            `Journal entry:\n${content}`
+        }
+      ]
+    });
+
+    const rawContent = response.choices[0]?.message?.content;
+    if (!rawContent) throw new Error('No analysis returned');
+
+    const parsed = JSON.parse(rawContent) as Record<string, unknown>;
+    const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === 'object'
+      ? parsed.perspectives as Record<string, unknown>
+      : {};
+    const results: Record<string, string> = {};
+
+    for (const { key } of perspectives) {
+      const value = parsedPerspectives[key];
+      if (typeof value === 'string' && value.trim()) {
+        results[key] = value.trim();
+      }
+    }
+
+    const parsedFurtherReadings = parsed.further_readings && typeof parsed.further_readings === 'object'
+      ? parsed.further_readings as Record<string, unknown>
+      : {};
+    const furtherReadings: Record<string, string[]> = {};
+
+    for (const { key } of perspectives) {
+      const value = parsedFurtherReadings[key];
+      if (Array.isArray(value)) {
+        furtherReadings[key] = value
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .slice(0, 5);
+      }
+    }
+
+    return { perspectives: results, furtherReadings };
+  }
+
+  async getLineageGroupSynthesis(
+    content: string,
+    groupKey: string,
+    perspectiveKeys: string[],
+    perspectiveAnalyses: Record<string, string>,
+    personalityContext: string,
+    authorMemoryContext: string,
+    readerContext: string
+  ): Promise<string> {
+    if (!this.openai) throw new Error('OpenAI not initialized');
+    const group = PERSPECTIVE_GROUPS[groupKey];
+    const analysisList = perspectiveKeys
+      .map((key) => {
+        const title = PERSPECTIVES[key]?.title || key;
+        const excerpt = (perspectiveAnalyses[key] || '').slice(0, 650);
+        return `- ${title} (${key}): ${excerpt}`;
+      })
+      .join('\n');
+
+    const response = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      max_tokens: 1200,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are an empathetic interdisciplinary analysis assistant. Write directly and do not include a heading.'
+        },
+        {
+          role: 'user',
+          content:
+            `Synthesize this lineage group after the individual analyses have already been explicated.\n\n` +
+            `Write 260-420 words. Chronology is the primary order of the whole analysis; this synthesis should use the group as a secondary lineage marker. Show how the perspectives in this group speak to one another, what they collectively reveal about the journal entry, where they disagree, what they make visible, what they miss, and what practical next movement follows.\n\n` +
+            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n` +
+            `Group: ${groupKey}: ${group?.title || groupKey} - ${group?.description || ''}\n\n` +
+            `Individual analysis excerpts from this group:\n${analysisList}\n\n` +
+            `Journal entry:\n${content.slice(0, 6000)}`
+        }
+      ]
+    });
+
+    return response.choices[0]?.message?.content?.trim() || '';
   }
 
   async getSingleGeneratedPerspectiveAnalysis(
@@ -2461,7 +2766,7 @@ ${event.kind === 'goal_due'
     if (!ZPD_LEVELS[this.settings.zpdLevel]) {
       this.settings.zpdLevel = DEFAULT_SETTINGS.zpdLevel;
     }
-    const perspectiveKeys = Object.keys(PERSPECTIVES);
+    const perspectiveKeys = getChronologicalPerspectiveKeys();
     if (!Array.isArray(this.settings.selectedPerspectives) || this.settings.selectedPerspectives.length === 0) {
       this.settings.selectedPerspectives = perspectiveKeys;
       return;
@@ -3963,7 +4268,7 @@ class DeleometerSettingTab extends PluginSettingTab {
       .addButton((button) => button
         .setButtonText('Enable all')
         .onClick(async () => {
-          this.plugin.settings.selectedPerspectives = Object.keys(PERSPECTIVES);
+          this.plugin.settings.selectedPerspectives = getChronologicalPerspectiveKeys();
           await this.plugin.saveSettings();
           this.display();
         }));
