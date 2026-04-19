@@ -6574,6 +6574,7 @@ var PERSPECTIVES = {
   mad_studies: { title: "Mad Studies", description: "Psychiatric power, mad knowledge, distress, survival, and alternatives to pathologization", group: "race_coloniality_embodiment" },
   ecology_perspective: { title: "Ecology", description: "Organisms, habitats, interdependence, niches, energy flows, disturbance, adaptation, and relations between living systems and environments", group: "systems_ecology_food" },
   quantum_theory_analysis: { title: "Quantum Theory Analysis", description: "Observation, indeterminacy, probability, entanglement, measurement, fields, scale, uncertainty, and the limits of classical causality", group: "systems_ecology_food" },
+  gregory_bateson_ecology_mind: { title: "Gregory Bateson's Ecology of Mind", description: "Cybernetics, feedback, pattern, communication, double bind, learning levels, mind-in-system, relational ecology, and the pattern that connects", group: "systems_ecology_food" },
   latourian_analysis: { title: "Latourian Analysis", description: "Actor-networks, mediation, translation, nonhuman agency, and assembled realities", group: "systems_ecology_food" },
   karen_barad_agential_realism: { title: "Karen Barad's Agential Realism", description: "Intra-action, apparatus, diffraction, mattering, entanglement, ethics, material-discursive practice, and quantum feminist theory", group: "systems_ecology_food" },
   resilience_analysis: { title: "Resilience", description: "Adaptive capacity, recovery, redundancy, stress response, and durable support systems", group: "systems_ecology_food" },
@@ -6664,6 +6665,7 @@ var MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS = [
   "marxian_analysis",
   "bataillean_analysis",
   "fanonian_analysis",
+  "gregory_bateson_ecology_mind",
   "quantum_theory_analysis",
   "karen_barad_agential_realism"
 ];
@@ -7142,6 +7144,7 @@ For each perspective:
 - for Julia Kristeva, explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, and revolt through concrete details in the entry.
 - for Maslow, Montessori, Piaget, and Vygotsky, interpret needs, development, learning, environment, scaffolding, independence, play, and social support as practical conditions, not abstract labels.
 - for organisational transformation, connect culture, structure, leadership, resistance, capability, implementation, and sustained change to specific patterns in the entry.
+- for Gregory Bateson, interpret communication, feedback loops, learning levels, double binds, relational patterns, and ecology of mind as systems that shape the entry's situation.
 - for music songwriting, interpret the entry as potential song material: voice, rhythm, image, emotional arc, refrain, lyric tension, possible structure, and what a listener could feel.
 - for quantum theory and Barad, avoid fake scientific certainty. Use quantum concepts carefully as analytic models for measurement, relation, indeterminacy, apparatus, entanglement, and mattering.
 - for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.
