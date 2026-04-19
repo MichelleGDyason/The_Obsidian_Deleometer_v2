@@ -6472,12 +6472,39 @@ var PERSPECTIVES = {
   ontological_analysis: { title: "Ontological Analysis", description: "Modes of being, entities, relations, becoming, and existential structure", group: PHILOSOPHY_GROUP_KEY },
   ethical_analysis: { title: "Ethical Analysis", description: "Obligation, virtue, care, harm, responsibility, and practical judgment", group: PHILOSOPHY_GROUP_KEY },
   philosophy_of_mind_perspective: { title: "Philosophy of Mind", description: "Consciousness, intention, emotion, agency, selfhood, and mental causation", group: PHILOSOPHY_GROUP_KEY },
+  descartes_cogito_subject: { title: "Ren\xE9 Descartes' Cogito and Subject", description: "Doubt, certainty, mind-body distinction, thinking substance, inwardness, rational selfhood, and the cogito as a ground of knowledge", group: PHILOSOPHY_GROUP_KEY },
   spinoza_theologic_ethico_perspective: { title: "Spinoza's Theologic-Ethico Philosophy", description: "Immanence, affect, necessity, freedom, substance, and ethical life", group: PHILOSOPHY_GROUP_KEY },
+  lockean_personal_identity: { title: "John Locke's Personal Identity", description: "Consciousness, memory, personhood, accountability, continuity, moral responsibility, and the self over time", group: PHILOSOPHY_GROUP_KEY },
+  humean_bundle_self: { title: "David Hume's Bundle Theory of Self", description: "Impressions, perceptions, habit, continuity, skepticism, identity as fiction, and the self as a bundle of experiences", group: PHILOSOPHY_GROUP_KEY },
+  kantian_transcendental_subject: { title: "Immanuel Kant's Transcendental Subject", description: "Apperception, categories, autonomy, moral law, conditions of experience, and the self that organizes knowledge", group: PHILOSOPHY_GROUP_KEY },
+  hegelian_recognition_subject: { title: "G.W.F. Hegel's Recognition and Subjectivity", description: "Recognition, self-consciousness, lordship and bondage, dialectic, social freedom, history, and becoming a subject through others", group: PHILOSOPHY_GROUP_KEY },
   nietzschean_perspective: { title: "Nietzschean Philosophy", description: "Will to power, values, and self-overcoming", group: PHILOSOPHY_GROUP_KEY },
   phenomenology_perspective: { title: "Phenomenology", description: "Lived experience and consciousness", group: PHILOSOPHY_GROUP_KEY },
+  heideggerian_dasein_analysis: { title: "Martin Heidegger's Dasein Analysis", description: "Being-in-the-world, thrownness, care, everydayness, authenticity, temporality, and the self as situated existence", group: PHILOSOPHY_GROUP_KEY },
   hermeneutics_perspective: { title: "Hermeneutics", description: "Interpretation and understanding", group: PHILOSOPHY_GROUP_KEY },
   existential_perspective: { title: "Existential Analysis", description: "Authenticity, freedom, and meaning", group: PHILOSOPHY_GROUP_KEY },
+  sartrean_subjectivity: { title: "Jean-Paul Sartre's Subjectivity", description: "Freedom, bad faith, nothingness, the look, responsibility, choice, and the self as project rather than essence", group: PHILOSOPHY_GROUP_KEY },
+  de_beauvoir_situated_subject: { title: "Simone de Beauvoir's Situated Subject", description: "Ambiguity, freedom, oppression, gendered becoming, immanence, transcendence, and the ethical demand to become with others", group: PHILOSOPHY_GROUP_KEY },
+  merleau_ponty_embodied_subject: { title: "Maurice Merleau-Ponty's Embodied Subject", description: "Embodiment, perception, habit, flesh, motor intentionality, intersubjectivity, and the lived body as subject", group: PHILOSOPHY_GROUP_KEY },
   process_philosophical_analysis: { title: "Process Philosophical Analysis", description: "Becoming, relation, event, creativity, temporality, and emergent order", group: PHILOSOPHY_GROUP_KEY },
+  pf_strawson_personhood: { title: "P. F. Strawson's Personhood", description: "Persons, reactive attitudes, responsibility, ordinary language, embodiment, mutual recognition, and the social grammar of accountability", group: PHILOSOPHY_GROUP_KEY },
+  harry_frankfurt_volitional_self: { title: "Harry Frankfurt's Volitional Self", description: "Second-order desires, wholeheartedness, identification, free will, care, ambivalence, and what a person wants to want", group: PHILOSOPHY_GROUP_KEY },
+  sydney_shoemaker_self_knowledge: { title: "Sydney Shoemaker's Self-Knowledge", description: "Self-reference, immunity to error, first-person authority, embodiment, memory, and how one knows oneself as oneself", group: PHILOSOPHY_GROUP_KEY },
+  bernard_williams_personal_identity: { title: "Bernard Williams' Personal Identity", description: "Bodily continuity, character, practical concern, thought experiments, fear, survival, and identity as lived from the first person", group: PHILOSOPHY_GROUP_KEY },
+  paul_ricoeur_narrative_identity: { title: "Paul Ricoeur's Narrative Identity", description: "Selfhood, sameness, narrative time, promise, memory, interpretation, and identity as the story one can answer for", group: PHILOSOPHY_GROUP_KEY },
+  derek_parfit_reductionist_identity: { title: "Derek Parfit's Reductionist Identity", description: "Psychological continuity, connectedness, survival, reductionism, relation R, and why identity may matter less than we think", group: PHILOSOPHY_GROUP_KEY },
+  charles_taylor_sources_self: { title: "Charles Taylor's Sources of the Self", description: "Moral horizons, strong evaluation, authenticity, recognition, modern identity, and the goods that orient selfhood", group: PHILOSOPHY_GROUP_KEY },
+  macintyre_narrative_self: { title: "Alasdair MacIntyre's Narrative Self", description: "Virtue, tradition, practices, narrative unity, intelligibility, moral agency, and a life understood as an unfolding story", group: PHILOSOPHY_GROUP_KEY },
+  judith_butler_performativity: { title: "Judith Butler's Performativity and Subjectivation", description: "Performativity, norms, recognizability, gendered subject formation, repetition, vulnerability, and livable life", group: PHILOSOPHY_GROUP_KEY },
+  catriona_mackenzie_relational_autonomy: { title: "Catriona Mackenzie's Relational Autonomy", description: "Autonomy, vulnerability, self-trust, social recognition, agency, relational support, and how conditions enable or block self-direction", group: PHILOSOPHY_GROUP_KEY },
+  christine_korsgaard_self_constitution: { title: "Christine Korsgaard's Self-Constitution", description: "Practical identity, agency, normativity, action, self-legislation, integrity, and making oneself through commitments", group: PHILOSOPHY_GROUP_KEY },
+  marya_schechtman_narrative_self: { title: "Marya Schechtman's Narrative Self", description: "Person-life view, narrative identity, characterization, memory, social uptake, and what makes a life intelligibly one life", group: PHILOSOPHY_GROUP_KEY },
+  linda_alcoff_visible_identities: { title: "Linda Mart\xEDn Alcoff's Visible Identities", description: "Embodied identity, race, gender, social location, visibility, experience, and how selves are politically interpreted", group: PHILOSOPHY_GROUP_KEY },
+  anthony_appiah_identity_ethics: { title: "Kwame Anthony Appiah's Identity Ethics", description: "Social scripts, individuality, honor, recognition, cosmopolitanism, collective identity, and ethical self-fashioning", group: PHILOSOPHY_GROUP_KEY },
+  adriana_cavarero_relational_uniqueness: { title: "Adriana Cavarero's Relational Uniqueness", description: "Narratable self, uniqueness, voice, exposure, relationality, birth, and the who that appears through others", group: PHILOSOPHY_GROUP_KEY },
+  dan_zahavi_minimal_self: { title: "Dan Zahavi's Minimal Self", description: "First-person givenness, pre-reflective self-awareness, phenomenology, embodiment, selfhood, and the minimal structure of experience", group: PHILOSOPHY_GROUP_KEY },
+  shaun_gallagher_embodied_self: { title: "Shaun Gallagher's Embodied Self", description: "Body schema, agency, ownership, intersubjectivity, cognition, enactivism, and the self as embodied action", group: PHILOSOPHY_GROUP_KEY },
+  rosi_braidotti_nomadic_subjectivity: { title: "Rosi Braidotti's Nomadic Subjectivity", description: "Nomadic subject, posthuman feminism, becoming, embodiment, difference, affirmative ethics, and non-unitary selfhood", group: PHILOSOPHY_GROUP_KEY },
   topological_analysis: { title: "Topological Analysis", description: "Relations, surfaces, thresholds, folds, nearness, boundaries, and spatial transformations of meaning", group: PHILOSOPHY_GROUP_KEY },
   ancient_religious_interpretation: { title: "Ancient Religious Interpretation", description: "Ritual, sacrifice, omen, sacred order, taboo, ancestor, cosmology, and ancient religious imagination", group: "religious_mythic_interpretation" },
   first_testament_hebrew_interpretation: { title: "First Testament / Hebrew Interpretation", description: "Covenant, law, prophecy, lament, wisdom, exile, justice, creation, and faithful argument with God", group: "religious_mythic_interpretation" },
@@ -6554,7 +6581,10 @@ var PERSPECTIVES = {
 var PERSPECTIVE_HEADING_ALIASES = {
   lgbtq_studies_perspective: ["LGBTQ+ Studies"],
   feasibility_analysis: ["Feasability Analysis"],
-  tacktical_methodological_analysis: ["Tactical Methodological Analysis"]
+  tacktical_methodological_analysis: ["Tactical Methodological Analysis"],
+  descartes_cogito_subject: ["Rene Descartes' Cogito and Subject"],
+  bernard_williams_personal_identity: ["Barnard Williams' Personal Identity", "Barnard Williams Personal Identity"],
+  pf_strawson_personhood: ["P.F. Strawson's Personhood", "PF Strawson's Personhood"]
 };
 var SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS = ["linguistic_analysis", "semiotic_analysis"];
 var ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS = [
@@ -6569,6 +6599,35 @@ var ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS = [
   "australian_legal_discourse",
   "grounded_theory",
   "autoethnography"
+];
+var SELF_SUBJECTIVITY_PERSPECTIVE_KEYS = [
+  "descartes_cogito_subject",
+  "lockean_personal_identity",
+  "humean_bundle_self",
+  "kantian_transcendental_subject",
+  "hegelian_recognition_subject",
+  "heideggerian_dasein_analysis",
+  "sartrean_subjectivity",
+  "de_beauvoir_situated_subject",
+  "merleau_ponty_embodied_subject",
+  "pf_strawson_personhood",
+  "harry_frankfurt_volitional_self",
+  "sydney_shoemaker_self_knowledge",
+  "bernard_williams_personal_identity",
+  "paul_ricoeur_narrative_identity",
+  "derek_parfit_reductionist_identity",
+  "charles_taylor_sources_self",
+  "macintyre_narrative_self",
+  "judith_butler_performativity",
+  "catriona_mackenzie_relational_autonomy",
+  "christine_korsgaard_self_constitution",
+  "marya_schechtman_narrative_self",
+  "linda_alcoff_visible_identities",
+  "anthony_appiah_identity_ethics",
+  "adriana_cavarero_relational_uniqueness",
+  "dan_zahavi_minimal_self",
+  "shaun_gallagher_embodied_self",
+  "rosi_braidotti_nomadic_subjectivity"
 ];
 var PRE_HIERARCHY_PERSPECTIVE_KEYS = [
   "lacanian_perspective",
@@ -7031,6 +7090,7 @@ For each perspective:
 - when a phrase like "pathway", "practice", "boundary", or "agency" appears, explain what it means materially and practically.
 - for Aristotle, include Rhetoric where relevant: ethos, pathos, logos, audience, persuasion, demonstration, causes, practical judgment, material conditions, and action.
 - for Plato, avoid broad Platonism; show the specific dialectical movement, image, desire, education, appearance, or form being used.
+- for self and subjectivity philosophers, distinguish self, person, subject, identity, agency, embodiment, autonomy, continuity, recognition, and responsibility. Teach the philosopher's method through the journal entry rather than turning every frame into ordinary psychology.
 - for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.
 - for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.
 - for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.
@@ -8424,13 +8484,19 @@ ${goal.description}
       this.settings.selectedPerspectives = perspectiveKeys;
       return;
     }
-    const preAccumulatedChronologyPerspectiveKeys = perspectiveKeys.filter((key) => !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key));
+    const preSelfSubjectivityPerspectiveKeys = perspectiveKeys.filter((key) => !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPreSelfSubjectivityPerspective = preSelfSubjectivityPerspectiveKeys.every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreSelfSubjectivityPerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const preAccumulatedChronologyPerspectiveKeys = perspectiveKeys.filter((key) => !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key));
     const hadEveryPreAccumulatedChronologyPerspective = preAccumulatedChronologyPerspectiveKeys.every((key) => selectedPerspectives.includes(key));
     if (hadEveryPreAccumulatedChronologyPerspective) {
       this.settings.selectedPerspectives = perspectiveKeys;
       return;
     }
-    const preSemioticLinguisticPerspectiveKeys = perspectiveKeys.filter((key) => !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key) && !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key));
+    const preSemioticLinguisticPerspectiveKeys = perspectiveKeys.filter((key) => !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key) && !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key));
     const hadEveryPreSemioticLinguisticPerspective = preSemioticLinguisticPerspectiveKeys.every((key) => selectedPerspectives.includes(key));
     if (hadEveryPreSemioticLinguisticPerspective) {
       this.settings.selectedPerspectives = perspectiveKeys;

@@ -155,7 +155,7 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 85 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off. The catalogue is ordered as a rough temporal chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought.
+The Deleometer currently includes 112 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off. The catalogue is ordered as a rough temporal chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought.
 
 ### Philosophy as First Discipline
 
@@ -170,12 +170,39 @@ The Deleometer currently includes 85 individual analysis frames. They are groupe
 - Ontological Analysis
 - Ethical Analysis
 - Philosophy of Mind
+- René Descartes' Cogito and Subject
 - Spinoza's Theologic-Ethico Philosophy
+- John Locke's Personal Identity
+- David Hume's Bundle Theory of Self
+- Immanuel Kant's Transcendental Subject
+- G.W.F. Hegel's Recognition and Subjectivity
 - Nietzschean Philosophy
 - Phenomenology
+- Martin Heidegger's Dasein Analysis
 - Hermeneutics
 - Existential Analysis
+- Jean-Paul Sartre's Subjectivity
+- Simone de Beauvoir's Situated Subject
+- Maurice Merleau-Ponty's Embodied Subject
 - Process Philosophical Analysis
+- P. F. Strawson's Personhood
+- Harry Frankfurt's Volitional Self
+- Sydney Shoemaker's Self-Knowledge
+- Bernard Williams' Personal Identity
+- Paul Ricoeur's Narrative Identity
+- Derek Parfit's Reductionist Identity
+- Charles Taylor's Sources of the Self
+- Alasdair MacIntyre's Narrative Self
+- Judith Butler's Performativity and Subjectivation
+- Catriona Mackenzie's Relational Autonomy
+- Christine Korsgaard's Self-Constitution
+- Marya Schechtman's Narrative Self
+- Linda Martín Alcoff's Visible Identities
+- Kwame Anthony Appiah's Identity Ethics
+- Adriana Cavarero's Relational Uniqueness
+- Dan Zahavi's Minimal Self
+- Shaun Gallagher's Embodied Self
+- Rosi Braidotti's Nomadic Subjectivity
 - Topological Analysis
 
 ### Religious, Mythic, and Pagan Interpretations
