@@ -100,6 +100,43 @@ Analyses can be extensive. If every frame is enabled, an appended note may produ
 
 The analysis reader level can also be changed in settings. The available levels range from Grade 5 primary through professor-level analysis. This changes how much the AI explains specialist terms and how far it tries to guide the reader beyond their current zone of proximal development.
 
+## Screenshots
+
+These screenshots show The Deleometer in action during beta development. The README appears on GitHub and in repository documentation; inside Obsidian, the plugin settings hold the controls for API keys, folders, analysis groups, individual lenses, reader level, and safety guidance.
+
+![Multi-perspective analysis modal in Obsidian](docs/screenshots/01-analysis-modal.png)
+
+![Perspective chat continuing from a topological analysis](docs/screenshots/03-ai-chat-topological.png)
+
+![Perspective chat continuing from Philosophy of Mind](docs/screenshots/07-ai-chat-philosophy-of-mind.png)
+
+![Bible Teachings analysis appended into an Obsidian note](docs/screenshots/09-bible-teachings-analysis.png)
+
+![Spinoza analysis alongside research notes](docs/screenshots/11-spinoza-analysis-with-notes.png)
+
+![Draft goals generated from an analysis](docs/screenshots/13-draft-goals-modal.png)
+
+<details>
+<summary>Additional beta workflow captures</summary>
+
+![BRAT beta update conversation](docs/screenshots/02-beta-update-thread.png)
+
+![BRAT beta update conversation alternate capture](docs/screenshots/04-beta-update-thread-alt.png)
+
+![Topological chat alternate capture](docs/screenshots/05-ai-chat-topological-alt.png)
+
+![Goal date validation beta workflow](docs/screenshots/06-goal-date-validation-thread.png)
+
+![Goal suggestion beta workflow](docs/screenshots/08-goal-suggestion-thread.png)
+
+![Goal suggestion beta workflow alternate capture](docs/screenshots/10-goal-suggestion-thread-alt.png)
+
+![GitHub beta branch view](docs/screenshots/12-github-beta-branch.png)
+
+![GitHub beta branch alternate capture](docs/screenshots/14-github-beta-branch-alt.png)
+
+</details>
+
 ## Why This Exists
 
 A short personal note about why the plugin was made would be useful for other people. The Deleometer is unusual because it treats a journal entry as something that can be read through many disciplines, not only as mood tracking or productivity data. Explaining the reason for making it can help users understand that the plugin is designed for reflective agency: the author is meant to argue with the AI, learn from it, reject parts of it, and use the conversation to make their own meanings clearer.
