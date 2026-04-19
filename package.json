@@ -1,6 +1,6 @@
 {
   "name": "the-deleometer",
-  "version": "1.0.2-beta.8",
+  "version": "1.0.2-beta.9",
   "description": "A plugin for deep self-discovery journaling using AI. Use analysis history, and export options. Requires an OpenAI API key.",
   "main": "main.js",
   "scripts": {

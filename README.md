@@ -155,21 +155,11 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 74 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off. The catalogue is ordered as a rough temporal chronology, moving from ancient religious and philosophical traditions toward more recent theories so the analyses can show a progression in thought.
-
-### Religious, Mythic, and Pagan Interpretations
-
-- Ancient Religious Interpretation
-- First Testament / Hebrew Interpretation
-- Greek Gods Interpretation
-- Roman Gods Interpretation
-- Druidic Interpretation
-- Second Testament / Christian Interpretation
-- Muslim Interpretation
-- Pagan Interpretation
+The Deleometer currently includes 85 individual analysis frames. They are grouped in settings, and both whole groups and individual analyses can be toggled on or off. The catalogue is ordered as a rough temporal chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought.
 
 ### Philosophy as First Discipline
 
+- Australian Indigenous Philosophy Accumulated
 - Buddhist Psychology
 - Platonic Philosophy
 - Aristotle's Argonic Teachings
@@ -188,6 +178,17 @@ The Deleometer currently includes 74 individual analysis frames. They are groupe
 - Process Philosophical Analysis
 - Topological Analysis
 
+### Religious, Mythic, and Pagan Interpretations
+
+- Ancient Religious Interpretation
+- First Testament / Hebrew Interpretation
+- Greek Gods Interpretation
+- Roman Gods Interpretation
+- Druidic Interpretation
+- Second Testament / Christian Interpretation
+- Muslim Interpretation
+- Pagan Interpretation
+
 ### Narrative, Media, and Frame Studies
 
 - Linguistic Analysis
@@ -198,6 +199,7 @@ The Deleometer currently includes 74 individual analysis frames. They are groupe
 - Frame Analysis
 - Erving Goffman's Frame Analysis
 - Media Studies
+- Tessa Laird's Cinemal
 
 ### Psychoanalytic and Clinical Psychologies
 
@@ -211,6 +213,12 @@ The Deleometer currently includes 74 individual analysis frames. They are groupe
 - Myers-Briggs analysis
 - Cognitive Behavioral
 - Positive Psychology
+
+### Family, Care, and Guidance Theories
+
+- Asian / Japanese Parental Guidance Practices
+- African / Zimbabwean Parental Guidance Practices
+- Western Parental Guidance Theories
 
 ### Archeo-Genealogical and Deconstructive Thought
 
@@ -241,15 +249,21 @@ The Deleometer currently includes 74 individual analysis frames. They are groupe
 
 ### Systems, Ecology, and Food Futures
 
+- Ecology
 - Latourian Analysis
 - Resilience
+- Social-Ecological Systems Theory
 - Critical Food Systems Analysis
 - Biomimicry
 - Ecopoiesis
 
 ### Strategy, Method, and Organisation
 
+- Mechanical Engineering Analysis
+- Australian Legal Discourse
 - SWOT Analysis
+- Grounded Theory
+- Autoethnography
 - Feasibility Analysis
 - Risk Analysis
 - Transitional Theory

@@ -6419,13 +6419,13 @@ var VIEW_TYPE_AI_CHAT = "deleometer-ai-chat";
 var MYERS_BRIGGS_PERSPECTIVE_KEY = "myers_briggs_perspective";
 var PHILOSOPHY_GROUP_KEY = "philosophy_first_discipline";
 var PERSPECTIVE_GROUPS = {
-  religious_mythic_interpretation: {
-    title: "Religious, Mythic, and Pagan Interpretations",
-    description: "Ancient religions, mythic patterns, sacred texts, ritual worlds, divinities, covenant, revelation, and comparative spiritual meaning"
-  },
   [PHILOSOPHY_GROUP_KEY]: {
     title: "Philosophy as First Discipline",
     description: "First principles, being, ethics, mind, theology, and metaphysical orientation"
+  },
+  religious_mythic_interpretation: {
+    title: "Religious, Mythic, and Pagan Interpretations",
+    description: "Ancient religions, mythic patterns, sacred texts, ritual worlds, divinities, covenant, revelation, and comparative spiritual meaning"
   },
   narrative_media_frame: {
     title: "Narrative, Media, and Frame Studies",
@@ -6434,6 +6434,10 @@ var PERSPECTIVE_GROUPS = {
   psychoanalytic_clinical: {
     title: "Psychoanalytic and Clinical Psychologies",
     description: "Desire, attachment, symptom, personality, cognition, embodiment, and therapeutic interpretation"
+  },
+  family_care_guidance: {
+    title: "Family, Care, and Guidance Theories",
+    description: "Parenting, intergenerational care, kinship practice, family pedagogy, social expectation, guidance, and cultural formation"
   },
   archeo_genealogical_deconstruction: {
     title: "Archeo-Genealogical and Deconstructive Thought",
@@ -6457,14 +6461,7 @@ var PERSPECTIVE_GROUPS = {
   }
 };
 var PERSPECTIVES = {
-  ancient_religious_interpretation: { title: "Ancient Religious Interpretation", description: "Ritual, sacrifice, omen, sacred order, taboo, ancestor, cosmology, and ancient religious imagination", group: "religious_mythic_interpretation" },
-  first_testament_hebrew_interpretation: { title: "First Testament / Hebrew Interpretation", description: "Covenant, law, prophecy, lament, wisdom, exile, justice, creation, and faithful argument with God", group: "religious_mythic_interpretation" },
-  greek_gods_interpretation: { title: "Greek Gods Interpretation", description: "Olympian powers, mythic archetypes, fate, hubris, patronage, conflict, desire, and heroic consequence", group: "religious_mythic_interpretation" },
-  roman_gods_interpretation: { title: "Roman Gods Interpretation", description: "Civic religion, household gods, pietas, omen, duty, empire, ritual order, and public virtue", group: "religious_mythic_interpretation" },
-  druidic_interpretation: { title: "Druidic Interpretation", description: "Oral wisdom, trees, land memory, bardic speech, seasonal rites, kinship, sovereignty, and ecological divination", group: "religious_mythic_interpretation" },
-  second_testament_christian_interpretation: { title: "Second Testament / Christian Interpretation", description: "Gospel, parable, grace, discipleship, incarnation, forgiveness, community, resurrection, and ethical transformation", group: "religious_mythic_interpretation" },
-  muslim_interpretation: { title: "Muslim Interpretation", description: "Tawhid, submission, mercy, intention, justice, prayer, ummah, prophetic example, and disciplined remembrance", group: "religious_mythic_interpretation" },
-  pagan_interpretation: { title: "Pagan Interpretation", description: "Seasonal cycles, polytheism, land, animacy, ritual practice, reciprocity, craft, and embodied sacred life", group: "religious_mythic_interpretation" },
+  indigenous_australian_philosophy_accumulated: { title: "Australian Indigenous Philosophy Accumulated", description: "Country, kinship, custodianship, relational law, story, ceremony, ecological obligation, sovereignty, survival, and living First Nations knowledge", group: PHILOSOPHY_GROUP_KEY },
   buddhist_psychology_perspective: { title: "Buddhist Psychology", description: "Mindfulness, suffering, and liberation", group: PHILOSOPHY_GROUP_KEY },
   platonic_perspective: { title: "Platonic Philosophy", description: "Forms, dialectic, eros, education, justice, and ascent toward truth", group: PHILOSOPHY_GROUP_KEY },
   aristotle_argonic_teachings: { title: "Aristotle's Argonic Teachings", description: "Rhetoric, demonstration, causes, material conditions, practical judgment, virtue, persuasion, and action", group: PHILOSOPHY_GROUP_KEY },
@@ -6482,6 +6479,14 @@ var PERSPECTIVES = {
   existential_perspective: { title: "Existential Analysis", description: "Authenticity, freedom, and meaning", group: PHILOSOPHY_GROUP_KEY },
   process_philosophical_analysis: { title: "Process Philosophical Analysis", description: "Becoming, relation, event, creativity, temporality, and emergent order", group: PHILOSOPHY_GROUP_KEY },
   topological_analysis: { title: "Topological Analysis", description: "Relations, surfaces, thresholds, folds, nearness, boundaries, and spatial transformations of meaning", group: PHILOSOPHY_GROUP_KEY },
+  ancient_religious_interpretation: { title: "Ancient Religious Interpretation", description: "Ritual, sacrifice, omen, sacred order, taboo, ancestor, cosmology, and ancient religious imagination", group: "religious_mythic_interpretation" },
+  first_testament_hebrew_interpretation: { title: "First Testament / Hebrew Interpretation", description: "Covenant, law, prophecy, lament, wisdom, exile, justice, creation, and faithful argument with God", group: "religious_mythic_interpretation" },
+  greek_gods_interpretation: { title: "Greek Gods Interpretation", description: "Olympian powers, mythic archetypes, fate, hubris, patronage, conflict, desire, and heroic consequence", group: "religious_mythic_interpretation" },
+  roman_gods_interpretation: { title: "Roman Gods Interpretation", description: "Civic religion, household gods, pietas, omen, duty, empire, ritual order, and public virtue", group: "religious_mythic_interpretation" },
+  druidic_interpretation: { title: "Druidic Interpretation", description: "Oral wisdom, trees, land memory, bardic speech, seasonal rites, kinship, sovereignty, and ecological divination", group: "religious_mythic_interpretation" },
+  second_testament_christian_interpretation: { title: "Second Testament / Christian Interpretation", description: "Gospel, parable, grace, discipleship, incarnation, forgiveness, community, resurrection, and ethical transformation", group: "religious_mythic_interpretation" },
+  muslim_interpretation: { title: "Muslim Interpretation", description: "Tawhid, submission, mercy, intention, justice, prayer, ummah, prophetic example, and disciplined remembrance", group: "religious_mythic_interpretation" },
+  pagan_interpretation: { title: "Pagan Interpretation", description: "Seasonal cycles, polytheism, land, animacy, ritual practice, reciprocity, craft, and embodied sacred life", group: "religious_mythic_interpretation" },
   linguistic_analysis: { title: "Linguistic Analysis", description: "Words, grammar, naming, register, metaphor, speech acts, code-switching, silence, and how language organizes experience", group: "narrative_media_frame" },
   semiotic_analysis: { title: "Semiotic Analysis", description: "Signs, symbols, signifier and signified, codes, icons, indexes, myths, and how meaning is made and circulated", group: "narrative_media_frame" },
   narrative_psychology_perspective: { title: "Narrative Psychology", description: "Life stories and meaning-making", group: "narrative_media_frame" },
@@ -6490,6 +6495,7 @@ var PERSPECTIVES = {
   frame_analysis: { title: "Frame Analysis", description: "Interpretive frames, salience, boundaries, alignment, and meaning organization", group: "narrative_media_frame" },
   goffman_frame_analysis: { title: "Erving Goffman's Frame Analysis", description: "Interaction order, presentation of self, keyed events, footing, and everyday frames", group: "narrative_media_frame" },
   media_studies: { title: "Media Studies", description: "Platforms, mediation, publics, representation, attention, circulation, and media power", group: "narrative_media_frame" },
+  tessa_laird_cinemal: { title: "Tessa Laird's Cinemal", description: "Becoming-animal experimental film, sensory cinema, nonhuman perception, more-than-human voices, ecological collapse, and cinematic animality", group: "narrative_media_frame" },
   freudian_psychoanalysis: { title: "Freudian Psychoanalysis", description: "Unconscious conflict, repression, dream-work, sexuality, and symptom formation", group: "psychoanalytic_clinical" },
   jungian_perspective: { title: "Jungian Analysis", description: "Archetypes, shadow, and individuation", group: "psychoanalytic_clinical" },
   lacanian_perspective: { title: "Lacanian Psychoanalysis", description: "Analysis through desire, the Other, and symbolic order", group: "psychoanalytic_clinical" },
@@ -6504,6 +6510,9 @@ var PERSPECTIVES = {
   },
   cbt_perspective: { title: "Cognitive Behavioral", description: "Thoughts, behaviors, and patterns", group: "psychoanalytic_clinical" },
   positive_psychology_perspective: { title: "Positive Psychology", description: "Strengths, flourishing, and well-being", group: "psychoanalytic_clinical" },
+  asian_japanese_parental_guidance: { title: "Asian / Japanese Parental Guidance Practices", description: "Interdependence, family obligation, amae, discipline, social harmony, education, respect, and relational guidance in Japanese and wider Asian contexts", group: "family_care_guidance" },
+  african_zimbabwean_parental_guidance: { title: "African / Zimbabwean Parental Guidance Practices", description: "Ubuntu, extended kinship, respect, communal responsibility, oral teaching, discipline, survival, and intergenerational guidance in Zimbabwean and wider African contexts", group: "family_care_guidance" },
+  western_parental_guidance: { title: "Western Parental Guidance Theories", description: "Attachment, autonomy, authoritative guidance, boundaries, praise, discipline, rights, developmental milestones, and individual self-formation", group: "family_care_guidance" },
   critical_theory_perspective: { title: "Critical Theory", description: "Social critique and emancipation", group: "archeo_genealogical_deconstruction" },
   simondonian_analysis: { title: "Simondonian Analysis", description: "Individuation, preindividual fields, technics, relation, and collective becoming", group: "archeo_genealogical_deconstruction" },
   foucaultian_analysis: { title: "Foucaultian Analysis", description: "Power, discourse, discipline, subject formation, and historical conditions of truth", group: "archeo_genealogical_deconstruction" },
@@ -6522,12 +6531,18 @@ var PERSPECTIVES = {
   decolonial_studies: { title: "Decolonial Studies", description: "Coloniality, land, knowledge, sovereignty, extraction, repair, and pluriversal futures", group: "race_coloniality_embodiment" },
   fat_studies: { title: "Fat Studies", description: "Anti-fat bias, embodiment, health norms, stigma, access, and fat liberation", group: "race_coloniality_embodiment" },
   mad_studies: { title: "Mad Studies", description: "Psychiatric power, mad knowledge, distress, survival, and alternatives to pathologization", group: "race_coloniality_embodiment" },
+  ecology_perspective: { title: "Ecology", description: "Organisms, habitats, interdependence, niches, energy flows, disturbance, adaptation, and relations between living systems and environments", group: "systems_ecology_food" },
   latourian_analysis: { title: "Latourian Analysis", description: "Actor-networks, mediation, translation, nonhuman agency, and assembled realities", group: "systems_ecology_food" },
   resilience_analysis: { title: "Resilience", description: "Adaptive capacity, recovery, redundancy, stress response, and durable support systems", group: "systems_ecology_food" },
+  social_ecological_systems_theory: { title: "Social-Ecological Systems Theory", description: "Linked human and ecological systems, feedback loops, thresholds, adaptive governance, resilience, institutions, and environmental change", group: "systems_ecology_food" },
   critical_food_systems_analysis: { title: "Critical Food Systems Analysis", description: "Food justice, supply chains, agriculture, labor, ecology, access, and power", group: "systems_ecology_food" },
   biomimicry_perspective: { title: "Biomimicry", description: "Learning from living systems, adaptation, form, function, and regenerative design", group: "systems_ecology_food" },
   ecopoiesis_perspective: { title: "Ecopoiesis", description: "World-making ecologies, habitat creation, planetary repair, and life-supporting systems", group: "systems_ecology_food" },
+  mechanical_engineering_analysis: { title: "Mechanical Engineering Analysis", description: "Forces, loads, constraints, materials, mechanisms, tolerances, failure modes, energy transfer, friction, maintenance, and practical design", group: "strategy_method_organisation" },
+  australian_legal_discourse: { title: "Australian Legal Discourse", description: "Common law, statute, precedent, jurisdiction, rights, obligations, evidence, administrative language, settler legality, and institutional reasoning in Australia", group: "strategy_method_organisation" },
   swot_analysis: { title: "SWOT Analysis", description: "Strengths, weaknesses, opportunities, threats, and strategic positioning", group: "strategy_method_organisation" },
+  grounded_theory: { title: "Grounded Theory", description: "Open coding, constant comparison, memos, categories, theoretical sampling, emergence, saturation, and theory built from lived data", group: "strategy_method_organisation" },
+  autoethnography: { title: "Autoethnography", description: "Personal experience as cultural evidence, reflexive voice, situated memory, vulnerability, ethics, embodiment, and social interpretation", group: "strategy_method_organisation" },
   feasibility_analysis: { title: "Feasibility Analysis", description: "Practical viability, resources, constraints, dependencies, costs, and implementation readiness", group: "strategy_method_organisation" },
   risk_analysis: { title: "Risk Analysis", description: "Likelihood, impact, uncertainty, exposure, prevention, mitigation, and contingency", group: "strategy_method_organisation" },
   transitional_theory: { title: "Transitional Theory", description: "Liminal movement, phased change, rites of passage, continuity, and transformation", group: "strategy_method_organisation" },
@@ -6542,6 +6557,19 @@ var PERSPECTIVE_HEADING_ALIASES = {
   tacktical_methodological_analysis: ["Tactical Methodological Analysis"]
 };
 var SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS = ["linguistic_analysis", "semiotic_analysis"];
+var ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS = [
+  "indigenous_australian_philosophy_accumulated",
+  "tessa_laird_cinemal",
+  "asian_japanese_parental_guidance",
+  "african_zimbabwean_parental_guidance",
+  "western_parental_guidance",
+  "ecology_perspective",
+  "social_ecological_systems_theory",
+  "mechanical_engineering_analysis",
+  "australian_legal_discourse",
+  "grounded_theory",
+  "autoethnography"
+];
 var PRE_HIERARCHY_PERSPECTIVE_KEYS = [
   "lacanian_perspective",
   "schizoanalytic_insights",
@@ -7003,7 +7031,11 @@ For each perspective:
 - when a phrase like "pathway", "practice", "boundary", or "agency" appears, explain what it means materially and practically.
 - for Aristotle, include Rhetoric where relevant: ethos, pathos, logos, audience, persuasion, demonstration, causes, practical judgment, material conditions, and action.
 - for Plato, avoid broad Platonism; show the specific dialectical movement, image, desire, education, appearance, or form being used.
+- for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.
 - for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.
+- for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.
+- for parental guidance practices, avoid stereotypes. Explain each cultural frame as a situated set of practices and expectations, and compare guidance, care, discipline, autonomy, obligation, kinship, and social belonging materially.
+- for legal, engineering, ecological, social-ecological, grounded theory, and autoethnographic frames, make the method visible: show what counts as evidence, what the frame notices, what it misses, and what practical consequence follows.
 - avoid stopping early. Return one complete individual analysis for every requested key.
 
 ${personalityContext}
@@ -8392,7 +8424,13 @@ ${goal.description}
       this.settings.selectedPerspectives = perspectiveKeys;
       return;
     }
-    const preSemioticLinguisticPerspectiveKeys = perspectiveKeys.filter((key) => !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key));
+    const preAccumulatedChronologyPerspectiveKeys = perspectiveKeys.filter((key) => !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPreAccumulatedChronologyPerspective = preAccumulatedChronologyPerspectiveKeys.every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreAccumulatedChronologyPerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const preSemioticLinguisticPerspectiveKeys = perspectiveKeys.filter((key) => !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key) && !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key));
     const hadEveryPreSemioticLinguisticPerspective = preSemioticLinguisticPerspectiveKeys.every((key) => selectedPerspectives.includes(key));
     if (hadEveryPreSemioticLinguisticPerspective) {
       this.settings.selectedPerspectives = perspectiveKeys;
