@@ -7217,6 +7217,29 @@ ${this.settings.authorMemorySummary.trim()}`);
     }
     return chunks;
   }
+  parseJsonObject(rawContent) {
+    var _a2, _b;
+    const trimmed = rawContent.trim().replace(/^\uFEFF/, "");
+    const fenced = ((_b = (_a2 = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i)) == null ? void 0 : _a2[1]) == null ? void 0 : _b.trim()) || trimmed;
+    const objectStart = fenced.indexOf("{");
+    const objectEnd = fenced.lastIndexOf("}");
+    const extracted = objectStart !== -1 && objectEnd > objectStart ? fenced.slice(objectStart, objectEnd + 1) : fenced;
+    const withoutTrailingCommas = extracted.replace(/,\s*([}\]])/g, "$1");
+    const quotedBareKeys = withoutTrailingCommas.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)(\s*:)/g, '$1"$2"$3');
+    const candidates = [trimmed, fenced, extracted, withoutTrailingCommas, quotedBareKeys];
+    let lastError = null;
+    for (const candidate of candidates) {
+      try {
+        const parsed = JSON.parse(candidate);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          return parsed;
+        }
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError instanceof Error ? lastError : new Error("Could not parse JSON response");
+  }
   async prepareJournalContentForAnalysis(content, onProgress) {
     var _a2, _b;
     if (!this.openai) throw new Error("OpenAI not initialized");
@@ -7246,7 +7269,7 @@ ${content}`
       });
       const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
       if (!rawContent) throw new Error("No analysis brief returned");
-      const parsed = JSON.parse(rawContent);
+      const parsed = this.parseJsonObject(rawContent);
       const brief = typeof parsed.analysis_brief === "string" ? parsed.analysis_brief.trim() : "";
       if (!brief) throw new Error("Analysis brief was empty");
       return [
@@ -7355,7 +7378,7 @@ ${content}`
     });
     const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
     if (!rawContent) throw new Error("No analysis returned");
-    const parsed = JSON.parse(rawContent);
+    const parsed = this.parseJsonObject(rawContent);
     const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === "object" ? parsed.perspectives : {};
     const results = {};
     for (const { key } of perspectives) {
@@ -7444,7 +7467,7 @@ ${content}`
     });
     const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
     if (!rawContent) throw new Error("No analysis returned");
-    const parsed = JSON.parse(rawContent);
+    const parsed = this.parseJsonObject(rawContent);
     const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === "object" ? parsed.perspectives : {};
     const results = {};
     for (const { key } of perspectives) {
@@ -7540,7 +7563,7 @@ ${content}`
     });
     const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
     if (!rawContent) return { analysis: "", furtherReadings: [] };
-    const parsed = JSON.parse(rawContent);
+    const parsed = this.parseJsonObject(rawContent);
     const analysis = typeof parsed.analysis === "string" ? parsed.analysis.trim() : "";
     const furtherReadings = Array.isArray(parsed.further_readings) ? parsed.further_readings.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 5) : [];
     return { analysis, furtherReadings };
@@ -7595,7 +7618,7 @@ ${content}`
     if (!rawContent) {
       return { philosophicalReaccumulation: "", authorMemorySummary: this.settings.authorMemorySummary, goalSuggestions: [] };
     }
-    const parsed = JSON.parse(rawContent);
+    const parsed = this.parseJsonObject(rawContent);
     const philosophicalReaccumulation = typeof parsed.philosophical_reaccumulation === "string" ? parsed.philosophical_reaccumulation.trim() : "";
     const authorMemorySummary = typeof parsed.author_memory_summary === "string" ? parsed.author_memory_summary.trim() : this.settings.authorMemorySummary;
     const goalSuggestions = this.parseGoalSuggestions(parsed.goal_suggestions).slice(0, 3);

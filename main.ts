@@ -968,6 +968,33 @@ export default class DeleometerPlugin extends Plugin {
     return chunks;
   }
 
+  parseJsonObject(rawContent: string): Record<string, unknown> {
+    const trimmed = rawContent.trim().replace(/^\uFEFF/, '');
+    const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i)?.[1]?.trim() || trimmed;
+    const objectStart = fenced.indexOf('{');
+    const objectEnd = fenced.lastIndexOf('}');
+    const extracted = objectStart !== -1 && objectEnd > objectStart
+      ? fenced.slice(objectStart, objectEnd + 1)
+      : fenced;
+    const withoutTrailingCommas = extracted.replace(/,\s*([}\]])/g, '$1');
+    const quotedBareKeys = withoutTrailingCommas.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)(\s*:)/g, '$1"$2"$3');
+    const candidates = [trimmed, fenced, extracted, withoutTrailingCommas, quotedBareKeys];
+    let lastError: unknown = null;
+
+    for (const candidate of candidates) {
+      try {
+        const parsed = JSON.parse(candidate) as unknown;
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return parsed as Record<string, unknown>;
+        }
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error('Could not parse JSON response');
+  }
+
   async prepareJournalContentForAnalysis(content: string, onProgress?: AnalysisProgressCallback): Promise<string> {
     if (!this.openai) throw new Error('OpenAI not initialized');
     const maxDirectAnalysisChars = 12000;
@@ -995,7 +1022,7 @@ export default class DeleometerPlugin extends Plugin {
       });
       const rawContent = response.choices[0]?.message?.content;
       if (!rawContent) throw new Error('No analysis brief returned');
-      const parsed = JSON.parse(rawContent) as Record<string, unknown>;
+      const parsed = this.parseJsonObject(rawContent);
       const brief = typeof parsed.analysis_brief === 'string' ? parsed.analysis_brief.trim() : '';
       if (!brief) throw new Error('Analysis brief was empty');
 
@@ -1112,7 +1139,7 @@ export default class DeleometerPlugin extends Plugin {
     const rawContent = response.choices[0]?.message?.content;
     if (!rawContent) throw new Error('No analysis returned');
 
-    const parsed = JSON.parse(rawContent) as Record<string, unknown>;
+    const parsed = this.parseJsonObject(rawContent);
     const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === 'object'
       ? parsed.perspectives as Record<string, unknown>
       : {};
@@ -1219,7 +1246,7 @@ export default class DeleometerPlugin extends Plugin {
     const rawContent = response.choices[0]?.message?.content;
     if (!rawContent) throw new Error('No analysis returned');
 
-    const parsed = JSON.parse(rawContent) as Record<string, unknown>;
+    const parsed = this.parseJsonObject(rawContent);
     const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === 'object'
       ? parsed.perspectives as Record<string, unknown>
       : {};
@@ -1328,7 +1355,7 @@ export default class DeleometerPlugin extends Plugin {
     });
     const rawContent = response.choices[0]?.message?.content;
     if (!rawContent) return { analysis: '', furtherReadings: [] };
-    const parsed = JSON.parse(rawContent) as Record<string, unknown>;
+    const parsed = this.parseJsonObject(rawContent);
     const analysis = typeof parsed.analysis === 'string' ? parsed.analysis.trim() : '';
     const furtherReadings = Array.isArray(parsed.further_readings)
       ? parsed.further_readings.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean).slice(0, 5)
@@ -1383,7 +1410,7 @@ export default class DeleometerPlugin extends Plugin {
       return { philosophicalReaccumulation: '', authorMemorySummary: this.settings.authorMemorySummary, goalSuggestions: [] };
     }
 
-    const parsed = JSON.parse(rawContent) as Record<string, unknown>;
+    const parsed = this.parseJsonObject(rawContent);
     const philosophicalReaccumulation = typeof parsed.philosophical_reaccumulation === 'string'
       ? parsed.philosophical_reaccumulation.trim()
       : '';
