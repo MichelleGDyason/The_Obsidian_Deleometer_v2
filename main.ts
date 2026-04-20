@@ -516,6 +516,7 @@ const ENTRY_TYPES: Record<string, string> = {
 };
 
 const SAFETY_DISCLAIMER = 'The Deleometer is a reflective conversation and journaling tool, not a medical device, diagnosis, treatment, or substitute for medication, therapy, crisis support, or professional care. AI can make mistakes and can sound more certain than it is. Treat responses as invitations to think with, question, revise, and discuss, not as truth to absorb undiluted.';
+const PRIVACY_SECURITY_NOTICE = 'AI analysis sends journal, chat, goal, and context text to OpenAI when you use AI features. Saved analyses, chats, goals, author memory, and plugin settings are stored as local Obsidian data or Markdown, not encrypted by The Deleometer. Other installed Obsidian plugins, vault sync tools, backups, or anyone with device access may be able to read them.';
 
 const ZPD_LEVELS: Record<string, { label: string; prompt: string }> = {
   primary_year_5: {
@@ -587,6 +588,11 @@ interface DeleometerSettings {
   chatsFolder: string;
   fullCalendarFolder: string;
   autoSyncGoalsToFullCalendar: boolean;
+  redactSensitiveDataBeforeAI: boolean;
+  enableAuthorMemory: boolean;
+  includeAuthorMemoryInAI: boolean;
+  includePersonalityProfileInAI: boolean;
+  sendFullJournalToChat: boolean;
   selectedPerspectives: string[];
   zpdLevel: string;
   personalityProfile: PersonalityProfile | null;
@@ -596,6 +602,8 @@ interface DeleometerSettings {
 const DEFAULT_SETTINGS: DeleometerSettings = {
   openaiApiKey: '', journalFolder: 'Deleometer/Journal', goalsFolder: 'Deleometer/Goals',
   chatsFolder: 'Deleometer/Chats', fullCalendarFolder: 'Deleometer', autoSyncGoalsToFullCalendar: true,
+  redactSensitiveDataBeforeAI: true, enableAuthorMemory: true, includeAuthorMemoryInAI: true,
+  includePersonalityProfileInAI: true, sendFullJournalToChat: false,
   selectedPerspectives: getChronologicalPerspectiveKeys(), zpdLevel: 'tertiary_year_2',
   personalityProfile: null,
   authorMemorySummary: ''
@@ -654,8 +662,8 @@ export default class DeleometerPlugin extends Plugin {
             const url = new URL(link.href);
             const perspective = url.searchParams.get('perspective') || '';
             const source = url.searchParams.get('source') || '';
-            if (!perspective || !source) {
-              new Notice('Missing chat link context');
+            if (!PERSPECTIVES[perspective] || !this.getVaultMarkdownFile(source)) {
+              new Notice('Invalid or unsafe chat link context');
               return;
             }
             await this.openChatFromSourceNote(source, perspective);
@@ -672,8 +680,8 @@ export default class DeleometerPlugin extends Plugin {
           try {
             const url = new URL(link.href);
             const source = url.searchParams.get('source') || '';
-            if (!source) {
-              new Notice('Missing goal draft context');
+            if (!this.getVaultMarkdownFile(source)) {
+              new Notice('Invalid or unsafe goal draft context');
               return;
             }
             await this.openGoalDraftsFromSourceNote(source);
@@ -701,6 +709,73 @@ export default class DeleometerPlugin extends Plugin {
       currentPath = currentPath ? `${currentPath}/${part}` : part;
       if (!this.app.vault.getAbstractFileByPath(currentPath)) await this.app.vault.createFolder(currentPath);
     }
+  }
+
+  redactSensitiveData(text: string): string {
+    return text
+      .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[redacted email]')
+      .replace(/\b(?:https?:\/\/|www\.)\S+/gi, '[redacted url]')
+      .replace(/\b(?:\+?\d[\d\s().-]{7,}\d)\b/g, '[redacted phone]')
+      .replace(/\b\d{1,5}\s+[A-Za-z0-9.'-]+(?:\s+[A-Za-z0-9.'-]+){0,4}\s+(?:Street|St|Road|Rd|Avenue|Ave|Boulevard|Blvd|Drive|Dr|Court|Ct|Place|Pl|Lane|Ln|Way|Terrace|Tce)\b/gi, '[redacted address]');
+  }
+
+  prepareTextForAI(text: string): string {
+    return this.settings.redactSensitiveDataBeforeAI ? this.redactSensitiveData(text) : text;
+  }
+
+  getPersonalityContextForAI(): string {
+    if (!this.settings.includePersonalityProfileInAI || !this.settings.personalityProfile) {
+      return 'Personality profile: unavailable or not shared with AI';
+    }
+
+    const profile = this.settings.personalityProfile;
+    return this.prepareTextForAI(`Personality profile:\n- Type: ${profile.psychological_type}\n- Dominant traits: ${profile.dominant_traits.join(', ')}\n- Growth areas: ${profile.growth_areas.join(', ')}`);
+  }
+
+  getAuthorMemoryContextForAI(): string {
+    if (!this.settings.enableAuthorMemory) {
+      return 'Existing author memory summary: disabled by user settings';
+    }
+    if (!this.settings.includeAuthorMemoryInAI) {
+      return 'Existing author memory summary: stored locally but not shared with AI by user settings';
+    }
+    if (!this.settings.authorMemorySummary.trim()) {
+      return 'Existing author memory summary: none yet';
+    }
+
+    return this.prepareTextForAI(`Existing author memory summary:\n${this.settings.authorMemorySummary.trim()}`);
+  }
+
+  getChatJournalContextForAI(journalContent: string): string {
+    const prepared = this.prepareTextForAI(journalContent);
+    if (this.settings.sendFullJournalToChat || prepared.length <= 4000) {
+      return prepared;
+    }
+
+    return [
+      'Journal entry excerpted for chat privacy. Full journal sharing is off in settings.',
+      '',
+      'Opening excerpt:',
+      prepared.slice(0, 2000),
+      '',
+      'Closing excerpt:',
+      prepared.slice(-2000)
+    ].join('\n');
+  }
+
+  isSafeVaultMarkdownPath(path: string): boolean {
+    return !!path
+      && !path.startsWith('/')
+      && !path.includes('\\')
+      && !path.split('/').some((part) => part === '..')
+      && path.toLowerCase().endsWith('.md');
+  }
+
+  getVaultMarkdownFile(path: string): TFile | null {
+    if (!this.isSafeVaultMarkdownPath(path)) return null;
+    const abstractFile = this.app.vault.getAbstractFileByPath(path);
+    if (!(abstractFile instanceof TFile) || abstractFile.extension !== 'md') return null;
+    return abstractFile;
   }
 
   openJournalModal() { new JournalEntryModal(this.app, this).open(); }
@@ -789,21 +864,17 @@ export default class DeleometerPlugin extends Plugin {
         furtherReadings: {},
         groupSyntheses: {},
         philosophicalReaccumulation: '',
-        authorMemorySummary: this.settings.authorMemorySummary,
+        authorMemorySummary: this.settings.enableAuthorMemory ? this.settings.authorMemorySummary : '',
         goalSuggestions: [],
         analysisWarnings: []
       };
     }
 
-    const analysisContent = await this.prepareJournalContentForAnalysis(content, onProgress);
+    const analysisContent = await this.prepareJournalContentForAnalysis(this.prepareTextForAI(content), onProgress);
     const selectedGroupKeys = [...new Set(perspectives.map(({ perspective }) => perspective.group))]
       .filter((groupKey) => PERSPECTIVE_GROUPS[groupKey]);
-    const personalityContext = this.settings.personalityProfile
-      ? `Personality profile:\n- Type: ${this.settings.personalityProfile.psychological_type}\n- Dominant traits: ${this.settings.personalityProfile.dominant_traits.join(', ')}\n- Growth areas: ${this.settings.personalityProfile.growth_areas.join(', ')}`
-      : 'Personality profile: unavailable';
-    const authorMemoryContext = this.settings.authorMemorySummary
-      ? `Existing author memory summary:\n${this.settings.authorMemorySummary}`
-      : 'Existing author memory summary: none yet';
+    const personalityContext = this.getPersonalityContextForAI();
+    const authorMemoryContext = this.getAuthorMemoryContextForAI();
     const readerContext = this.getReaderContextPrompt();
     const dateContext = this.getLocalDateContext();
     const results: Record<string, string> = {};
@@ -869,9 +940,11 @@ export default class DeleometerPlugin extends Plugin {
 
     await onProgress?.('Synthesizing the full analysis and three proposed goals...');
     const synthesis = await this.getWholeAnalysisSynthesis(analysisContent, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext, dateContext);
-    const authorMemorySummary = synthesis.authorMemorySummary || this.settings.authorMemorySummary;
+    const authorMemorySummary = this.settings.enableAuthorMemory
+      ? synthesis.authorMemorySummary || this.settings.authorMemorySummary
+      : '';
 
-    if (authorMemorySummary && authorMemorySummary !== this.settings.authorMemorySummary) {
+    if (this.settings.enableAuthorMemory && authorMemorySummary && authorMemorySummary !== this.settings.authorMemorySummary) {
       this.settings.authorMemorySummary = authorMemorySummary;
       await this.saveSettings();
     }
@@ -1360,7 +1433,7 @@ export default class DeleometerPlugin extends Plugin {
     };
     const conversation: ChatCompletionMessageParam[] = messages.map((message) => ({
       role: message.role,
-      content: message.content
+      content: this.prepareTextForAI(message.content)
     }));
     const response = await this.openai.chat.completions.create({ model: 'gpt-4o-mini', messages: [systemMessage, ...conversation] });
     return response.choices[0]?.message?.content || 'I apologize, I could not generate a response.';
@@ -1391,6 +1464,8 @@ export default class DeleometerPlugin extends Plugin {
       ? recentJournalTitles.map((title) => `- ${title}`).join('\n')
       : 'No recent journal entries available.';
     const authorContext = this.buildAuthorContext() || 'No long-term author context available.';
+    const preparedGoalContext = this.prepareTextForAI(goalContext);
+    const preparedJournalContext = this.prepareTextForAI(journalContext);
 
     const response = await this.openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -1417,8 +1492,8 @@ export default class DeleometerPlugin extends Plugin {
             `- include one optional twist or follow-up question in the same paragraph\n` +
             `- do not mention goals or milestones mechanically\n\n` +
             `Author context:\n${authorContext}\n\n` +
-            `Active goals:\n${goalContext}\n\n` +
-            `Recent journal titles:\n${journalContext}`
+            `Active goals:\n${preparedGoalContext}\n\n` +
+            `Recent journal titles:\n${preparedJournalContext}`
         }
       ]
     });
@@ -1427,8 +1502,11 @@ export default class DeleometerPlugin extends Plugin {
   }
 
   async openChatFromSourceNote(sourceFilePath: string, perspectiveKey: string) {
-    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
-    if (!(abstractFile instanceof TFile)) {
+    if (!PERSPECTIVES[perspectiveKey]) {
+      throw new Error('Unknown analysis perspective');
+    }
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) {
       throw new Error('Source note not found');
     }
 
@@ -1450,8 +1528,8 @@ export default class DeleometerPlugin extends Plugin {
   }
 
   async openGoalDraftsFromSourceNote(sourceFilePath: string) {
-    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
-    if (!(abstractFile instanceof TFile)) {
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) {
       throw new Error('Source note not found');
     }
 
@@ -1769,18 +1847,18 @@ export default class DeleometerPlugin extends Plugin {
   buildAuthorContext(): string {
     const parts: string[] = [];
 
-    if (this.settings.authorMemorySummary.trim()) {
+    if (this.settings.enableAuthorMemory && this.settings.includeAuthorMemoryInAI && this.settings.authorMemorySummary.trim()) {
       parts.push(`Author memory summary: ${this.settings.authorMemorySummary.trim()}`);
     }
 
-    if (this.settings.personalityProfile) {
+    if (this.settings.includePersonalityProfileInAI && this.settings.personalityProfile) {
       const profile = this.settings.personalityProfile;
       parts.push(
         `Personality profile: ${profile.psychological_type}. Dominant traits: ${profile.dominant_traits.join(', ')}. Growth areas: ${profile.growth_areas.join(', ')}.`
       );
     }
 
-    return parts.join('\n');
+    return this.prepareTextForAI(parts.join('\n'));
   }
 
   escapeYamlString(value: string): string {
@@ -2584,8 +2662,9 @@ ${event.kind === 'goal_due'
   }
 
   async upsertPerspectiveSectionLine(sourceFilePath: string, perspectiveKey: string, linePrefix: string, fullLine: string) {
-    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
-    if (!(abstractFile instanceof TFile)) return;
+    if (!PERSPECTIVES[perspectiveKey]) return;
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) return;
 
     const currentContent = await this.app.vault.read(abstractFile);
     const bounds = this.findPerspectiveSectionBounds(currentContent, perspectiveKey);
@@ -2606,8 +2685,9 @@ ${event.kind === 'goal_due'
   }
 
   async saveChatBackToSourceNote(sourceFilePath: string, perspectiveKey: string, chatMessages: ConversationMessage[], chatStartTime: Date) {
-    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
-    if (!(abstractFile instanceof TFile)) return;
+    if (!PERSPECTIVES[perspectiveKey]) return;
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) return;
 
     const currentContent = await this.app.vault.read(abstractFile);
     const bounds = this.findPerspectiveSectionBounds(currentContent, perspectiveKey);
@@ -2783,6 +2863,21 @@ ${event.kind === 'goal_due'
     if (!ZPD_LEVELS[this.settings.zpdLevel]) {
       this.settings.zpdLevel = DEFAULT_SETTINGS.zpdLevel;
     }
+    this.settings.redactSensitiveDataBeforeAI = typeof this.settings.redactSensitiveDataBeforeAI === 'boolean'
+      ? this.settings.redactSensitiveDataBeforeAI
+      : DEFAULT_SETTINGS.redactSensitiveDataBeforeAI;
+    this.settings.enableAuthorMemory = typeof this.settings.enableAuthorMemory === 'boolean'
+      ? this.settings.enableAuthorMemory
+      : DEFAULT_SETTINGS.enableAuthorMemory;
+    this.settings.includeAuthorMemoryInAI = typeof this.settings.includeAuthorMemoryInAI === 'boolean'
+      ? this.settings.includeAuthorMemoryInAI
+      : DEFAULT_SETTINGS.includeAuthorMemoryInAI;
+    this.settings.includePersonalityProfileInAI = typeof this.settings.includePersonalityProfileInAI === 'boolean'
+      ? this.settings.includePersonalityProfileInAI
+      : DEFAULT_SETTINGS.includePersonalityProfileInAI;
+    this.settings.sendFullJournalToChat = typeof this.settings.sendFullJournalToChat === 'boolean'
+      ? this.settings.sendFullJournalToChat
+      : DEFAULT_SETTINGS.sendFullJournalToChat;
     const perspectiveKeys = getChronologicalPerspectiveKeys();
     if (!Array.isArray(this.settings.selectedPerspectives) || this.settings.selectedPerspectives.length === 0) {
       this.settings.selectedPerspectives = perspectiveKeys;
@@ -3241,7 +3336,8 @@ class AIChatView extends ItemView {
     if (context) {
       // Show the journal excerpt
       this.addMessage('user', `[From my journal entry]\n\n${context.journalContent.substring(0, 500)}${context.journalContent.length > 500 ? '...' : ''}`);
-      this.chatMessages.push({ role: 'user', content: `Here is a journal entry I wrote:\n\n${context.journalContent}` });
+      const journalContextForAI = this.plugin.getChatJournalContextForAI(context.journalContent);
+      this.chatMessages.push({ role: 'user', content: `Here is a journal entry I wrote:\n\n${journalContextForAI}` });
 
       // Show the initial analysis
       this.addMessage('assistant', context.initialAnalysis);
@@ -4201,6 +4297,11 @@ class DeleometerSettingTab extends PluginSettingTab {
       .setHeading();
 
     new Setting(containerEl)
+      .setName('Security and privacy')
+      .setDesc(PRIVACY_SECURITY_NOTICE)
+      .setHeading();
+
+    new Setting(containerEl)
       .setName('API key')
       .setDesc(this.plugin.settings.openaiApiKey
         ? 'Your API key is hidden on screen, but it is still stored locally in Obsidian plugin data and may be included in vault backups or sync.'
@@ -4213,11 +4314,77 @@ class DeleometerSettingTab extends PluginSettingTab {
           .setPlaceholder('Paste your API key')
           .setValue(this.plugin.settings.openaiApiKey)
           .onChange(async (value) => {
-          this.plugin.settings.openaiApiKey = value;
-          await this.plugin.saveSettings();
-          if (value) this.plugin.initializeOpenAI();
+            this.plugin.settings.openaiApiKey = value;
+            await this.plugin.saveSettings();
+            if (value) this.plugin.initializeOpenAI();
           });
-      });
+      })
+      .addButton((button) => button
+        .setButtonText('Clear key')
+        .onClick(async () => {
+          this.plugin.settings.openaiApiKey = '';
+          this.plugin.openai = null;
+          await this.plugin.saveSettings();
+          this.display();
+        }));
+
+    new Setting(containerEl)
+      .setName('Redact common sensitive details before AI calls')
+      .setDesc('Redacts email addresses, web links, phone numbers, and simple street addresses before text leaves Obsidian. This is a helper, not perfect anonymization.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.redactSensitiveDataBeforeAI)
+        .onChange(async (value) => {
+          this.plugin.settings.redactSensitiveDataBeforeAI = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Author memory')
+      .setDesc('Keep a continuing local author memory summary. Turn this off if you do not want ongoing memory stored in plugin data.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.enableAuthorMemory)
+        .onChange(async (value) => {
+          this.plugin.settings.enableAuthorMemory = value;
+          await this.plugin.saveSettings();
+          this.display();
+        }))
+      .addButton((button) => button
+        .setButtonText('Clear memory')
+        .onClick(async () => {
+          this.plugin.settings.authorMemorySummary = '';
+          await this.plugin.saveSettings();
+          new Notice('Author memory cleared');
+        }));
+
+    new Setting(containerEl)
+      .setName('Share author memory with AI')
+      .setDesc('When enabled, the local author memory summary is included in AI prompts. Disable this to keep memory local only.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.includeAuthorMemoryInAI)
+        .onChange(async (value) => {
+          this.plugin.settings.includeAuthorMemoryInAI = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Share personality profile with AI')
+      .setDesc('When enabled, the personality assessment summary can be included in AI prompts. Disable this to keep it local only.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.includePersonalityProfileInAI)
+        .onChange(async (value) => {
+          this.plugin.settings.includePersonalityProfileInAI = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Send full journal entry into perspective chat')
+      .setDesc('Off by default. If disabled, perspective chat receives excerpts plus the selected analysis, not the entire journal entry.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.sendFullJournalToChat)
+        .onChange(async (value) => {
+          this.plugin.settings.sendFullJournalToChat = value;
+          await this.plugin.saveSettings();
+        }));
 
     new Setting(containerEl)
       .setName('Journal folder')

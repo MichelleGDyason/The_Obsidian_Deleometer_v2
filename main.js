@@ -515,17 +515,16 @@ function getRuntime({ manuallyImported } = {}) {
 
 // node_modules/openai/_shims/index.mjs
 var init = () => {
-  if (!kind)
-    setShims(getRuntime(), { auto: true });
+  if (!kind) setShims(getRuntime(), { auto: true });
 };
 init();
 
 // node_modules/openai/error.mjs
 var OpenAIError = class extends Error {
 };
-var APIError = class extends OpenAIError {
+var APIError = class _APIError extends OpenAIError {
   constructor(status, error, message, headers) {
-    super(`${APIError.makeMessage(status, error, message)}`);
+    super(`${_APIError.makeMessage(status, error, message)}`);
     this.status = status;
     this.headers = headers;
     this.request_id = headers == null ? void 0 : headers["x-request-id"];
@@ -577,7 +576,7 @@ var APIError = class extends OpenAIError {
     if (status >= 500) {
       return new InternalServerError(status, error, message, headers);
     }
-    return new APIError(status, error, message, headers);
+    return new _APIError(status, error, message, headers);
   }
 };
 var APIUserAbortError = class extends APIError {
@@ -626,19 +625,14 @@ var ContentFilterFinishReasonError = class extends OpenAIError {
 
 // node_modules/openai/internal/decoders/line.mjs
 var __classPrivateFieldSet = function(receiver, state, value, kind2, f) {
-  if (kind2 === "m")
-    throw new TypeError("Private method is not writable");
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a setter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot write private member to an object whose class did not declare it");
+  if (kind2 === "m") throw new TypeError("Private method is not writable");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
   return kind2 === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value), value;
 };
 var __classPrivateFieldGet = function(receiver, state, kind2, f) {
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a getter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot read private member from an object whose class did not declare it");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
   return kind2 === "m" ? f : kind2 === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _LineDecoder_carriageReturnIndex;
@@ -772,7 +766,7 @@ function ReadableStreamToAsyncIterable(stream) {
 }
 
 // node_modules/openai/streaming.mjs
-var Stream = class {
+var Stream = class _Stream {
   constructor(iterator, controller) {
     this.iterator = iterator;
     this.controller = controller;
@@ -831,7 +825,7 @@ var Stream = class {
           controller.abort();
       }
     }
-    return new Stream(iterator, controller);
+    return new _Stream(iterator, controller);
   }
   /**
    * Generates a Stream from a newline-separated ReadableStream
@@ -874,7 +868,7 @@ var Stream = class {
           controller.abort();
       }
     }
-    return new Stream(iterator, controller);
+    return new _Stream(iterator, controller);
   }
   [Symbol.asyncIterator]() {
     return this.iterator();
@@ -900,8 +894,8 @@ var Stream = class {
       };
     };
     return [
-      new Stream(() => teeIterator(left), this.controller),
-      new Stream(() => teeIterator(right), this.controller)
+      new _Stream(() => teeIterator(left), this.controller),
+      new _Stream(() => teeIterator(right), this.controller)
     ];
   }
   /**
@@ -1119,19 +1113,14 @@ var addFormValue = async (form, key, value) => {
 
 // node_modules/openai/core.mjs
 var __classPrivateFieldSet2 = function(receiver, state, value, kind2, f) {
-  if (kind2 === "m")
-    throw new TypeError("Private method is not writable");
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a setter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot write private member to an object whose class did not declare it");
+  if (kind2 === "m") throw new TypeError("Private method is not writable");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
   return kind2 === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value), value;
 };
 var __classPrivateFieldGet2 = function(receiver, state, kind2, f) {
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a getter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot read private member from an object whose class did not declare it");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
   return kind2 === "m" ? f : kind2 === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _AbstractPage_client;
@@ -1173,7 +1162,7 @@ function _addRequestID(value, response) {
     enumerable: false
   });
 }
-var APIPromise = class extends Promise {
+var APIPromise = class _APIPromise extends Promise {
   constructor(responsePromise, parseResponse2 = defaultParseResponse) {
     super((resolve) => {
       resolve(null);
@@ -1182,7 +1171,7 @@ var APIPromise = class extends Promise {
     this.parseResponse = parseResponse2;
   }
   _thenUnwrap(transform) {
-    return new APIPromise(this.responsePromise, async (props) => _addRequestID(transform(await this.parseResponse(props), props), props.response));
+    return new _APIPromise(this.responsePromise, async (props) => _addRequestID(transform(await this.parseResponse(props), props), props.response));
   }
   /**
    * Gets the raw `Response` instance instead of parsing the response
@@ -2154,19 +2143,14 @@ Batches.BatchesPage = BatchesPage;
 
 // node_modules/openai/lib/EventStream.mjs
 var __classPrivateFieldSet3 = function(receiver, state, value, kind2, f) {
-  if (kind2 === "m")
-    throw new TypeError("Private method is not writable");
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a setter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot write private member to an object whose class did not declare it");
+  if (kind2 === "m") throw new TypeError("Private method is not writable");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
   return kind2 === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value), value;
 };
 var __classPrivateFieldGet3 = function(receiver, state, kind2, f) {
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a getter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot read private member from an object whose class did not declare it");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
   return kind2 === "m" ? f : kind2 === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _EventStream_instances;
@@ -2359,19 +2343,14 @@ _EventStream_connectedPromise = /* @__PURE__ */ new WeakMap(), _EventStream_reso
 
 // node_modules/openai/lib/AssistantStream.mjs
 var __classPrivateFieldGet4 = function(receiver, state, kind2, f) {
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a getter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot read private member from an object whose class did not declare it");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
   return kind2 === "m" ? f : kind2 === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var __classPrivateFieldSet4 = function(receiver, state, value, kind2, f) {
-  if (kind2 === "m")
-    throw new TypeError("Private method is not writable");
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a setter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot write private member to an object whose class did not declare it");
+  if (kind2 === "m") throw new TypeError("Private method is not writable");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
   return kind2 === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value), value;
 };
 var _AssistantStream_instances;
@@ -2396,7 +2375,7 @@ var _AssistantStream_accumulateRunStep;
 var _AssistantStream_accumulateMessage;
 var _AssistantStream_accumulateContent;
 var _AssistantStream_handleRun;
-var AssistantStream = class extends EventStream {
+var AssistantStream = class _AssistantStream extends EventStream {
   constructor() {
     super(...arguments);
     _AssistantStream_instances.add(this);
@@ -2464,7 +2443,7 @@ var AssistantStream = class extends EventStream {
     };
   }
   static fromReadableStream(stream) {
-    const runner = new AssistantStream();
+    const runner = new _AssistantStream();
     runner._run(() => runner._fromReadableStream(stream));
     return runner;
   }
@@ -2491,7 +2470,7 @@ var AssistantStream = class extends EventStream {
     return stream.toReadableStream();
   }
   static createToolAssistantStream(threadId, runId, runs, params, options) {
-    const runner = new AssistantStream();
+    const runner = new _AssistantStream();
     runner._run(() => runner._runToolAssistantStream(threadId, runId, runs, params, {
       ...options,
       headers: { ...options == null ? void 0 : options.headers, "X-Stainless-Helper-Method": "stream" }
@@ -2521,7 +2500,7 @@ var AssistantStream = class extends EventStream {
     return this._addRun(__classPrivateFieldGet4(this, _AssistantStream_instances, "m", _AssistantStream_endRequest).call(this));
   }
   static createThreadAssistantStream(params, thread, options) {
-    const runner = new AssistantStream();
+    const runner = new _AssistantStream();
     runner._run(() => runner._threadAssistantStream(params, thread, {
       ...options,
       headers: { ...options == null ? void 0 : options.headers, "X-Stainless-Helper-Method": "stream" }
@@ -2529,7 +2508,7 @@ var AssistantStream = class extends EventStream {
     return runner;
   }
   static createAssistantStream(threadId, runs, params, options) {
-    const runner = new AssistantStream();
+    const runner = new _AssistantStream();
     runner._run(() => runner._runAssistantStream(threadId, runs, params, {
       ...options,
       headers: { ...options == null ? void 0 : options.headers, "X-Stainless-Helper-Method": "stream" }
@@ -3119,10 +3098,8 @@ function validateInputTools(tools) {
 
 // node_modules/openai/lib/AbstractChatCompletionRunner.mjs
 var __classPrivateFieldGet5 = function(receiver, state, kind2, f) {
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a getter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot read private member from an object whose class did not declare it");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
   return kind2 === "m" ? f : kind2 === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _AbstractChatCompletionRunner_instances;
@@ -3475,10 +3452,10 @@ _AbstractChatCompletionRunner_instances = /* @__PURE__ */ new WeakSet(), _Abstra
 };
 
 // node_modules/openai/lib/ChatCompletionRunner.mjs
-var ChatCompletionRunner = class extends AbstractChatCompletionRunner {
+var ChatCompletionRunner = class _ChatCompletionRunner extends AbstractChatCompletionRunner {
   /** @deprecated - please use `runTools` instead. */
   static runFunctions(client, params, options) {
-    const runner = new ChatCompletionRunner();
+    const runner = new _ChatCompletionRunner();
     const opts = {
       ...options,
       headers: { ...options == null ? void 0 : options.headers, "X-Stainless-Helper-Method": "runFunctions" }
@@ -3487,7 +3464,7 @@ var ChatCompletionRunner = class extends AbstractChatCompletionRunner {
     return runner;
   }
   static runTools(client, params, options) {
-    const runner = new ChatCompletionRunner();
+    const runner = new _ChatCompletionRunner();
     const opts = {
       ...options,
       headers: { ...options == null ? void 0 : options.headers, "X-Stainless-Helper-Method": "runTools" }
@@ -3717,19 +3694,14 @@ var partialParse = (input) => parseJSON(input, Allow.ALL ^ Allow.NUM);
 
 // node_modules/openai/lib/ChatCompletionStream.mjs
 var __classPrivateFieldSet5 = function(receiver, state, value, kind2, f) {
-  if (kind2 === "m")
-    throw new TypeError("Private method is not writable");
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a setter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot write private member to an object whose class did not declare it");
+  if (kind2 === "m") throw new TypeError("Private method is not writable");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
   return kind2 === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value), value;
 };
 var __classPrivateFieldGet6 = function(receiver, state, kind2, f) {
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a getter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot read private member from an object whose class did not declare it");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
   return kind2 === "m" ? f : kind2 === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _ChatCompletionStream_instances;
@@ -3744,7 +3716,7 @@ var _ChatCompletionStream_emitContentDoneEvents;
 var _ChatCompletionStream_endRequest;
 var _ChatCompletionStream_getAutoParseableResponseFormat;
 var _ChatCompletionStream_accumulateChatCompletion;
-var ChatCompletionStream = class extends AbstractChatCompletionRunner {
+var ChatCompletionStream = class _ChatCompletionStream extends AbstractChatCompletionRunner {
   constructor(params) {
     super();
     _ChatCompletionStream_instances.add(this);
@@ -3765,12 +3737,12 @@ var ChatCompletionStream = class extends AbstractChatCompletionRunner {
    * in this context.
    */
   static fromReadableStream(stream) {
-    const runner = new ChatCompletionStream(null);
+    const runner = new _ChatCompletionStream(null);
     runner._run(() => runner._fromReadableStream(stream));
     return runner;
   }
   static createChatCompletion(client, params, options) {
-    const runner = new ChatCompletionStream(params);
+    const runner = new _ChatCompletionStream(params);
     runner._run(() => runner._runChatCompletion(client, { ...params, stream: true }, { ...options, headers: { ...options == null ? void 0 : options.headers, "X-Stainless-Helper-Method": "stream" } }));
     return runner;
   }
@@ -4220,15 +4192,15 @@ function assertNever2(_x) {
 }
 
 // node_modules/openai/lib/ChatCompletionStreamingRunner.mjs
-var ChatCompletionStreamingRunner = class extends ChatCompletionStream {
+var ChatCompletionStreamingRunner = class _ChatCompletionStreamingRunner extends ChatCompletionStream {
   static fromReadableStream(stream) {
-    const runner = new ChatCompletionStreamingRunner(null);
+    const runner = new _ChatCompletionStreamingRunner(null);
     runner._run(() => runner._fromReadableStream(stream));
     return runner;
   }
   /** @deprecated - please use `runTools` instead. */
   static runFunctions(client, params, options) {
-    const runner = new ChatCompletionStreamingRunner(null);
+    const runner = new _ChatCompletionStreamingRunner(null);
     const opts = {
       ...options,
       headers: { ...options == null ? void 0 : options.headers, "X-Stainless-Helper-Method": "runFunctions" }
@@ -4237,7 +4209,7 @@ var ChatCompletionStreamingRunner = class extends ChatCompletionStream {
     return runner;
   }
   static runTools(client, params, options) {
-    const runner = new ChatCompletionStreamingRunner(
+    const runner = new _ChatCompletionStreamingRunner(
       // @ts-expect-error TODO these types are incompatible
       params
     );
@@ -4540,6 +4512,7 @@ var Runs = class extends APIResource {
         headers: { ...options == null ? void 0 : options.headers, ...headers }
       }).withResponse();
       switch (run.status) {
+        //If we are in any sort of intermediate state we poll
         case "queued":
         case "in_progress":
         case "cancelling":
@@ -4557,6 +4530,7 @@ var Runs = class extends APIResource {
           }
           await sleep(sleepInterval);
           break;
+        //We return the run in any terminal state.
         case "requires_action":
         case "incomplete":
         case "cancelled":
@@ -5545,19 +5519,14 @@ var InputItems = class extends APIResource {
 
 // node_modules/openai/lib/responses/ResponseStream.mjs
 var __classPrivateFieldSet6 = function(receiver, state, value, kind2, f) {
-  if (kind2 === "m")
-    throw new TypeError("Private method is not writable");
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a setter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot write private member to an object whose class did not declare it");
+  if (kind2 === "m") throw new TypeError("Private method is not writable");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
   return kind2 === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value), value;
 };
 var __classPrivateFieldGet7 = function(receiver, state, kind2, f) {
-  if (kind2 === "a" && !f)
-    throw new TypeError("Private accessor was defined without a getter");
-  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver))
-    throw new TypeError("Cannot read private member from an object whose class did not declare it");
+  if (kind2 === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+  if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
   return kind2 === "m" ? f : kind2 === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _ResponseStream_instances;
@@ -5568,7 +5537,7 @@ var _ResponseStream_beginRequest;
 var _ResponseStream_addEvent;
 var _ResponseStream_endRequest;
 var _ResponseStream_accumulateResponse;
-var ResponseStream = class extends EventStream {
+var ResponseStream = class _ResponseStream extends EventStream {
   constructor(params) {
     super();
     _ResponseStream_instances.add(this);
@@ -5578,7 +5547,7 @@ var ResponseStream = class extends EventStream {
     __classPrivateFieldSet6(this, _ResponseStream_params, params, "f");
   }
   static createResponse(client, params, options) {
-    const runner = new ResponseStream(params);
+    const runner = new _ResponseStream(params);
     runner._run(() => runner._createOrRetrieveResponse(client, params, {
       ...options,
       headers: { ...options == null ? void 0 : options.headers, "X-Stainless-Helper-Method": "stream" }
@@ -6762,8 +6731,7 @@ function getChronologicalPerspectiveKeys() {
   const knownPerspectiveKeys = Object.keys(PERSPECTIVES);
   const seen = /* @__PURE__ */ new Set();
   const orderedKeys = PERSPECTIVE_CHRONOLOGY.filter((key) => {
-    if (!PERSPECTIVES[key] || seen.has(key))
-      return false;
+    if (!PERSPECTIVES[key] || seen.has(key)) return false;
     seen.add(key);
     return true;
   });
@@ -6898,6 +6866,7 @@ var ENTRY_TYPES = {
   free_form: "Free form"
 };
 var SAFETY_DISCLAIMER = "The Deleometer is a reflective conversation and journaling tool, not a medical device, diagnosis, treatment, or substitute for medication, therapy, crisis support, or professional care. AI can make mistakes and can sound more certain than it is. Treat responses as invitations to think with, question, revise, and discuss, not as truth to absorb undiluted.";
+var PRIVACY_SECURITY_NOTICE = "AI analysis sends journal, chat, goal, and context text to OpenAI when you use AI features. Saved analyses, chats, goals, author memory, and plugin settings are stored as local Obsidian data or Markdown, not encrypted by The Deleometer. Other installed Obsidian plugins, vault sync tools, backups, or anyone with device access may be able to read them.";
 var ZPD_LEVELS = {
   primary_year_5: {
     label: "Grade 5 primary student",
@@ -6931,6 +6900,11 @@ var DEFAULT_SETTINGS = {
   chatsFolder: "Deleometer/Chats",
   fullCalendarFolder: "Deleometer",
   autoSyncGoalsToFullCalendar: true,
+  redactSensitiveDataBeforeAI: true,
+  enableAuthorMemory: true,
+  includeAuthorMemoryInAI: true,
+  includePersonalityProfileInAI: true,
+  sendFullJournalToChat: false,
   selectedPerspectives: getChronologicalPerspectiveKeys(),
   zpdLevel: "tertiary_year_2",
   personalityProfile: null,
@@ -6944,8 +6918,7 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
   }
   async onload() {
     await this.loadSettings();
-    if (this.settings.openaiApiKey)
-      this.initializeOpenAI();
+    if (this.settings.openaiApiKey) this.initializeOpenAI();
     this.registerView(VIEW_TYPE_DASHBOARD, (leaf) => new DashboardView(leaf, this));
     this.registerView(VIEW_TYPE_AI_CHAT, (leaf) => new AIChatView(leaf, this));
     this.addRibbonIcon("book-open", "New journal entry", () => this.openJournalModal());
@@ -6973,8 +6946,8 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
             const url = new URL(link.href);
             const perspective = url.searchParams.get("perspective") || "";
             const source = url.searchParams.get("source") || "";
-            if (!perspective || !source) {
-              new import_obsidian.Notice("Missing chat link context");
+            if (!PERSPECTIVES[perspective] || !this.getVaultMarkdownFile(source)) {
+              new import_obsidian.Notice("Invalid or unsafe chat link context");
               return;
             }
             await this.openChatFromSourceNote(source, perspective);
@@ -6991,8 +6964,8 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
           try {
             const url = new URL(link.href);
             const source = url.searchParams.get("source") || "";
-            if (!source) {
-              new import_obsidian.Notice("Missing goal draft context");
+            if (!this.getVaultMarkdownFile(source)) {
+              new import_obsidian.Notice("Invalid or unsafe goal draft context");
               return;
             }
             await this.openGoalDraftsFromSourceNote(source);
@@ -7016,9 +6989,61 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     let currentPath = "";
     for (const part of parts) {
       currentPath = currentPath ? `${currentPath}/${part}` : part;
-      if (!this.app.vault.getAbstractFileByPath(currentPath))
-        await this.app.vault.createFolder(currentPath);
+      if (!this.app.vault.getAbstractFileByPath(currentPath)) await this.app.vault.createFolder(currentPath);
     }
+  }
+  redactSensitiveData(text) {
+    return text.replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[redacted email]").replace(/\b(?:https?:\/\/|www\.)\S+/gi, "[redacted url]").replace(/\b(?:\+?\d[\d\s().-]{7,}\d)\b/g, "[redacted phone]").replace(/\b\d{1,5}\s+[A-Za-z0-9.'-]+(?:\s+[A-Za-z0-9.'-]+){0,4}\s+(?:Street|St|Road|Rd|Avenue|Ave|Boulevard|Blvd|Drive|Dr|Court|Ct|Place|Pl|Lane|Ln|Way|Terrace|Tce)\b/gi, "[redacted address]");
+  }
+  prepareTextForAI(text) {
+    return this.settings.redactSensitiveDataBeforeAI ? this.redactSensitiveData(text) : text;
+  }
+  getPersonalityContextForAI() {
+    if (!this.settings.includePersonalityProfileInAI || !this.settings.personalityProfile) {
+      return "Personality profile: unavailable or not shared with AI";
+    }
+    const profile = this.settings.personalityProfile;
+    return this.prepareTextForAI(`Personality profile:
+- Type: ${profile.psychological_type}
+- Dominant traits: ${profile.dominant_traits.join(", ")}
+- Growth areas: ${profile.growth_areas.join(", ")}`);
+  }
+  getAuthorMemoryContextForAI() {
+    if (!this.settings.enableAuthorMemory) {
+      return "Existing author memory summary: disabled by user settings";
+    }
+    if (!this.settings.includeAuthorMemoryInAI) {
+      return "Existing author memory summary: stored locally but not shared with AI by user settings";
+    }
+    if (!this.settings.authorMemorySummary.trim()) {
+      return "Existing author memory summary: none yet";
+    }
+    return this.prepareTextForAI(`Existing author memory summary:
+${this.settings.authorMemorySummary.trim()}`);
+  }
+  getChatJournalContextForAI(journalContent) {
+    const prepared = this.prepareTextForAI(journalContent);
+    if (this.settings.sendFullJournalToChat || prepared.length <= 4e3) {
+      return prepared;
+    }
+    return [
+      "Journal entry excerpted for chat privacy. Full journal sharing is off in settings.",
+      "",
+      "Opening excerpt:",
+      prepared.slice(0, 2e3),
+      "",
+      "Closing excerpt:",
+      prepared.slice(-2e3)
+    ].join("\n");
+  }
+  isSafeVaultMarkdownPath(path) {
+    return !!path && !path.startsWith("/") && !path.includes("\\") && !path.split("/").some((part) => part === "..") && path.toLowerCase().endsWith(".md");
+  }
+  getVaultMarkdownFile(path) {
+    if (!this.isSafeVaultMarkdownPath(path)) return null;
+    const abstractFile = this.app.vault.getAbstractFileByPath(path);
+    if (!(abstractFile instanceof import_obsidian.TFile) || abstractFile.extension !== "md") return null;
+    return abstractFile;
   }
   openJournalModal() {
     new JournalEntryModal(this.app, this).open();
@@ -7097,8 +7122,7 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     }
   }
   async getMultiPerspectiveAnalysis(content, onProgress) {
-    if (!this.openai)
-      throw new Error("OpenAI not initialized");
+    if (!this.openai) throw new Error("OpenAI not initialized");
     const selectedPerspectiveKeys = new Set(this.settings.selectedPerspectives);
     const perspectives = getChronologicalPerspectiveKeys().filter((key) => selectedPerspectiveKeys.has(key)).map((key) => ({ key, perspective: PERSPECTIVES[key] })).filter((item) => item.perspective);
     if (perspectives.length === 0) {
@@ -7107,19 +7131,15 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
         furtherReadings: {},
         groupSyntheses: {},
         philosophicalReaccumulation: "",
-        authorMemorySummary: this.settings.authorMemorySummary,
+        authorMemorySummary: this.settings.enableAuthorMemory ? this.settings.authorMemorySummary : "",
         goalSuggestions: [],
         analysisWarnings: []
       };
     }
-    const analysisContent = await this.prepareJournalContentForAnalysis(content, onProgress);
+    const analysisContent = await this.prepareJournalContentForAnalysis(this.prepareTextForAI(content), onProgress);
     const selectedGroupKeys = [...new Set(perspectives.map(({ perspective }) => perspective.group))].filter((groupKey) => PERSPECTIVE_GROUPS[groupKey]);
-    const personalityContext = this.settings.personalityProfile ? `Personality profile:
-- Type: ${this.settings.personalityProfile.psychological_type}
-- Dominant traits: ${this.settings.personalityProfile.dominant_traits.join(", ")}
-- Growth areas: ${this.settings.personalityProfile.growth_areas.join(", ")}` : "Personality profile: unavailable";
-    const authorMemoryContext = this.settings.authorMemorySummary ? `Existing author memory summary:
-${this.settings.authorMemorySummary}` : "Existing author memory summary: none yet";
+    const personalityContext = this.getPersonalityContextForAI();
+    const authorMemoryContext = this.getAuthorMemoryContextForAI();
     const readerContext = this.getReaderContextPrompt();
     const dateContext = this.getLocalDateContext();
     const results = {};
@@ -7144,10 +7164,8 @@ ${this.settings.authorMemorySummary}` : "Existing author memory summary: none ye
         try {
           await (onProgress == null ? void 0 : onProgress(`Recovering omitted perspective: ${item.perspective.title}...`));
           const fallback = await this.getSingleGeneratedPerspectiveAnalysis(analysisContent, item.key, item.perspective, personalityContext, authorMemoryContext, readerContext);
-          if (fallback.analysis)
-            results[item.key] = fallback.analysis;
-          if (fallback.furtherReadings.length > 0)
-            furtherReadings[item.key] = fallback.furtherReadings;
+          if (fallback.analysis) results[item.key] = fallback.analysis;
+          if (fallback.furtherReadings.length > 0) furtherReadings[item.key] = fallback.furtherReadings;
         } catch (error) {
           const warning = `${item.perspective.title} could not be generated: ${this.getErrorMessage(error)}`;
           analysisWarnings.push(warning);
@@ -7162,8 +7180,7 @@ ${this.settings.authorMemorySummary}` : "Existing author memory summary: none ye
       const groupKey = selectedGroupKeys[groupIndex];
       const group = PERSPECTIVE_GROUPS[groupKey];
       const groupPerspectiveKeys = perspectives.filter(({ key, perspective }) => perspective.group === groupKey && !!results[key]).map(({ key }) => key);
-      if (groupPerspectiveKeys.length === 0)
-        continue;
+      if (groupPerspectiveKeys.length === 0) continue;
       try {
         await (onProgress == null ? void 0 : onProgress(`Synthesizing ${(group == null ? void 0 : group.title) || groupKey} lineage (${groupIndex + 1}/${selectedGroupKeys.length})...`));
         const groupSynthesis = await this.getLineageGroupSynthesis(analysisContent, groupKey, groupPerspectiveKeys, results, personalityContext, authorMemoryContext, readerContext);
@@ -7178,8 +7195,8 @@ ${this.settings.authorMemorySummary}` : "Existing author memory summary: none ye
     }
     await (onProgress == null ? void 0 : onProgress("Synthesizing the full analysis and three proposed goals..."));
     const synthesis = await this.getWholeAnalysisSynthesis(analysisContent, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext, dateContext);
-    const authorMemorySummary = synthesis.authorMemorySummary || this.settings.authorMemorySummary;
-    if (authorMemorySummary && authorMemorySummary !== this.settings.authorMemorySummary) {
+    const authorMemorySummary = this.settings.enableAuthorMemory ? synthesis.authorMemorySummary || this.settings.authorMemorySummary : "";
+    if (this.settings.enableAuthorMemory && authorMemorySummary && authorMemorySummary !== this.settings.authorMemorySummary) {
       this.settings.authorMemorySummary = authorMemorySummary;
       await this.saveSettings();
     }
@@ -7202,11 +7219,9 @@ ${this.settings.authorMemorySummary}` : "Existing author memory summary: none ye
   }
   async prepareJournalContentForAnalysis(content, onProgress) {
     var _a2, _b;
-    if (!this.openai)
-      throw new Error("OpenAI not initialized");
+    if (!this.openai) throw new Error("OpenAI not initialized");
     const maxDirectAnalysisChars = 12e3;
-    if (content.length <= maxDirectAnalysisChars)
-      return content;
+    if (content.length <= maxDirectAnalysisChars) return content;
     await (onProgress == null ? void 0 : onProgress("Creating a compact analysis brief for this long journal entry..."));
     try {
       const response = await this.openai.chat.completions.create({
@@ -7230,12 +7245,10 @@ ${content}`
         ]
       });
       const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
-      if (!rawContent)
-        throw new Error("No analysis brief returned");
+      if (!rawContent) throw new Error("No analysis brief returned");
       const parsed = JSON.parse(rawContent);
       const brief = typeof parsed.analysis_brief === "string" ? parsed.analysis_brief.trim() : "";
-      if (!brief)
-        throw new Error("Analysis brief was empty");
+      if (!brief) throw new Error("Analysis brief was empty");
       return [
         "Long journal entry analysis brief:",
         brief,
@@ -7265,7 +7278,7 @@ ${content}`
     return `Reader zone of proximal development: ${level.label}. ${level.prompt}`;
   }
   getLocalDateContext() {
-    const now = new Date();
+    const now = /* @__PURE__ */ new Date();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "local timezone";
     return [
       `Current local date: ${this.formatDateOnly(now)}`,
@@ -7276,8 +7289,7 @@ ${content}`
   }
   async getGroupPerspectiveAnalysis(content, groupKey, perspectives, personalityContext, authorMemoryContext, readerContext) {
     var _a2, _b;
-    if (!this.openai)
-      throw new Error("OpenAI not initialized");
+    if (!this.openai) throw new Error("OpenAI not initialized");
     const group = PERSPECTIVE_GROUPS[groupKey];
     const perspectiveList = perspectives.map(({ key, perspective }) => `- ${key}: ${perspective.title} - ${perspective.description}`).join("\n");
     const response = await this.openai.chat.completions.create({
@@ -7342,8 +7354,7 @@ ${content}`
       ]
     });
     const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
-    if (!rawContent)
-      throw new Error("No analysis returned");
+    if (!rawContent) throw new Error("No analysis returned");
     const parsed = JSON.parse(rawContent);
     const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === "object" ? parsed.perspectives : {};
     const results = {};
@@ -7366,8 +7377,7 @@ ${content}`
   }
   async getChronologicalPerspectiveAnalysis(content, perspectives, personalityContext, authorMemoryContext, readerContext) {
     var _a2, _b;
-    if (!this.openai)
-      throw new Error("OpenAI not initialized");
+    if (!this.openai) throw new Error("OpenAI not initialized");
     const perspectiveList = perspectives.map(({ key, perspective }) => {
       var _a3;
       const groupTitle = ((_a3 = PERSPECTIVE_GROUPS[perspective.group]) == null ? void 0 : _a3.title) || perspective.group;
@@ -7433,8 +7443,7 @@ ${content}`
       ]
     });
     const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
-    if (!rawContent)
-      throw new Error("No analysis returned");
+    if (!rawContent) throw new Error("No analysis returned");
     const parsed = JSON.parse(rawContent);
     const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === "object" ? parsed.perspectives : {};
     const results = {};
@@ -7456,8 +7465,7 @@ ${content}`
   }
   async getLineageGroupSynthesis(content, groupKey, perspectiveKeys, perspectiveAnalyses, personalityContext, authorMemoryContext, readerContext) {
     var _a2, _b, _c;
-    if (!this.openai)
-      throw new Error("OpenAI not initialized");
+    if (!this.openai) throw new Error("OpenAI not initialized");
     const group = PERSPECTIVE_GROUPS[groupKey];
     const analysisList = perspectiveKeys.map((key) => {
       var _a3;
@@ -7499,8 +7507,7 @@ ${content.slice(0, 6e3)}`
   }
   async getSingleGeneratedPerspectiveAnalysis(content, key, perspective, personalityContext, authorMemoryContext, readerContext) {
     var _a2, _b;
-    if (!this.openai)
-      throw new Error("OpenAI not initialized");
+    if (!this.openai) throw new Error("OpenAI not initialized");
     const response = await this.openai.chat.completions.create({
       model: "gpt-4o-mini",
       response_format: { type: "json_object" },
@@ -7532,8 +7539,7 @@ ${content}`
       ]
     });
     const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
-    if (!rawContent)
-      return { analysis: "", furtherReadings: [] };
+    if (!rawContent) return { analysis: "", furtherReadings: [] };
     const parsed = JSON.parse(rawContent);
     const analysis = typeof parsed.analysis === "string" ? parsed.analysis.trim() : "";
     const furtherReadings = Array.isArray(parsed.further_readings) ? parsed.further_readings.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 5) : [];
@@ -7541,8 +7547,7 @@ ${content}`
   }
   async getWholeAnalysisSynthesis(content, selectedGroupKeys, perspectives, groupSyntheses, personalityContext, authorMemoryContext, readerContext, dateContext) {
     var _a2, _b;
-    if (!this.openai)
-      throw new Error("OpenAI not initialized");
+    if (!this.openai) throw new Error("OpenAI not initialized");
     const groupList = selectedGroupKeys.map((groupKey) => {
       var _a3;
       return `- ${groupKey}: ${((_a3 = PERSPECTIVE_GROUPS[groupKey]) == null ? void 0 : _a3.title) || groupKey}
@@ -7598,13 +7603,11 @@ ${content}`
   }
   parseGoalSuggestions(rawGoalSuggestions) {
     return (Array.isArray(rawGoalSuggestions) ? rawGoalSuggestions : []).map((goal) => {
-      if (!goal || typeof goal !== "object")
-        return null;
+      if (!goal || typeof goal !== "object") return null;
       const suggestion = goal;
       const title = typeof suggestion.title === "string" ? suggestion.title.trim() : "";
       const description = typeof suggestion.description === "string" ? suggestion.description.trim() : "";
-      if (!title || !description)
-        return null;
+      if (!title || !description) return null;
       const category = typeof suggestion.category === "string" && GOAL_CATEGORIES[suggestion.category] ? suggestion.category : "personal_growth";
       const rawTargetDate = typeof suggestion.targetDate === "string" && suggestion.targetDate.trim() ? suggestion.targetDate.trim() : "";
       const targetDate = this.isUsableGoalTargetDate(rawTargetDate) ? rawTargetDate : "";
@@ -7615,8 +7618,7 @@ ${content}`
   }
   async getSinglePerspectiveResponse(messages, perspective) {
     var _a2, _b;
-    if (!this.openai)
-      throw new Error("OpenAI not initialized");
+    if (!this.openai) throw new Error("OpenAI not initialized");
     const persp = PERSPECTIVES[perspective];
     const authorContext = this.buildAuthorContext();
     const systemMessage = {
@@ -7632,15 +7634,14 @@ ${authorContext}` : ""}`
     };
     const conversation = messages.map((message) => ({
       role: message.role,
-      content: message.content
+      content: this.prepareTextForAI(message.content)
     }));
     const response = await this.openai.chat.completions.create({ model: "gpt-4o-mini", messages: [systemMessage, ...conversation] });
     return ((_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content) || "I apologize, I could not generate a response.";
   }
   async getRandomJournalPrompt() {
     var _a2, _b, _c;
-    if (!this.openai)
-      throw new Error("OpenAI not initialized");
+    if (!this.openai) throw new Error("OpenAI not initialized");
     const goalStats = this.getGoalStats();
     const activeGoalFiles = goalStats.goals.filter((file) => {
       var _a3, _b2;
@@ -7654,6 +7655,8 @@ ${authorContext}` : ""}`
     }).join("\n") : "No active goals available.";
     const journalContext = recentJournalTitles.length > 0 ? recentJournalTitles.map((title) => `- ${title}`).join("\n") : "No recent journal entries available.";
     const authorContext = this.buildAuthorContext() || "No long-term author context available.";
+    const preparedGoalContext = this.prepareTextForAI(goalContext);
+    const preparedJournalContext = this.prepareTextForAI(journalContext);
     const response = await this.openai.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 1,
@@ -7680,18 +7683,21 @@ Author context:
 ${authorContext}
 
 Active goals:
-${goalContext}
+${preparedGoalContext}
 
 Recent journal titles:
-${journalContext}`
+${preparedJournalContext}`
         }
       ]
     });
     return ((_c = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content) == null ? void 0 : _c.trim()) || "Write about a moment today that quietly echoed one of your deeper goals, and follow that thread until it reveals what you most need right now.";
   }
   async openChatFromSourceNote(sourceFilePath, perspectiveKey) {
-    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
-    if (!(abstractFile instanceof import_obsidian.TFile)) {
+    if (!PERSPECTIVES[perspectiveKey]) {
+      throw new Error("Unknown analysis perspective");
+    }
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) {
       throw new Error("Source note not found");
     }
     const content = await this.app.vault.read(abstractFile);
@@ -7709,8 +7715,8 @@ ${journalContext}`
     await this.activateAIChatView();
   }
   async openGoalDraftsFromSourceNote(sourceFilePath) {
-    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
-    if (!(abstractFile instanceof import_obsidian.TFile)) {
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) {
       throw new Error("Source note not found");
     }
     const content = await this.app.vault.read(abstractFile);
@@ -7723,8 +7729,7 @@ ${journalContext}`
   }
   extractGoalSuggestionsFromAnalysisNote(content, sourceAnalysisPath = "") {
     const suggestionsStart = content.search(/^##\s+.*Suggested Goals.*$/m);
-    if (suggestionsStart === -1)
-      return [];
+    if (suggestionsStart === -1) return [];
     const suggestionsSection = content.slice(suggestionsStart);
     const nextSectionMatch = /^##\s+(?!.*Suggested Goals).*$/m.exec(suggestionsSection.slice(1));
     const boundedSection = nextSectionMatch ? suggestionsSection.slice(0, nextSectionMatch.index + 1) : suggestionsSection;
@@ -7740,8 +7745,7 @@ ${journalContext}`
       const body = boundedSection.slice(bodyStart, bodyEnd).trim();
       const milestones = body.split("\n").map((line) => line.trim()).filter((line) => line.startsWith("- ")).map((line) => line.replace(/^- \[[ xX]\]\s*/, "").replace(/^- /, "").trim()).filter(Boolean);
       const description = body.split("\n").map((line) => line.trim()).filter((line) => line && !line.startsWith("- ") && !line.startsWith("**Draft Goals:**")).join("\n").trim();
-      if (!heading.title || !description)
-        return null;
+      if (!heading.title || !description) return null;
       return {
         title: heading.title,
         description,
@@ -7795,8 +7799,7 @@ ${journalContext}`
   }
   findPerspectiveSectionBounds(content, perspectiveKey) {
     const analysisStart = this.findAnalysisSectionStart(content);
-    if (analysisStart === -1)
-      return null;
+    if (analysisStart === -1) return null;
     const analysisSection = content.slice(analysisStart);
     const headingMatches = [];
     const headingRegex = /^###\s+(.+)$/gm;
@@ -7811,8 +7814,7 @@ ${journalContext}`
     for (let index = 0; index < headingMatches.length; index += 1) {
       const currentHeading = headingMatches[index];
       const matchedPerspectiveKey = this.getPerspectiveKeyForHeading(currentHeading.heading);
-      if (matchedPerspectiveKey !== perspectiveKey)
-        continue;
+      if (matchedPerspectiveKey !== perspectiveKey) continue;
       const start = analysisStart + currentHeading.index;
       const end = index + 1 < headingMatches.length ? analysisStart + headingMatches[index + 1].index : content.length;
       return { start, end };
@@ -7852,8 +7854,7 @@ ${journalContext}`
       const currentHeading = headingMatches[index];
       const headingText = currentHeading.heading;
       const perspectiveKey = this.getPerspectiveKeyForHeading(headingText);
-      if (!perspectiveKey)
-        continue;
+      if (!perspectiveKey) continue;
       const bodyStart = currentHeading.index + currentHeading.fullMatch.length;
       const nextHeadingIndex = index + 1 < headingMatches.length ? headingMatches[index + 1].index : analysisSection.length;
       const sectionBody = analysisSection.slice(bodyStart, nextHeadingIndex).replace(/\*\*Linked Chat:\*\*.*(?:\n|$)/g, "").replace(/\*\*Start Chat:\*\*.*(?:\n|$)/g, "").replace(/\*\*Continue Chat:\*\*.*(?:\n|$)/g, "").replace(/#### Further readings[\s\S]*?(?=\n####|\n###|$)/g, "").replace(/#### Latest AI Chat[\s\S]*$/m, "").trim();
@@ -7874,8 +7875,7 @@ ${journalContext}`
   getErrorMessage(error) {
     if (error && typeof error === "object" && "message" in error) {
       const message = error.message;
-      if (typeof message === "string" && message.trim())
-        return message.trim();
+      if (typeof message === "string" && message.trim()) return message.trim();
     }
     return "Unknown error";
   }
@@ -7896,8 +7896,7 @@ ${journalContext}`
     return `\u274C ${fallback}`;
   }
   getRetryAfterMessage(headers) {
-    if (!headers)
-      return null;
+    if (!headers) return null;
     const retryAfter = headers["retry-after"];
     if (retryAfter) {
       const seconds2 = Number(retryAfter);
@@ -7908,24 +7907,20 @@ ${journalContext}`
     const resetRequests = headers["x-ratelimit-reset-requests"];
     const resetTokens = headers["x-ratelimit-reset-tokens"];
     const candidate = resetRequests || resetTokens;
-    if (!candidate)
-      return null;
+    if (!candidate) return null;
     const seconds = this.parseResetDurationSeconds(candidate);
-    if (seconds === null)
-      return null;
+    if (seconds === null) return null;
     return `Try again in about ${seconds}s.`;
   }
   parseResetDurationSeconds(value) {
     const trimmed = value.trim();
-    if (!trimmed)
-      return null;
+    if (!trimmed) return null;
     const directSeconds = Number(trimmed);
     if (!Number.isNaN(directSeconds) && directSeconds > 0) {
       return Math.ceil(directSeconds);
     }
     const durationMatch = trimmed.match(/(?:(\d+)h)?(?:(\d+)m)?(?:(\d+(?:\.\d+)?)s)?/);
-    if (!durationMatch)
-      return null;
+    if (!durationMatch) return null;
     const hours = Number(durationMatch[1] || 0);
     const minutes = Number(durationMatch[2] || 0);
     const seconds = Number(durationMatch[3] || 0);
@@ -7933,31 +7928,28 @@ ${journalContext}`
     return totalSeconds > 0 ? totalSeconds : null;
   }
   stripFrontmatter(content) {
-    if (!content.startsWith("---\n"))
-      return content.trim();
+    if (!content.startsWith("---\n")) return content.trim();
     const frontmatterEnd = content.indexOf("\n---\n", 4);
-    if (frontmatterEnd === -1)
-      return content.trim();
+    if (frontmatterEnd === -1) return content.trim();
     return content.slice(frontmatterEnd + 5).trim();
   }
   getPreferredPerspective(analysis) {
     const preferred = this.settings.selectedPerspectives.find((perspective) => analysis[perspective]);
-    if (preferred)
-      return preferred;
+    if (preferred) return preferred;
     return Object.keys(analysis)[0] || null;
   }
   buildAuthorContext() {
     const parts = [];
-    if (this.settings.authorMemorySummary.trim()) {
+    if (this.settings.enableAuthorMemory && this.settings.includeAuthorMemoryInAI && this.settings.authorMemorySummary.trim()) {
       parts.push(`Author memory summary: ${this.settings.authorMemorySummary.trim()}`);
     }
-    if (this.settings.personalityProfile) {
+    if (this.settings.includePersonalityProfileInAI && this.settings.personalityProfile) {
       const profile = this.settings.personalityProfile;
       parts.push(
         `Personality profile: ${profile.psychological_type}. Dominant traits: ${profile.dominant_traits.join(", ")}. Growth areas: ${profile.growth_areas.join(", ")}.`
       );
     }
-    return parts.join("\n");
+    return this.prepareTextForAI(parts.join("\n"));
   }
   escapeYamlString(value) {
     return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
@@ -7995,7 +7987,7 @@ ${journalContext}`
   }
   async saveGeneratedGoal(goal) {
     await this.ensureFolder(this.settings.goalsFolder);
-    const date = new Date();
+    const date = /* @__PURE__ */ new Date();
     const safeTitle = this.sanitizeFileNamePart(goal.title);
     const fileName = this.getUniqueMarkdownPath(this.settings.goalsFolder, safeTitle);
     const description = this.escapeYamlInlineString(goal.description);
@@ -8007,8 +7999,7 @@ ${journalContext}`
     const sourceAnalysisLink = wikiTarget ? `[[${wikiTarget}|${sourceAnalysisLabel}]]` : "";
     const sourcePerspectiveLinks = wikiTarget ? goal.sourcePerspectives.map((perspectiveKey) => {
       const perspective = PERSPECTIVES[perspectiveKey];
-      if (!perspective)
-        return "";
+      if (!perspective) return "";
       return `[[${wikiTarget}#${perspective.title}|${perspective.title}]]`;
     }).filter(Boolean).join(", ") : "";
     const template = `---
@@ -8052,14 +8043,13 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
     return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.trim());
   }
   isUsableGoalTargetDate(value) {
-    if (!this.isValidDateString(value))
-      return false;
-    const today = this.parseDateOnly(this.formatDateOnly(new Date()));
+    if (!this.isValidDateString(value)) return false;
+    const today = this.parseDateOnly(this.formatDateOnly(/* @__PURE__ */ new Date()));
     const target = this.parseDateOnly(value);
     return target.getTime() >= today.getTime();
   }
   parseDateOnly(value) {
-    return new Date(`${value}T00:00:00`);
+    return /* @__PURE__ */ new Date(`${value}T00:00:00`);
   }
   formatDateOnly(value) {
     const year = value.getFullYear();
@@ -8074,8 +8064,7 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
   }
   async getGoalCalendarData(goalFile) {
     const goal = await this.getGoalFileData(goalFile);
-    if (!goal)
-      return null;
+    if (!goal) return null;
     return {
       title: goal.title,
       targetDate: goal.targetDate,
@@ -8095,13 +8084,12 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
     } else if (frontmatter && looseFrontmatter) {
       frontmatter = { ...looseFrontmatter, ...frontmatter };
     }
-    if (!frontmatter || !this.isGoalFile(goalFile))
-      return null;
+    if (!frontmatter || !this.isGoalFile(goalFile)) return null;
     const title = typeof frontmatter.title === "string" && frontmatter.title.trim() ? frontmatter.title.trim() : goalFile.basename;
     const description = typeof frontmatter.description === "string" && frontmatter.description.trim() ? frontmatter.description.trim() : this.extractGoalSection(content, "Description") || "";
     const category = typeof frontmatter.category === "string" && Object.prototype.hasOwnProperty.call(GOAL_CATEGORIES, frontmatter.category) ? frontmatter.category : "personal_growth";
     const targetDate = this.isValidDateString(frontmatter.target_date) ? frontmatter.target_date : void 0;
-    const created = typeof frontmatter.created === "string" && frontmatter.created ? frontmatter.created : goalFile.stat.ctime ? new Date(goalFile.stat.ctime).toISOString() : new Date().toISOString();
+    const created = typeof frontmatter.created === "string" && frontmatter.created ? frontmatter.created : goalFile.stat.ctime ? new Date(goalFile.stat.ctime).toISOString() : (/* @__PURE__ */ new Date()).toISOString();
     const sourceAnalysisPath = typeof frontmatter.source_analysis_note === "string" && frontmatter.source_analysis_note.trim() ? frontmatter.source_analysis_note.trim() : void 0;
     const sourcePerspectives = Array.isArray(frontmatter.source_perspectives) ? frontmatter.source_perspectives.filter((item) => typeof item === "string") : [];
     const status = typeof frontmatter.status === "string" ? frontmatter.status : "active";
@@ -8112,17 +8100,14 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
     return { file: goalFile, title, description, category, targetDate, milestones, created, sourceAnalysisPath, sourcePerspectives, status };
   }
   getFrontmatterBlock(content) {
-    if (!content.startsWith("---\n"))
-      return null;
+    if (!content.startsWith("---\n")) return null;
     const frontmatterEnd = content.indexOf("\n---\n", 4);
-    if (frontmatterEnd === -1)
-      return null;
+    if (frontmatterEnd === -1) return null;
     return content.slice(4, frontmatterEnd);
   }
   parseLooseFrontmatterValue(key, rawValue) {
     const value = rawValue.trim();
-    if (!value)
-      return "";
+    if (!value) return "";
     try {
       const parsed = (0, import_obsidian.parseYaml)(`${key}: ${value}`);
       if (parsed && typeof parsed === "object" && key in parsed) {
@@ -8133,25 +8118,20 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
     if (value.startsWith('"') && value.endsWith('"') || value.startsWith("'") && value.endsWith("'")) {
       return value.slice(1, -1);
     }
-    if (value === "null")
-      return null;
-    if (value === "true")
-      return true;
-    if (value === "false")
-      return false;
+    if (value === "null") return null;
+    if (value === "true") return true;
+    if (value === "false") return false;
     return value;
   }
   parseLooseFrontmatter(content) {
     const block = this.getFrontmatterBlock(content);
-    if (!block)
-      return null;
+    if (!block) return null;
     const lines = block.split("\n");
     const frontmatter = {};
     for (let index = 0; index < lines.length; index += 1) {
       const line = lines[index];
       const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*):\s*(.*)$/);
-      if (!match)
-        continue;
+      if (!match) continue;
       const [, key, rawValue] = match;
       frontmatter[key] = this.parseLooseFrontmatterValue(key, rawValue);
       if (rawValue.startsWith('"') && !rawValue.endsWith('"')) {
@@ -8170,8 +8150,7 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
   }
   extractGoalChecklist(content, heading) {
     const section = this.extractGoalSection(content, heading);
-    if (!section)
-      return [];
+    if (!section) return [];
     return section.split("\n").map((line) => {
       var _a2, _b, _c, _d;
       return ((_b = (_a2 = line.match(/^\s*-\s+\[[ xX]\]\s+(.+?)\s*$/)) == null ? void 0 : _a2[1]) == null ? void 0 : _b.trim()) || ((_d = (_c = line.match(/^\s*-\s+(.+?)\s*$/)) == null ? void 0 : _c[1]) == null ? void 0 : _d.trim()) || "";
@@ -8187,8 +8166,7 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
   getGoalSimilarityScore(left, right) {
     const leftTokens = new Set(this.getGoalSimilarityTokens(`${left.title} ${left.description}`));
     const rightTokens = new Set(this.getGoalSimilarityTokens(`${right.title} ${right.description}`));
-    if (leftTokens.size === 0 || rightTokens.size === 0)
-      return 0;
+    if (leftTokens.size === 0 || rightTokens.size === 0) return 0;
     const shared = Array.from(leftTokens).filter((token) => rightTokens.has(token));
     const union = /* @__PURE__ */ new Set([...Array.from(leftTokens), ...Array.from(rightTokens)]);
     const jaccard = shared.length / union.size;
@@ -8204,20 +8182,17 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
     const visited = /* @__PURE__ */ new Set();
     const drafts = [];
     for (const goal of goals) {
-      if (visited.has(goal.file.path))
-        continue;
+      if (visited.has(goal.file.path)) continue;
       const group = [goal];
       visited.add(goal.file.path);
       for (const candidate of goals) {
-        if (visited.has(candidate.file.path))
-          continue;
+        if (visited.has(candidate.file.path)) continue;
         if (this.getGoalSimilarityScore(goal, candidate) >= 0.34) {
           group.push(candidate);
           visited.add(candidate.file.path);
         }
       }
-      if (group.length < 2)
-        continue;
+      if (group.length < 2) continue;
       drafts.push(this.buildGoalMergeDraft(group));
     }
     return drafts;
@@ -8243,13 +8218,12 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
     };
   }
   buildMergedGoalNote(draft) {
-    const created = draft.sourceGoals.map((goal) => goal.created).filter(Boolean).sort()[0] || new Date().toISOString();
+    const created = draft.sourceGoals.map((goal) => goal.created).filter(Boolean).sort()[0] || (/* @__PURE__ */ new Date()).toISOString();
     const mergedFromLinks = draft.sourceGoals.map((goal) => `- [[${this.getWikiLinkTarget(goal.file.path)}|${goal.title}]]`).join("\n");
     const sourceNoteLink = draft.mergedSourceAnalysisPath ? `[[${this.getWikiLinkTarget(draft.mergedSourceAnalysisPath)}|${this.getFileDisplayName(draft.mergedSourceAnalysisPath)}]]` : "";
     const sourcePerspectiveLinks = draft.mergedSourceAnalysisPath ? draft.mergedSourcePerspectives.map((perspectiveKey) => {
       const perspective = PERSPECTIVES[perspectiveKey];
-      if (!perspective)
-        return "";
+      if (!perspective) return "";
       return `[[${this.getWikiLinkTarget(draft.mergedSourceAnalysisPath)}#${perspective.title}|${perspective.title}]]`;
     }).filter(Boolean).join(", ") : "";
     return `---
@@ -8313,8 +8287,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
     const sourceNoteLink = goal.sourceAnalysisPath ? `[[${this.getWikiLinkTarget(goal.sourceAnalysisPath)}|${this.getFileDisplayName(goal.sourceAnalysisPath)}]]` : "";
     const sourcePerspectiveLinks = goal.sourceAnalysisPath ? goal.sourcePerspectives.map((perspectiveKey) => {
       const perspective = PERSPECTIVES[perspectiveKey];
-      if (!perspective)
-        return "";
+      if (!perspective) return "";
       return `[[${this.getWikiLinkTarget(goal.sourceAnalysisPath)}#${perspective.title}|${perspective.title}]]`;
     }).filter(Boolean).join(", ") : "";
     const mergedFromLinks = ((_a2 = extras == null ? void 0 : extras.mergedFrom) == null ? void 0 : _a2.length) ? extras.mergedFrom.map((path) => `- [[${this.getWikiLinkTarget(path)}|${this.getFileDisplayName(path)}]]`).join("\n") : "";
@@ -8380,8 +8353,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
   async repairGoalFrontmatterFile(goalFile) {
     const content = await this.app.vault.cachedRead(goalFile);
     const looseFrontmatter = this.parseLooseFrontmatter(content);
-    if (!looseFrontmatter)
-      return false;
+    if (!looseFrontmatter) return false;
     if (looseFrontmatter.status === "merged" && typeof looseFrontmatter.merged_into === "string") {
       const mergedInto = looseFrontmatter.merged_into;
       const repaired2 = this.buildMergedRedirectNote(mergedInto, this.getFileDisplayName(mergedInto), looseFrontmatter);
@@ -8392,8 +8364,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
       return false;
     }
     const goal = await this.getGoalFileData(goalFile);
-    if (!goal)
-      return false;
+    if (!goal) return false;
     const mergedFrom = Array.isArray(looseFrontmatter.merged_from) ? looseFrontmatter.merged_from.filter((item) => typeof item === "string") : [];
     const progressNotes = this.extractGoalSection(content, "Progress Notes");
     const repaired = this.buildStandardGoalNote(goal, { mergedFrom, progressNotes });
@@ -8408,8 +8379,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
     let repaired = 0;
     for (const file of goalFiles) {
       const changed = await this.repairGoalFrontmatterFile(file);
-      if (changed)
-        repaired += 1;
+      if (changed) repaired += 1;
     }
     if (showNotice) {
       new import_obsidian.Notice(repaired > 0 ? `\u{1F6E0}\uFE0F Repaired ${repaired} goal note${repaired === 1 ? "" : "s"}` : "No goal notes needed repair");
@@ -8418,8 +8388,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
   async consolidateGoalDrafts(drafts) {
     let mergedCount = 0;
     for (const draft of drafts) {
-      if (draft.sourceGoals.length < 2)
-        continue;
+      if (draft.sourceGoals.length < 2) continue;
       const sortedGoals = [...draft.sourceGoals].sort((a, b) => a.file.path.localeCompare(b.file.path));
       const primary = sortedGoals[0];
       const primaryFile = primary.file;
@@ -8445,9 +8414,8 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
     new GoalConsolidationModal(this.app, this, drafts).open();
   }
   getScheduledMilestoneDates(targetDate, createdAt, milestoneCount) {
-    if (milestoneCount <= 0)
-      return [];
-    const createdDate = Number.isNaN(new Date(createdAt).getTime()) ? new Date() : new Date(createdAt);
+    if (milestoneCount <= 0) return [];
+    const createdDate = Number.isNaN(new Date(createdAt).getTime()) ? /* @__PURE__ */ new Date() : new Date(createdAt);
     const startDate = this.parseDateOnly(this.formatDateOnly(createdDate));
     if (targetDate && this.isValidDateString(targetDate)) {
       const endDate = this.parseDateOnly(targetDate);
@@ -8462,8 +8430,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
   }
   getFullCalendarFolderFiles() {
     const folder = this.app.vault.getAbstractFileByPath(this.settings.fullCalendarFolder);
-    if (!(folder instanceof import_obsidian.TFolder))
-      return [];
+    if (!(folder instanceof import_obsidian.TFolder)) return [];
     return folder.children.filter((child) => child instanceof import_obsidian.TFile);
   }
   getGoalOwnedCalendarFiles(goalFilePath) {
@@ -8490,8 +8457,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
     const sourceNoteLink = sourceAnalysisPath ? `[[${this.getWikiLinkTarget(sourceAnalysisPath)}|${this.getFileDisplayName(sourceAnalysisPath)}]]` : "";
     const sourceTypeLinks = sourceAnalysisPath && ((_a2 = event.sourcePerspectives) == null ? void 0 : _a2.length) ? event.sourcePerspectives.map((perspectiveKey) => {
       const perspective = PERSPECTIVES[perspectiveKey];
-      if (!perspective)
-        return "";
+      if (!perspective) return "";
       return `[[${this.getWikiLinkTarget(sourceAnalysisPath)}#${perspective.title}|${perspective.title}]]`;
     }).filter(Boolean).join(", ") : "";
     return `---
@@ -8534,11 +8500,9 @@ ${event.kind === "goal_due" ? `This marks the target date for ${goalLink}.` : `R
   }
   async syncGoalFileToFullCalendar(goalFile, force = false) {
     var _a2, _b;
-    if (!this.settings.autoSyncGoalsToFullCalendar && !force || !((_a2 = this.settings.fullCalendarFolder) == null ? void 0 : _a2.trim()))
-      return false;
+    if (!this.settings.autoSyncGoalsToFullCalendar && !force || !((_a2 = this.settings.fullCalendarFolder) == null ? void 0 : _a2.trim())) return false;
     const goal = await this.getGoalCalendarData(goalFile);
-    if (!goal)
-      return false;
+    if (!goal) return false;
     await this.ensureFolder(this.settings.fullCalendarFolder);
     const existingFiles = this.getGoalOwnedCalendarFiles(goalFile.path);
     const byKey = /* @__PURE__ */ new Map();
@@ -8547,8 +8511,7 @@ ${event.kind === "goal_due" ? `This marks the target date for ${goalLink}.` : `R
       const kind2 = typeof (frontmatter == null ? void 0 : frontmatter.deleometer_event_kind) === "string" ? frontmatter.deleometer_event_kind : "";
       const milestoneIndex = typeof (frontmatter == null ? void 0 : frontmatter.deleometer_milestone_index) === "number" ? frontmatter.deleometer_milestone_index : typeof (frontmatter == null ? void 0 : frontmatter.deleometer_milestone_index) === "string" ? Number(frontmatter.deleometer_milestone_index) : NaN;
       const key = kind2 === "milestone" && Number.isFinite(milestoneIndex) ? `milestone:${milestoneIndex}` : kind2;
-      if (key)
-        byKey.set(key, file);
+      if (key) byKey.set(key, file);
     }
     const expectedKeys = /* @__PURE__ */ new Set();
     if (goal.targetDate) {
@@ -8592,8 +8555,7 @@ ${event.kind === "goal_due" ? `This marks the target date for ${goalLink}.` : `R
     let synced = 0;
     for (const goalFile of goalStats.goals) {
       const result = await this.syncGoalFileToFullCalendar(goalFile, true);
-      if (result)
-        synced += 1;
+      if (result) synced += 1;
     }
     if (showNotice) {
       new import_obsidian.Notice(`Synced ${synced} goal${synced === 1 ? "" : "s"} to calendar`);
@@ -8602,7 +8564,7 @@ ${event.kind === "goal_due" ? `This marks the target date for ${goalLink}.` : `R
   buildChatFileBaseName(sourceFilePath, perspectiveKey) {
     const perspective = this.sanitizeFileNamePart(this.getPerspectiveHeadingTitle(perspectiveKey));
     if (!sourceFilePath) {
-      return `Chat-${perspective}-${new Date().toISOString().replace(/[:.]/g, "-")}`;
+      return `Chat-${perspective}-${(/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-")}`;
     }
     return `${this.sanitizeFileNamePart(this.getFileDisplayName(sourceFilePath))}-${perspective}-Chat`;
   }
@@ -8616,13 +8578,12 @@ ${event.kind === "goal_due" ? `This marks the target date for ${goalLink}.` : `R
     return `**Draft Goals:** [Open proposed goals](deleometer://goals?source=${encodedPath})`;
   }
   async upsertPerspectiveSectionLine(sourceFilePath, perspectiveKey, linePrefix, fullLine) {
-    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
-    if (!(abstractFile instanceof import_obsidian.TFile))
-      return;
+    if (!PERSPECTIVES[perspectiveKey]) return;
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) return;
     const currentContent = await this.app.vault.read(abstractFile);
     const bounds = this.findPerspectiveSectionBounds(currentContent, perspectiveKey);
-    if (!bounds)
-      return;
+    if (!bounds) return;
     const section = currentContent.slice(bounds.start, bounds.end);
     const escapedPrefix = linePrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const lineRegex = new RegExp(`${escapedPrefix}.*(?:\\n|$)`);
@@ -8636,13 +8597,12 @@ ${fullLine}
     );
   }
   async saveChatBackToSourceNote(sourceFilePath, perspectiveKey, chatMessages, chatStartTime) {
-    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
-    if (!(abstractFile instanceof import_obsidian.TFile))
-      return;
+    if (!PERSPECTIVES[perspectiveKey]) return;
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) return;
     const currentContent = await this.app.vault.read(abstractFile);
     const bounds = this.findPerspectiveSectionBounds(currentContent, perspectiveKey);
-    if (!bounds)
-      return;
+    if (!bounds) return;
     const perspectiveTitle = this.getPerspectiveHeadingTitle(perspectiveKey);
     const messagesToPersist = chatMessages.filter((message, index) => {
       if (index === 0 && message.role === "user" && message.content.startsWith("Here is a journal entry I wrote:")) {
@@ -8700,7 +8660,7 @@ ${chatBlock}
   buildAnalysisMarkdown(analysis, sourceFilePath = "") {
     var _a2;
     let analysisMarkdown = "\n\n---\n## \u{1F50D} AI Analysis\n";
-    analysisMarkdown += `*Analyzed: ${new Date().toLocaleString()}*
+    analysisMarkdown += `*Analyzed: ${(/* @__PURE__ */ new Date()).toLocaleString()}*
 `;
     for (const [perspKey, content] of Object.entries(analysis.perspectives)) {
       const persp = PERSPECTIVES[perspKey];
@@ -8767,8 +8727,7 @@ ${goal.description}
   }
   async openJournalAnalysisChat(journalContent, analysis, preferredPerspective) {
     const perspective = preferredPerspective && analysis[preferredPerspective] ? preferredPerspective : this.getPreferredPerspective(analysis);
-    if (!perspective)
-      throw new Error("No analysis available to open in chat");
+    if (!perspective) throw new Error("No analysis available to open in chat");
     this.pendingChatContext = {
       perspective,
       journalContent,
@@ -8794,16 +8753,14 @@ ${goal.description}
     var _a2;
     const files = this.app.vault.getMarkdownFiles().filter((file) => {
       var _a3, _b;
-      if (!this.isGoalFile(file))
-        return false;
+      if (!this.isGoalFile(file)) return false;
       const status = (_b = (_a3 = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a3.frontmatter) == null ? void 0 : _b.status;
       return status !== "merged";
     });
     let completed = 0;
     for (const file of files) {
       const cache = this.app.metadataCache.getFileCache(file);
-      if (((_a2 = cache == null ? void 0 : cache.frontmatter) == null ? void 0 : _a2.status) === "completed")
-        completed++;
+      if (((_a2 = cache == null ? void 0 : cache.frontmatter) == null ? void 0 : _a2.status) === "completed") completed++;
     }
     const active = Math.max(files.length - completed, 0);
     const sorted = files.sort((a, b) => b.stat.mtime - a.stat.mtime);
@@ -8811,11 +8768,9 @@ ${goal.description}
   }
   isGoalFile(file) {
     var _a2;
-    if (file.path.startsWith(this.settings.goalsFolder))
-      return true;
+    if (file.path.startsWith(this.settings.goalsFolder)) return true;
     const rawFrontmatter = (_a2 = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a2.frontmatter;
-    if (!rawFrontmatter || typeof rawFrontmatter !== "object")
-      return false;
+    if (!rawFrontmatter || typeof rawFrontmatter !== "object") return false;
     const frontmatter = rawFrontmatter;
     const type = frontmatter.type;
     const progressPercentage = frontmatter.progress_percentage;
@@ -8833,6 +8788,11 @@ ${goal.description}
     if (!ZPD_LEVELS[this.settings.zpdLevel]) {
       this.settings.zpdLevel = DEFAULT_SETTINGS.zpdLevel;
     }
+    this.settings.redactSensitiveDataBeforeAI = typeof this.settings.redactSensitiveDataBeforeAI === "boolean" ? this.settings.redactSensitiveDataBeforeAI : DEFAULT_SETTINGS.redactSensitiveDataBeforeAI;
+    this.settings.enableAuthorMemory = typeof this.settings.enableAuthorMemory === "boolean" ? this.settings.enableAuthorMemory : DEFAULT_SETTINGS.enableAuthorMemory;
+    this.settings.includeAuthorMemoryInAI = typeof this.settings.includeAuthorMemoryInAI === "boolean" ? this.settings.includeAuthorMemoryInAI : DEFAULT_SETTINGS.includeAuthorMemoryInAI;
+    this.settings.includePersonalityProfileInAI = typeof this.settings.includePersonalityProfileInAI === "boolean" ? this.settings.includePersonalityProfileInAI : DEFAULT_SETTINGS.includePersonalityProfileInAI;
+    this.settings.sendFullJournalToChat = typeof this.settings.sendFullJournalToChat === "boolean" ? this.settings.sendFullJournalToChat : DEFAULT_SETTINGS.sendFullJournalToChat;
     const perspectiveKeys = getChronologicalPerspectiveKeys();
     if (!Array.isArray(this.settings.selectedPerspectives) || this.settings.selectedPerspectives.length === 0) {
       this.settings.selectedPerspectives = perspectiveKeys;
@@ -9046,12 +9006,9 @@ var DashboardView = class extends import_obsidian.ItemView {
     });
   }
   getMoodColor(mood) {
-    if (mood >= 8)
-      return "#10b981";
-    if (mood >= 6)
-      return "#3b82f6";
-    if (mood >= 4)
-      return "#f59e0b";
+    if (mood >= 8) return "#10b981";
+    if (mood >= 6) return "#3b82f6";
+    if (mood >= 4) return "#f59e0b";
     return "#ef4444";
   }
   renderGoalChart(container, stats) {
@@ -9086,7 +9043,7 @@ var DashboardView = class extends import_obsidian.ItemView {
     let content = `# \u{1F4CA} Deleometer Analytics Report
 
 `;
-    content += `*Generated: ${new Date().toLocaleString()}*
+    content += `*Generated: ${(/* @__PURE__ */ new Date()).toLocaleString()}*
 
 `;
     content += `## \u{1F4C8} Summary Stats
@@ -9132,7 +9089,7 @@ var DashboardView = class extends import_obsidian.ItemView {
 `;
     }
     await this.plugin.ensureFolder("Deleometer");
-    const fileName = `Deleometer/Analytics-${new Date().toISOString().split("T")[0]}.md`;
+    const fileName = `Deleometer/Analytics-${(/* @__PURE__ */ new Date()).toISOString().split("T")[0]}.md`;
     try {
       const file = await this.app.vault.create(fileName, content);
       await this.app.workspace.getLeaf().openFile(file);
@@ -9190,7 +9147,7 @@ var AIChatView = class extends import_obsidian.ItemView {
     this.chatMessages = [];
     this.currentPerspective = "lacanian_perspective";
     this.chatTitle = "";
-    this.chatStartTime = new Date();
+    this.chatStartTime = /* @__PURE__ */ new Date();
     this.journalContext = "";
     this.sourceFilePath = "";
     this.plugin = plugin;
@@ -9210,7 +9167,7 @@ var AIChatView = class extends import_obsidian.ItemView {
     container.empty();
     container.addClass("deleometer-chat");
     this.chatMessages = [];
-    this.chatStartTime = new Date();
+    this.chatStartTime = /* @__PURE__ */ new Date();
     this.journalContext = "";
     this.sourceFilePath = "";
     const context = this.plugin.pendingChatContext;
@@ -9221,7 +9178,7 @@ var AIChatView = class extends import_obsidian.ItemView {
       this.sourceFilePath = context.sourceFilePath || "";
       this.plugin.pendingChatContext = null;
     } else {
-      this.chatTitle = `Chat - ${new Date().toLocaleDateString()}`;
+      this.chatTitle = `Chat - ${(/* @__PURE__ */ new Date()).toLocaleDateString()}`;
     }
     const header = container.createDiv({ cls: "chat-header" });
     const headerTop = header.createDiv({ cls: "chat-header-top" });
@@ -9247,8 +9204,7 @@ var AIChatView = class extends import_obsidian.ItemView {
     const select = selector.createEl("select", { cls: "perspective-selector" });
     for (const [key, persp] of Object.entries(PERSPECTIVES)) {
       const option = select.createEl("option", { text: persp.title, value: key });
-      if (key === this.currentPerspective)
-        option.selected = true;
+      if (key === this.currentPerspective) option.selected = true;
     }
     select.onchange = () => {
       this.currentPerspective = select.value;
@@ -9259,8 +9215,7 @@ var AIChatView = class extends import_obsidian.ItemView {
     const levelSelect = levelSelector.createEl("select", { cls: "perspective-selector" });
     for (const [key, level] of Object.entries(ZPD_LEVELS)) {
       const option = levelSelect.createEl("option", { text: level.label, value: key });
-      if (key === this.plugin.settings.zpdLevel)
-        option.selected = true;
+      if (key === this.plugin.settings.zpdLevel) option.selected = true;
     }
     levelSelect.onchange = () => {
       this.plugin.settings.zpdLevel = ZPD_LEVELS[levelSelect.value] ? levelSelect.value : "tertiary_year_2";
@@ -9272,9 +9227,10 @@ var AIChatView = class extends import_obsidian.ItemView {
       this.addMessage("user", `[From my journal entry]
 
 ${context.journalContent.substring(0, 500)}${context.journalContent.length > 500 ? "..." : ""}`);
+      const journalContextForAI = this.plugin.getChatJournalContextForAI(context.journalContent);
       this.chatMessages.push({ role: "user", content: `Here is a journal entry I wrote:
 
-${context.journalContent}` });
+${journalContextForAI}` });
       this.addMessage("assistant", context.initialAnalysis);
       this.chatMessages.push({ role: "assistant", content: context.initialAnalysis });
       this.addMessage("assistant", `I'd love to explore this further with you. What aspects of this analysis resonate with you? Or is there something specific you'd like to discuss more deeply?`);
@@ -9314,8 +9270,7 @@ ${context.journalContent}` });
   }
   async sendMessage() {
     const content = this.inputArea.value.trim();
-    if (!content)
-      return;
+    if (!content) return;
     if (!this.plugin.openai) {
       new import_obsidian.Notice("Please set your API key in settings");
       return;
@@ -9361,7 +9316,7 @@ ${context.journalContent}` });
       return;
     }
     await this.plugin.ensureFolder(this.plugin.settings.chatsFolder);
-    const timestamp = new Date().toISOString().split("T")[0];
+    const timestamp = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
     const perspTitle = ((_a2 = PERSPECTIVES[this.currentPerspective]) == null ? void 0 : _a2.title) || "Unknown";
     const fileName = `${this.plugin.settings.chatsFolder}/Chat-Export-${timestamp}-${Date.now()}.md`;
     let content = `# \u{1F4AC} Chat Export: ${this.chatTitle}
@@ -9371,7 +9326,7 @@ ${context.journalContent}` });
 `;
     content += `**Date:** ${this.chatStartTime.toLocaleString()}
 `;
-    content += `**Exported:** ${new Date().toLocaleString()}
+    content += `**Exported:** ${(/* @__PURE__ */ new Date()).toLocaleString()}
 
 `;
     if (this.journalContext) {
@@ -9433,9 +9388,9 @@ ${msg.content}
   }
   startNewChat() {
     this.chatMessages = [];
-    this.chatStartTime = new Date();
+    this.chatStartTime = /* @__PURE__ */ new Date();
     this.journalContext = "";
-    this.chatTitle = `Chat - ${new Date().toLocaleDateString()}`;
+    this.chatTitle = `Chat - ${(/* @__PURE__ */ new Date()).toLocaleDateString()}`;
     this.currentPerspective = "lacanian_perspective";
     this.sourceFilePath = "";
     void this.onOpen();
@@ -9526,8 +9481,7 @@ var JournalEntryModal = class extends import_obsidian.Modal {
     };
   }
   async generatePrompt(button) {
-    if (this.isGeneratingPrompt)
-      return;
+    if (this.isGeneratingPrompt) return;
     if (!this.plugin.openai) {
       new import_obsidian.Notice("Please set your API key in settings to generate prompts");
       return;
@@ -9551,8 +9505,7 @@ var JournalEntryModal = class extends import_obsidian.Modal {
     }
   }
   usePrompt() {
-    if (!this.suggestedPrompt)
-      return;
+    if (!this.suggestedPrompt) return;
     const prefix = this.contentArea.value.trim() ? "\n\n" : "";
     this.contentArea.value = `${this.contentArea.value}${prefix}${this.suggestedPrompt}
 
@@ -9563,8 +9516,7 @@ var JournalEntryModal = class extends import_obsidian.Modal {
     this.contentArea.selectionEnd = this.contentArea.value.length;
   }
   async saveEntry(analyze) {
-    if (this.isSaving)
-      return;
+    if (this.isSaving) return;
     if (!this.content.trim()) {
       new import_obsidian.Notice("Please write some content");
       return;
@@ -9572,7 +9524,7 @@ var JournalEntryModal = class extends import_obsidian.Modal {
     this.isSaving = true;
     try {
       await this.plugin.ensureFolder(this.plugin.settings.journalFolder);
-      const date = new Date();
+      const date = /* @__PURE__ */ new Date();
       const safeTitle = this.plugin.sanitizeFileNamePart(this.title || "journal");
       const fileName = this.plugin.getUniqueMarkdownPath(
         this.plugin.settings.journalFolder,
@@ -9708,7 +9660,7 @@ var GoalModal = class extends import_obsidian.Modal {
       return;
     }
     await this.plugin.ensureFolder(this.plugin.settings.goalsFolder);
-    const date = new Date();
+    const date = /* @__PURE__ */ new Date();
     const fileName = this.plugin.getUniqueMarkdownPath(
       this.plugin.settings.goalsFolder,
       this.plugin.sanitizeFileNamePart(this.goalTitle)
@@ -9798,8 +9750,7 @@ var GoalDraftsModal = class extends import_obsidian.Modal {
       const categorySelect = categoryGroup.createEl("select");
       for (const [key, label] of Object.entries(GOAL_CATEGORIES)) {
         const option = categorySelect.createEl("option", { text: label, value: key });
-        if (key === draft.category)
-          option.selected = true;
+        if (key === draft.category) option.selected = true;
       }
       categorySelect.onchange = () => {
         draft.category = categorySelect.value;
@@ -9900,8 +9851,7 @@ var GoalConsolidationModal = class extends import_obsidian.Modal {
       const categorySelect = categoryGroup.createEl("select");
       for (const [key, label] of Object.entries(GOAL_CATEGORIES)) {
         const option = categorySelect.createEl("option", { text: label, value: key });
-        if (draft.mergedCategory === key)
-          option.selected = true;
+        if (draft.mergedCategory === key) option.selected = true;
       }
       categorySelect.onchange = () => {
         draft.mergedCategory = categorySelect.value;
@@ -9993,7 +9943,7 @@ var PersonalityAssessmentModal = class extends import_obsidian.Modal {
     const scores = this.calculateScores();
     const profile = {
       big_five_scores: scores,
-      assessment_date: new Date().toISOString(),
+      assessment_date: (/* @__PURE__ */ new Date()).toISOString(),
       dominant_traits: this.getDominantTraits(scores),
       psychological_type: this.getPsychologicalType(scores),
       growth_areas: this.getGrowthAreas(scores)
@@ -10029,8 +9979,7 @@ var PersonalityAssessmentModal = class extends import_obsidian.Modal {
     const traitScores = { openness: [], conscientiousness: [], extraversion: [], agreeableness: [], neuroticism: [] };
     ASSESSMENT_QUESTIONS.forEach((q, i) => {
       let score = this.answers[i];
-      if (q.reverse)
-        score = 8 - score;
+      if (q.reverse) score = 8 - score;
       traitScores[q.trait].push(score);
     });
     const result = { openness: 0, conscientiousness: 0, extraversion: 0, agreeableness: 0, neuroticism: 0 };
@@ -10046,28 +9995,19 @@ var PersonalityAssessmentModal = class extends import_obsidian.Modal {
   }
   getPsychologicalType(scores) {
     const high = Object.entries(scores).filter(([, v]) => v >= 60).map(([k]) => k);
-    if (high.includes("openness") && high.includes("extraversion"))
-      return "Creative explorer - You thrive on new experiences and social connections.";
-    if (high.includes("conscientiousness") && high.includes("agreeableness"))
-      return "Reliable helper - You are dependable and care deeply about others.";
-    if (high.includes("openness") && high.includes("neuroticism"))
-      return "Sensitive artist - You experience emotions deeply and express them creatively.";
-    if (high.includes("extraversion") && high.includes("agreeableness"))
-      return "Social connector - You build bridges between people and communities.";
+    if (high.includes("openness") && high.includes("extraversion")) return "Creative explorer - You thrive on new experiences and social connections.";
+    if (high.includes("conscientiousness") && high.includes("agreeableness")) return "Reliable helper - You are dependable and care deeply about others.";
+    if (high.includes("openness") && high.includes("neuroticism")) return "Sensitive artist - You experience emotions deeply and express them creatively.";
+    if (high.includes("extraversion") && high.includes("agreeableness")) return "Social connector - You build bridges between people and communities.";
     return "Balanced individual - You have a well-rounded personality profile.";
   }
   getGrowthAreas(scores) {
     const areas = [];
-    if (scores.openness < 40)
-      areas.push("Exploring new experiences");
-    if (scores.conscientiousness < 40)
-      areas.push("Building consistent habits");
-    if (scores.extraversion < 40)
-      areas.push("Expanding social connections");
-    if (scores.agreeableness < 40)
-      areas.push("Developing empathy");
-    if (scores.neuroticism > 60)
-      areas.push("Emotional regulation");
+    if (scores.openness < 40) areas.push("Exploring new experiences");
+    if (scores.conscientiousness < 40) areas.push("Building consistent habits");
+    if (scores.extraversion < 40) areas.push("Expanding social connections");
+    if (scores.agreeableness < 40) areas.push("Developing empathy");
+    if (scores.neuroticism > 60) areas.push("Emotional regulation");
     return areas.length ? areas : ["Continue your balanced growth"];
   }
   onClose() {
@@ -10096,8 +10036,7 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
         var _a2;
         return ((_a2 = PERSPECTIVES[perspKey]) == null ? void 0 : _a2.group) === groupKey;
       });
-      if (groupEntries.length === 0)
-        continue;
+      if (groupEntries.length === 0) continue;
       const group = PERSPECTIVE_GROUPS[groupKey];
       const groupHeader = results.createDiv({ cls: "perspective-group-heading" });
       groupHeader.createEl("h3", { text: group.title });
@@ -10182,8 +10121,7 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
     new import_obsidian.Notice(`Opening chat with ${((_b = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _b.title) || perspectiveKey} perspective`);
   }
   async appendAnalysisToNote() {
-    if (!this.sourceFile)
-      return;
+    if (!this.sourceFile) return;
     await this.plugin.appendAnalysisToFile(this.sourceFile, this.analysis);
     new import_obsidian.Notice("Analysis appended to note!");
   }
@@ -10208,6 +10146,7 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       cls: "setting-item-description"
     });
     new import_obsidian.Setting(containerEl).setName("Safety and interpretation").setDesc(SAFETY_DISCLAIMER).setHeading();
+    new import_obsidian.Setting(containerEl).setName("Security and privacy").setDesc(PRIVACY_SECURITY_NOTICE).setHeading();
     new import_obsidian.Setting(containerEl).setName("API key").setDesc(this.plugin.settings.openaiApiKey ? "Your API key is hidden on screen, but it is still stored locally in Obsidian plugin data and may be included in vault backups or sync." : "Your API key for AI analysis. It will be hidden on screen after you paste it, but stored locally in Obsidian plugin data.").addText((text) => {
       text.inputEl.type = "password";
       text.inputEl.autocomplete = "off";
@@ -10215,10 +10154,39 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       text.setPlaceholder("Paste your API key").setValue(this.plugin.settings.openaiApiKey).onChange(async (value) => {
         this.plugin.settings.openaiApiKey = value;
         await this.plugin.saveSettings();
-        if (value)
-          this.plugin.initializeOpenAI();
+        if (value) this.plugin.initializeOpenAI();
       });
-    });
+    }).addButton((button) => button.setButtonText("Clear key").onClick(async () => {
+      this.plugin.settings.openaiApiKey = "";
+      this.plugin.openai = null;
+      await this.plugin.saveSettings();
+      this.display();
+    }));
+    new import_obsidian.Setting(containerEl).setName("Redact common sensitive details before AI calls").setDesc("Redacts email addresses, web links, phone numbers, and simple street addresses before text leaves Obsidian. This is a helper, not perfect anonymization.").addToggle((toggle) => toggle.setValue(this.plugin.settings.redactSensitiveDataBeforeAI).onChange(async (value) => {
+      this.plugin.settings.redactSensitiveDataBeforeAI = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("Author memory").setDesc("Keep a continuing local author memory summary. Turn this off if you do not want ongoing memory stored in plugin data.").addToggle((toggle) => toggle.setValue(this.plugin.settings.enableAuthorMemory).onChange(async (value) => {
+      this.plugin.settings.enableAuthorMemory = value;
+      await this.plugin.saveSettings();
+      this.display();
+    })).addButton((button) => button.setButtonText("Clear memory").onClick(async () => {
+      this.plugin.settings.authorMemorySummary = "";
+      await this.plugin.saveSettings();
+      new import_obsidian.Notice("Author memory cleared");
+    }));
+    new import_obsidian.Setting(containerEl).setName("Share author memory with AI").setDesc("When enabled, the local author memory summary is included in AI prompts. Disable this to keep memory local only.").addToggle((toggle) => toggle.setValue(this.plugin.settings.includeAuthorMemoryInAI).onChange(async (value) => {
+      this.plugin.settings.includeAuthorMemoryInAI = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("Share personality profile with AI").setDesc("When enabled, the personality assessment summary can be included in AI prompts. Disable this to keep it local only.").addToggle((toggle) => toggle.setValue(this.plugin.settings.includePersonalityProfileInAI).onChange(async (value) => {
+      this.plugin.settings.includePersonalityProfileInAI = value;
+      await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("Send full journal entry into perspective chat").setDesc("Off by default. If disabled, perspective chat receives excerpts plus the selected analysis, not the entire journal entry.").addToggle((toggle) => toggle.setValue(this.plugin.settings.sendFullJournalToChat).onChange(async (value) => {
+      this.plugin.settings.sendFullJournalToChat = value;
+      await this.plugin.saveSettings();
+    }));
     new import_obsidian.Setting(containerEl).setName("Journal folder").setDesc("Folder for journal entries").addText((text) => text.setValue(this.plugin.settings.journalFolder).onChange(async (value) => {
       this.plugin.settings.journalFolder = value;
       await this.plugin.saveSettings();

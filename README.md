@@ -13,6 +13,12 @@ AI can make mistakes and can sound more certain than it is. Treat Deleometer res
 
 Your OpenAI API key is hidden in the settings screen, but it is still stored locally in Obsidian plugin data. If your vault, device backups, or plugin data are synced or shared, treat the key as sensitive.
 
+## Security and Privacy
+
+The Deleometer is an Obsidian plugin, not a sealed or encrypted vault. AI features send the relevant journal, chat, goal, author memory, and analysis context to OpenAI. The settings include privacy controls for redacting common sensitive details before AI calls, keeping author memory local, excluding the personality profile from prompts, clearing stored author memory, clearing the API key, and avoiding full-journal context in perspective chat.
+
+Saved analyses, chats, goals, author memory, and plugin settings are stored locally as Obsidian data or Markdown. The Deleometer does not encrypt those files. Anyone with access to the vault, backups, sync provider, device account, or another sufficiently powerful Obsidian plugin may be able to read them. Install the plugin only from the MichelleGDyason GitHub repository or the official Obsidian community plugin listing when available, and treat BRAT beta releases as development builds.
+
 ## License Position
 
 This project is licensed under the GNU Affero General Public License v3.0.
