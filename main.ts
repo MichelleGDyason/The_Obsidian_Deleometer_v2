@@ -580,11 +580,35 @@ interface GoalMergeDraft {
   mergedSourceAnalysisPath?: string;
   mergedSourcePerspectives: string[];
 }
+interface MilestoneFileData {
+  file: TFile;
+  title: string;
+  description: string;
+  targetDate?: string;
+  goalPath?: string;
+  goalTitle?: string;
+  milestoneIndex?: number;
+  status: string;
+  created: string;
+  sourceAnalysisPath?: string;
+  sourcePerspectives: string[];
+}
+interface MilestoneMergeDraft {
+  sourceMilestones: MilestoneFileData[];
+  mergedTitle: string;
+  mergedDescription: string;
+  mergedTargetDate?: string;
+  mergedGoalPaths: string[];
+  mergedGoalTitles: string[];
+  mergedSourceAnalysisPath?: string;
+  mergedSourcePerspectives: string[];
+}
 
 interface DeleometerSettings {
   openaiApiKey: string;
   journalFolder: string;
   goalsFolder: string;
+  milestonesFolder: string;
   chatsFolder: string;
   fullCalendarFolder: string;
   autoSyncGoalsToFullCalendar: boolean;
@@ -601,7 +625,7 @@ interface DeleometerSettings {
 
 const DEFAULT_SETTINGS: DeleometerSettings = {
   openaiApiKey: '', journalFolder: 'Deleometer/Journal', goalsFolder: 'Deleometer/Goals',
-  chatsFolder: 'Deleometer/Chats', fullCalendarFolder: 'Deleometer', autoSyncGoalsToFullCalendar: true,
+  milestonesFolder: 'Deleometer/Milestones', chatsFolder: 'Deleometer/Chats', fullCalendarFolder: 'Deleometer', autoSyncGoalsToFullCalendar: true,
   redactSensitiveDataBeforeAI: true, enableAuthorMemory: true, includeAuthorMemoryInAI: true,
   includePersonalityProfileInAI: true, sendFullJournalToChat: false,
   selectedPerspectives: getChronologicalPerspectiveKeys(), zpdLevel: 'tertiary_year_2',
@@ -649,7 +673,9 @@ export default class DeleometerPlugin extends Plugin {
     this.addCommand({ id: 'personality-assessment', name: 'Take personality assessment', callback: () => this.openPersonalityAssessment() });
     this.addCommand({ id: 'backfill-analysis-chat-links', name: 'Backfill analysis chat links for current note', callback: async () => this.backfillAnalysisChatLinksForActiveFile() });
     this.addCommand({ id: 'sync-goals-to-full-calendar', name: 'Sync goals to calendar', callback: async () => this.syncAllGoalsToFullCalendar(true) });
+    this.addCommand({ id: 'sync-milestones-to-folder', name: 'Sync milestones to folder', callback: async () => this.syncAllGoalMilestonesToFolder(true) });
     this.addCommand({ id: 'consolidate-similar-goals', name: 'Consolidate similar goals', callback: async () => this.openGoalConsolidationModal() });
+    this.addCommand({ id: 'consolidate-similar-milestones', name: 'Consolidate similar milestones', callback: async () => this.openMilestoneConsolidationModal() });
     this.addCommand({ id: 'repair-goal-frontmatter', name: 'Repair goal note frontmatter', callback: async () => this.repairAllGoalFrontmatter(true) });
 
     this.addSettingTab(new DeleometerSettingTab(this.app, this));
@@ -1993,8 +2019,430 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join('\n') || '- [ ] 
 `;
 
     const file = await this.app.vault.create(fileName, template);
+    await this.syncGoalMilestonesToFolder(file, true);
     await this.syncGoalFileToFullCalendar(file);
     return file;
+  }
+
+  getMilestoneFolderFiles(): TFile[] {
+    const folder = this.app.vault.getAbstractFileByPath(this.settings.milestonesFolder);
+    if (!(folder instanceof TFolder)) return [];
+    return folder.children.filter((child): child is TFile => child instanceof TFile && child.extension === 'md');
+  }
+
+  getGoalOwnedMilestoneFiles(goalFilePath: string): TFile[] {
+    return this.getMilestoneFolderFiles().filter((file) => {
+      const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+      return frontmatter?.deleometer_owner === 'deleometer'
+        && typeof frontmatter.deleometer_goal_path === 'string'
+        && frontmatter.deleometer_goal_path === goalFilePath;
+    });
+  }
+
+  buildMilestoneNote(event: {
+    title: string;
+    description: string;
+    targetDate?: string;
+    goalFile: TFile;
+    goalTitle: string;
+    milestoneIndex: number;
+    sourceAnalysisPath?: string;
+    sourcePerspectives?: string[];
+  }): string {
+    const goalLink = `[[${this.getWikiLinkTarget(event.goalFile.path)}|${event.goalTitle}]]`;
+    const sourceNoteLink = event.sourceAnalysisPath
+      ? `[[${this.getWikiLinkTarget(event.sourceAnalysisPath)}|${this.getFileDisplayName(event.sourceAnalysisPath)}]]`
+      : '';
+    const sourceTypeLinks = event.sourceAnalysisPath && event.sourcePerspectives?.length
+      ? event.sourcePerspectives
+          .map((perspectiveKey) => {
+            const perspective = PERSPECTIVES[perspectiveKey];
+            if (!perspective) return '';
+            return `[[${this.getWikiLinkTarget(event.sourceAnalysisPath!)}#${perspective.title}|${perspective.title}]]`;
+          })
+          .filter(Boolean)
+          .join(', ')
+      : '';
+
+    return `---
+type: milestone
+title: "${this.escapeYamlInlineString(event.title)}"
+description: "${this.escapeYamlInlineString(event.description)}"
+target_date: ${event.targetDate || 'null'}
+status: active
+created: ${new Date().toISOString()}
+deleometer_owner: deleometer
+deleometer_goal_path: "${this.escapeYamlString(event.goalFile.path)}"
+deleometer_goal_title: "${this.escapeYamlString(event.goalTitle)}"
+deleometer_milestone_index: ${event.milestoneIndex}
+source_analysis_note: ${event.sourceAnalysisPath ? `"${this.escapeYamlString(event.sourceAnalysisPath)}"` : 'null'}
+source_perspectives: ${this.formatYamlStringArray(event.sourcePerspectives || [])}
+---
+
+# ${event.title}
+
+**Goal:** ${goalLink}
+**Target Date:** ${event.targetDate || 'Not set'}
+**Status:** Active
+${sourceNoteLink ? `**Source Note:** ${sourceNoteLink}\n` : ''}${sourceTypeLinks ? `**Derived From:** ${sourceTypeLinks}\n` : ''}
+
+## Description
+${event.description}
+
+## Notes
+
+`;
+  }
+
+  async upsertGoalMilestoneNote(existingFile: TFile | null, event: {
+    title: string;
+    description: string;
+    targetDate?: string;
+    goalFile: TFile;
+    goalTitle: string;
+    milestoneIndex: number;
+    sourceAnalysisPath?: string;
+    sourcePerspectives?: string[];
+  }): Promise<TFile> {
+    if (existingFile) {
+      const content = await this.app.vault.cachedRead(existingFile);
+      const looseFrontmatter = this.parseLooseFrontmatter(content);
+      const cachedFrontmatter = this.app.metadataCache.getFileCache(existingFile)?.frontmatter;
+      const frontmatter = looseFrontmatter && cachedFrontmatter
+        ? { ...looseFrontmatter, ...cachedFrontmatter }
+        : (cachedFrontmatter || looseFrontmatter);
+      if (frontmatter?.status === 'merged' || frontmatter?.deleometer_consolidated === true) {
+        return existingFile;
+      }
+    }
+
+    const note = this.buildMilestoneNote(event);
+    if (existingFile) {
+      await this.app.vault.modify(existingFile, note);
+      return existingFile;
+    }
+
+    const path = this.getUniqueMarkdownPath(
+      this.settings.milestonesFolder,
+      this.sanitizeFileNamePart(`Milestone ${event.milestoneIndex} ${event.goalTitle}`)
+    );
+    return await this.app.vault.create(path, note);
+  }
+
+  async deleteGoalMilestoneNotes(goalFile: TFile) {
+    const files = this.getGoalOwnedMilestoneFiles(goalFile.path);
+    for (const file of files) {
+      await this.app.fileManager.trashFile(file);
+    }
+  }
+
+  async syncGoalMilestonesToFolder(goalFile: TFile, _force: boolean = false): Promise<boolean> {
+    if (!this.settings.milestonesFolder?.trim()) return false;
+
+    const goal = await this.getGoalFileData(goalFile);
+    if (!goal) return false;
+
+    await this.ensureFolder(this.settings.milestonesFolder);
+
+    const existingFiles = this.getGoalOwnedMilestoneFiles(goalFile.path);
+    const byIndex = new Map<number, TFile>();
+    for (const file of existingFiles) {
+      const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+      const index = typeof frontmatter?.deleometer_milestone_index === 'number'
+        ? frontmatter.deleometer_milestone_index
+        : (typeof frontmatter?.deleometer_milestone_index === 'string' ? Number(frontmatter.deleometer_milestone_index) : NaN);
+      if (Number.isFinite(index)) byIndex.set(index, file);
+    }
+
+    const expectedIndexes = new Set<number>();
+    const milestoneDates = this.getScheduledMilestoneDates(goal.targetDate, goal.created, goal.milestones.length);
+    for (let index = 0; index < goal.milestones.length; index += 1) {
+      const milestoneIndex = index + 1;
+      const milestoneText = goal.milestones[index];
+      expectedIndexes.add(milestoneIndex);
+      await this.upsertGoalMilestoneNote(byIndex.get(milestoneIndex) || null, {
+        title: milestoneText,
+        description: `Milestone ${milestoneIndex} for ${goal.title}`,
+        targetDate: milestoneDates[index],
+        goalFile,
+        goalTitle: goal.title,
+        milestoneIndex,
+        sourceAnalysisPath: goal.sourceAnalysisPath,
+        sourcePerspectives: goal.sourcePerspectives
+      });
+    }
+
+    for (const [index, file] of Array.from(byIndex.entries())) {
+      if (!expectedIndexes.has(index)) {
+        await this.app.fileManager.trashFile(file);
+      }
+    }
+
+    return true;
+  }
+
+  async syncAllGoalMilestonesToFolder(showNotice: boolean = false) {
+    const goalStats = this.getGoalStats();
+    let synced = 0;
+
+    for (const goalFile of goalStats.goals) {
+      const result = await this.syncGoalMilestonesToFolder(goalFile, true);
+      if (result) synced += 1;
+    }
+
+    if (showNotice) {
+      new Notice(`Synced milestones from ${synced} goal${synced === 1 ? '' : 's'} to folder`);
+    }
+  }
+
+  async getMilestoneFileData(milestoneFile: TFile): Promise<MilestoneFileData | null> {
+    const content = await this.app.vault.cachedRead(milestoneFile);
+    const frontmatter = this.app.metadataCache.getFileCache(milestoneFile)?.frontmatter || this.parseLooseFrontmatter(content);
+    if (!frontmatter) return null;
+
+    const type = typeof frontmatter.type === 'string' ? frontmatter.type : '';
+    const isOwnedMilestone = frontmatter.deleometer_owner === 'deleometer' && typeof frontmatter.deleometer_goal_path === 'string';
+    if (type !== 'milestone' && !isOwnedMilestone) return null;
+
+    const title = typeof frontmatter.title === 'string' && frontmatter.title.trim()
+      ? frontmatter.title.trim()
+      : milestoneFile.basename;
+    const frontmatterDescription = typeof frontmatter.description === 'string' ? frontmatter.description.trim() : '';
+    const description = frontmatterDescription || this.extractGoalSection(content, 'Description');
+    const targetDate = this.isValidDateString(frontmatter.target_date) ? frontmatter.target_date.trim() : undefined;
+    const goalPath = typeof frontmatter.deleometer_goal_path === 'string' ? frontmatter.deleometer_goal_path : undefined;
+    const goalTitle = typeof frontmatter.deleometer_goal_title === 'string' ? frontmatter.deleometer_goal_title : undefined;
+    const rawIndex = typeof frontmatter.deleometer_milestone_index === 'number'
+      ? frontmatter.deleometer_milestone_index
+      : (typeof frontmatter.deleometer_milestone_index === 'string' ? Number(frontmatter.deleometer_milestone_index) : NaN);
+    const sourcePerspectives = Array.isArray(frontmatter.source_perspectives)
+      ? frontmatter.source_perspectives.filter((item): item is string => typeof item === 'string')
+      : [];
+
+    return {
+      file: milestoneFile,
+      title,
+      description,
+      targetDate,
+      goalPath,
+      goalTitle,
+      milestoneIndex: Number.isFinite(rawIndex) ? rawIndex : undefined,
+      status: typeof frontmatter.status === 'string' ? frontmatter.status : 'active',
+      created: typeof frontmatter.created === 'string' ? frontmatter.created : new Date(milestoneFile.stat.ctime).toISOString(),
+      sourceAnalysisPath: typeof frontmatter.source_analysis_note === 'string' ? frontmatter.source_analysis_note : undefined,
+      sourcePerspectives
+    };
+  }
+
+  getMilestoneSimilarityTokens(value: string): string[] {
+    const stopWords = new Set(['the', 'and', 'for', 'with', 'from', 'into', 'your', 'this', 'that', 'about', 'through', 'more', 'than', 'have', 'will', 'goal', 'goals', 'milestone', 'milestones', 'practice', 'develop', 'create']);
+    return this.normalizeGoalText(value)
+      .split(' ')
+      .map((token) => token.trim())
+      .filter((token) => token.length > 3 && !stopWords.has(token));
+  }
+
+  getMilestoneSimilarityScore(left: MilestoneFileData, right: MilestoneFileData): number {
+    const leftText = `${left.title} ${left.description} ${left.goalTitle || ''}`;
+    const rightText = `${right.title} ${right.description} ${right.goalTitle || ''}`;
+    const leftTokens = new Set(this.getMilestoneSimilarityTokens(leftText));
+    const rightTokens = new Set(this.getMilestoneSimilarityTokens(rightText));
+    if (leftTokens.size === 0 || rightTokens.size === 0) return 0;
+
+    const shared = Array.from(leftTokens).filter((token) => rightTokens.has(token));
+    const union = new Set([...Array.from(leftTokens), ...Array.from(rightTokens)]);
+    const jaccard = shared.length / union.size;
+    const normalizedLeftTitle = this.normalizeGoalText(left.title);
+    const normalizedRightTitle = this.normalizeGoalText(right.title);
+    const titleIncludes = normalizedLeftTitle.length > 0 && normalizedRightTitle.length > 0
+      && (normalizedLeftTitle.includes(normalizedRightTitle) || normalizedRightTitle.includes(normalizedLeftTitle));
+    const sameGoal = !!left.goalPath && left.goalPath === right.goalPath;
+
+    if (sameGoal && shared.length > 0) return Math.max(jaccard, 0.5);
+    return titleIncludes ? Math.max(jaccard, 0.62) : jaccard;
+  }
+
+  buildMilestoneMergeDraft(milestones: MilestoneFileData[]): MilestoneMergeDraft {
+    const sorted = [...milestones].sort((a, b) => b.title.length - a.title.length);
+    const primary = sorted[0];
+    const descriptions = Array.from(new Set(milestones.map((milestone) => milestone.description.trim()).filter(Boolean)));
+    const targetDates = milestones.map((milestone) => milestone.targetDate).filter((value): value is string => !!value).sort();
+    const goalPairs: { path: string; title: string }[] = [];
+    for (const milestone of milestones) {
+      if (!milestone.goalPath || goalPairs.some((pair) => pair.path === milestone.goalPath)) continue;
+      goalPairs.push({ path: milestone.goalPath, title: milestone.goalTitle || this.getFileDisplayName(milestone.goalPath) });
+    }
+    const sourcePerspectives = Array.from(new Set(milestones.flatMap((milestone) => milestone.sourcePerspectives)));
+    const sourceAnalysisPath = milestones.find((milestone) => milestone.sourceAnalysisPath)?.sourceAnalysisPath;
+
+    return {
+      sourceMilestones: milestones.sort((a, b) => a.title.localeCompare(b.title)),
+      mergedTitle: primary.title,
+      mergedDescription: descriptions.join('\n\n'),
+      mergedTargetDate: targetDates[0],
+      mergedGoalPaths: goalPairs.map((pair) => pair.path),
+      mergedGoalTitles: goalPairs.map((pair) => pair.title),
+      mergedSourceAnalysisPath: sourceAnalysisPath,
+      mergedSourcePerspectives: sourcePerspectives
+    };
+  }
+
+  async getMilestoneConsolidationDrafts(): Promise<MilestoneMergeDraft[]> {
+    await this.syncAllGoalMilestonesToFolder(false);
+    const milestones = (await Promise.all(this.getMilestoneFolderFiles().map((file) => this.getMilestoneFileData(file))))
+      .filter((milestone): milestone is MilestoneFileData => !!milestone)
+      .filter((milestone) => milestone.status !== 'completed' && milestone.status !== 'merged');
+
+    const visited = new Set<string>();
+    const drafts: MilestoneMergeDraft[] = [];
+
+    for (const milestone of milestones) {
+      if (visited.has(milestone.file.path)) continue;
+      const group = [milestone];
+      visited.add(milestone.file.path);
+
+      for (const candidate of milestones) {
+        if (visited.has(candidate.file.path)) continue;
+        if (this.getMilestoneSimilarityScore(milestone, candidate) >= 0.42) {
+          group.push(candidate);
+          visited.add(candidate.file.path);
+        }
+      }
+
+      if (group.length < 2) continue;
+      drafts.push(this.buildMilestoneMergeDraft(group));
+    }
+
+    return drafts;
+  }
+
+  buildMergedMilestoneNote(draft: MilestoneMergeDraft): string {
+    const primary = [...draft.sourceMilestones].sort((a, b) => a.file.path.localeCompare(b.file.path))[0];
+    const created = draft.sourceMilestones
+      .map((milestone) => milestone.created)
+      .filter(Boolean)
+      .sort()[0] || new Date().toISOString();
+    const sourceLinks = draft.sourceMilestones
+      .map((milestone) => `- [[${this.getWikiLinkTarget(milestone.file.path)}|${milestone.title}]]`)
+      .join('\n');
+    const goalLinks = draft.mergedGoalPaths
+      .map((goalPath, index) => {
+        const label = draft.mergedGoalTitles[index] || this.getFileDisplayName(goalPath);
+        return `- [[${this.getWikiLinkTarget(goalPath)}|${label}]]`;
+      })
+      .join('\n');
+    const sourceNoteLink = draft.mergedSourceAnalysisPath
+      ? `[[${this.getWikiLinkTarget(draft.mergedSourceAnalysisPath)}|${this.getFileDisplayName(draft.mergedSourceAnalysisPath)}]]`
+      : '';
+    const sourcePerspectiveLinks = draft.mergedSourceAnalysisPath
+      ? draft.mergedSourcePerspectives
+          .map((perspectiveKey) => {
+            const perspective = PERSPECTIVES[perspectiveKey];
+            if (!perspective) return '';
+            return `[[${this.getWikiLinkTarget(draft.mergedSourceAnalysisPath!)}#${perspective.title}|${perspective.title}]]`;
+          })
+          .filter(Boolean)
+          .join(', ')
+      : '';
+
+    return `---
+type: milestone
+title: "${this.escapeYamlInlineString(draft.mergedTitle)}"
+description: "${this.escapeYamlInlineString(draft.mergedDescription)}"
+target_date: ${draft.mergedTargetDate || 'null'}
+status: active
+created: ${created}
+deleometer_owner: deleometer
+deleometer_consolidated: true
+deleometer_goal_path: ${primary?.goalPath ? `"${this.escapeYamlString(primary.goalPath)}"` : 'null'}
+deleometer_goal_title: ${primary?.goalTitle ? `"${this.escapeYamlString(primary.goalTitle)}"` : 'null'}
+deleometer_milestone_index: ${typeof primary?.milestoneIndex === 'number' ? primary.milestoneIndex : 'null'}
+source_goal_paths: ${this.formatYamlStringArray(draft.mergedGoalPaths)}
+source_goal_titles: ${this.formatYamlStringArray(draft.mergedGoalTitles)}
+source_perspectives: ${this.formatYamlStringArray(draft.mergedSourcePerspectives)}
+source_analysis_note: ${draft.mergedSourceAnalysisPath ? `"${this.escapeYamlString(draft.mergedSourceAnalysisPath)}"` : 'null'}
+merged_from: ${this.formatYamlStringArray(draft.sourceMilestones.map((milestone) => milestone.file.path))}
+---
+
+# ${draft.mergedTitle}
+
+**Target Date:** ${draft.mergedTargetDate || 'Not set'}
+**Status:** Active
+${sourceNoteLink ? `**Source Note:** ${sourceNoteLink}\n` : ''}${sourcePerspectiveLinks ? `**Derived From Analysis Types:** ${sourcePerspectiveLinks}\n` : ''}
+
+## Description
+${draft.mergedDescription}
+
+${goalLinks ? `## Related Goals\n${goalLinks}\n\n` : ''}## Merged From Milestones
+${sourceLinks}
+
+## Notes
+
+`;
+  }
+
+  buildMergedMilestoneSourceNote(targetMilestonePath: string, mergedTitle: string, looseFrontmatter?: Record<string, unknown>): string {
+    const created = typeof looseFrontmatter?.created === 'string' ? `created: ${looseFrontmatter.created}\n` : '';
+    const goalPath = typeof looseFrontmatter?.deleometer_goal_path === 'string'
+      ? `deleometer_goal_path: "${this.escapeYamlString(looseFrontmatter.deleometer_goal_path)}"\n`
+      : '';
+    const goalTitle = typeof looseFrontmatter?.deleometer_goal_title === 'string'
+      ? `deleometer_goal_title: "${this.escapeYamlString(looseFrontmatter.deleometer_goal_title)}"\n`
+      : '';
+    const rawIndex = typeof looseFrontmatter?.deleometer_milestone_index === 'number'
+      ? looseFrontmatter.deleometer_milestone_index
+      : (typeof looseFrontmatter?.deleometer_milestone_index === 'string' ? Number(looseFrontmatter.deleometer_milestone_index) : NaN);
+    const milestoneIndex = Number.isFinite(rawIndex) ? `deleometer_milestone_index: ${rawIndex}\n` : '';
+    return `---
+type: milestone
+status: merged
+merged_into: "${this.escapeYamlInlineString(targetMilestonePath)}"
+deleometer_owner: deleometer
+${goalPath}${goalTitle}${milestoneIndex}
+${created}
+---
+
+# Milestone Merged
+
+This milestone has been consolidated into [[${this.getWikiLinkTarget(targetMilestonePath)}|${mergedTitle}]].
+`;
+  }
+
+  async consolidateMilestoneDrafts(drafts: MilestoneMergeDraft[]) {
+    let mergedCount = 0;
+
+    for (const draft of drafts) {
+      if (draft.sourceMilestones.length < 2) continue;
+
+      const sortedMilestones = [...draft.sourceMilestones].sort((a, b) => a.file.path.localeCompare(b.file.path));
+      const primary = sortedMilestones[0];
+      const primaryFile = primary.file;
+
+      await this.app.vault.modify(primaryFile, this.buildMergedMilestoneNote(draft));
+
+      for (const duplicate of sortedMilestones.slice(1)) {
+        const content = await this.app.vault.cachedRead(duplicate.file);
+        await this.app.vault.modify(
+          duplicate.file,
+          this.buildMergedMilestoneSourceNote(primaryFile.path, draft.mergedTitle, this.parseLooseFrontmatter(content) || undefined)
+        );
+      }
+
+      mergedCount += 1;
+    }
+
+    if (mergedCount > 0) {
+      new Notice(`Consolidated ${mergedCount} similar milestone group${mergedCount === 1 ? '' : 's'}`);
+    }
+  }
+
+  async openMilestoneConsolidationModal() {
+    const drafts = await this.getMilestoneConsolidationDrafts();
+    if (drafts.length === 0) {
+      new Notice('No similar milestone groups found');
+      return;
+    }
+    new MilestoneConsolidationModal(this.app, this, drafts).open();
   }
 
   isValidDateString(value: unknown): value is string {
@@ -2444,9 +2892,11 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
       const primaryFile = primary.file;
 
       await this.app.vault.modify(primaryFile, this.buildMergedGoalNote(draft));
+      await this.syncGoalMilestonesToFolder(primaryFile, true);
       await this.syncGoalFileToFullCalendar(primaryFile, true);
 
       for (const duplicate of sortedGoals.slice(1)) {
+        await this.deleteGoalMilestoneNotes(duplicate.file);
         await this.deleteGoalCalendarEvents(duplicate.file);
         await this.app.vault.modify(duplicate.file, this.buildMergedSourceNote(primaryFile.path, draft.mergedTitle));
       }
@@ -2905,6 +3355,9 @@ ${event.kind === 'goal_due'
     this.settings.sendFullJournalToChat = typeof this.settings.sendFullJournalToChat === 'boolean'
       ? this.settings.sendFullJournalToChat
       : DEFAULT_SETTINGS.sendFullJournalToChat;
+    this.settings.milestonesFolder = typeof this.settings.milestonesFolder === 'string' && this.settings.milestonesFolder.trim()
+      ? this.settings.milestonesFolder
+      : DEFAULT_SETTINGS.milestonesFolder;
     const perspectiveKeys = getChronologicalPerspectiveKeys();
     if (!Array.isArray(this.settings.selectedPerspectives) || this.settings.selectedPerspectives.length === 0) {
       this.settings.selectedPerspectives = perspectiveKeys;
@@ -3067,6 +3520,10 @@ class DashboardView extends ItemView {
       const consolidateRow = goalChartSection.createDiv({ cls: 'btn-row' });
       const consolidateBtn = consolidateRow.createEl('button', { text: 'Consolidate similar goals', cls: 'btn-secondary btn-small' });
       consolidateBtn.onclick = () => { void this.plugin.openGoalConsolidationModal(); };
+      const syncMilestonesBtn = consolidateRow.createEl('button', { text: 'Sync milestones to folder', cls: 'btn-secondary btn-small' });
+      syncMilestonesBtn.onclick = () => { void this.plugin.syncAllGoalMilestonesToFolder(true); };
+      const consolidateMilestonesBtn = consolidateRow.createEl('button', { text: 'Consolidate similar milestones', cls: 'btn-secondary btn-small' });
+      consolidateMilestonesBtn.onclick = () => { void this.plugin.openMilestoneConsolidationModal(); };
 
       const goalsSection = container.createDiv({ cls: 'deleometer-recent' });
       goalsSection.createEl('h3', { text: 'Goals' });
@@ -3809,6 +4266,7 @@ ${this.milestones.map(m => `- [ ] ${m.title}`).join('\n')}
 
 `;
     const file = await this.app.vault.create(fileName, template);
+    await this.plugin.syncGoalMilestonesToFolder(file, true);
     await this.plugin.syncGoalFileToFullCalendar(file);
     await this.app.workspace.getLeaf().openFile(file);
     new Notice('Goal created!');
@@ -4015,6 +4473,85 @@ class GoalConsolidationModal extends Modal {
       this.close();
     } catch (error) {
       new Notice('Could not consolidate goals');
+      console.error(error);
+    }
+  }
+
+  onClose() { this.contentEl.empty(); }
+}
+
+class MilestoneConsolidationModal extends Modal {
+  plugin: DeleometerPlugin;
+  drafts: MilestoneMergeDraft[];
+
+  constructor(app: App, plugin: DeleometerPlugin, drafts: MilestoneMergeDraft[]) {
+    super(app);
+    this.plugin = plugin;
+    this.drafts = drafts.map((draft) => ({
+      ...draft,
+      sourceMilestones: [...draft.sourceMilestones],
+      mergedGoalPaths: [...draft.mergedGoalPaths],
+      mergedGoalTitles: [...draft.mergedGoalTitles],
+      mergedSourcePerspectives: [...draft.mergedSourcePerspectives]
+    }));
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('deleometer-modal');
+    contentEl.addClass('deleometer-modal-wide');
+    contentEl.createEl('h2', { text: 'Consolidate similar milestones' });
+    contentEl.createEl('p', { text: 'Review the suggested groups below. Saving will keep one consolidated milestone note and mark the others as merged redirects.', cls: 'analysis-source' });
+
+    this.drafts.forEach((draft, index) => {
+      const section = contentEl.createDiv({ cls: 'analysis-section' });
+      section.createEl('h4', { text: `Group ${index + 1}` });
+      section.createEl('p', { text: `Source milestones: ${draft.sourceMilestones.map((milestone) => milestone.title).join(', ')}`, cls: 'analysis-source' });
+
+      const titleGroup = section.createDiv({ cls: 'form-group' });
+      titleGroup.createEl('label', { text: 'Merged title' });
+      const titleInput = titleGroup.createEl('input', { type: 'text', value: draft.mergedTitle });
+      titleInput.oninput = () => { draft.mergedTitle = titleInput.value; };
+
+      const descGroup = section.createDiv({ cls: 'form-group' });
+      descGroup.createEl('label', { text: 'Merged description' });
+      const descArea = descGroup.createEl('textarea', { text: draft.mergedDescription });
+      descArea.oninput = () => { draft.mergedDescription = descArea.value; };
+
+      const dateGroup = section.createDiv({ cls: 'form-group' });
+      dateGroup.createEl('label', { text: 'Target date' });
+      const dateInput = dateGroup.createEl('input', { type: 'date' });
+      dateInput.value = draft.mergedTargetDate || '';
+      dateInput.oninput = () => { draft.mergedTargetDate = dateInput.value || undefined; };
+
+      const goalsGroup = section.createDiv({ cls: 'form-group' });
+      goalsGroup.createEl('label', { text: 'Related goal titles (one per line)' });
+      const goalsArea = goalsGroup.createEl('textarea', { text: draft.mergedGoalTitles.join('\n') });
+      goalsArea.oninput = () => {
+        draft.mergedGoalTitles = goalsArea.value.split('\n').map((line) => line.trim()).filter(Boolean);
+      };
+    });
+
+    const btnRow = contentEl.createDiv({ cls: 'btn-row' });
+    const cancelBtn = btnRow.createEl('button', { text: 'Cancel', cls: 'btn-secondary' });
+    cancelBtn.onclick = () => this.close();
+    const saveBtn = btnRow.createEl('button', { text: 'Merge suggested milestones', cls: 'btn-primary' });
+    saveBtn.onclick = () => { void this.save(); };
+  }
+
+  async save() {
+    const validDrafts = this.drafts.filter((draft) => draft.mergedTitle.trim() && draft.mergedDescription.trim() && draft.sourceMilestones.length > 1);
+    if (validDrafts.length === 0) {
+      new Notice('No valid milestone consolidations to save');
+      return;
+    }
+
+    try {
+      await this.plugin.consolidateMilestoneDrafts(validDrafts);
+      this.close();
+    } catch (error) {
+      new Notice('Could not consolidate milestones');
       console.error(error);
     }
   }
@@ -4431,6 +4968,26 @@ class DeleometerSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.goalsFolder = value;
           await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Milestones folder')
+      .setDesc('Folder for generated milestone notes. These notes can be reviewed and consolidated separately from goals.')
+      .addText(text => text
+        .setValue(this.plugin.settings.milestonesFolder)
+        .onChange(async (value) => {
+          this.plugin.settings.milestonesFolder = value;
+          await this.plugin.saveSettings();
+        }))
+      .addButton((button) => button
+        .setButtonText('Sync now')
+        .onClick(async () => {
+          await this.plugin.syncAllGoalMilestonesToFolder(true);
+        }))
+      .addButton((button) => button
+        .setButtonText('Consolidate')
+        .onClick(async () => {
+          await this.plugin.openMilestoneConsolidationModal();
         }));
 
     new Setting(containerEl).setName('Calendar integration').setHeading();

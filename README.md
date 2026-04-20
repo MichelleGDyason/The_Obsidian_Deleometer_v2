@@ -40,7 +40,9 @@ The Deleometer helps you:
 - continue a live AI chat from a specific analysis perspective
 - save that chat back into the original journal analysis note
 - turn analysis suggestions into editable goals
-- track goals in notes and optionally sync them into the Full Calendar plugin
+- track goals and generated milestone notes
+- consolidate similar goals and similar milestones
+- optionally sync goals and milestones into the Full Calendar plugin
 - review activity in an emotional intelligence dashboard
 
 The plugin keeps an author memory summary so later analyses can respond as part of an ongoing reflective conversation with previous analyses. This is meant to help recurring themes, values, supports, risks, and patterns become easier to notice over time.
@@ -91,7 +93,7 @@ After enabling the plugin:
 
 1. Open `Settings -> Community plugins -> The Deleometer`.
 2. Paste your OpenAI API key.
-3. Confirm or change the journal and goals folders.
+3. Confirm or change the journal, goals, and milestones folders.
 4. If you use Full Calendar, set the `Full Calendar Folder` to the folder watched by your Full Calendar local source.
 
 ## Basic Workflow
@@ -102,7 +104,9 @@ After enabling the plugin:
 4. Click the perspective chat link you want to continue.
 5. Save the chat back into the source journal analysis note.
 6. Draft goals from the analysis.
-7. Optionally sync goals and milestones into Full Calendar.
+7. Optionally sync goal milestones into the milestones folder.
+8. Consolidate similar goals or milestones when the AI proposes overlapping next steps.
+9. Optionally sync goals and milestones into Full Calendar.
 
 Analyses can be extensive. If every frame is enabled, an appended note may produce around 15,000 words, roughly a 70-minute read. Settings let you enable or disable whole analysis groups, or choose individual analyses inside each group, so you can tune the output to the time and attention you have. Generated analyses follow a strict historical chronology first; group labels come second, as lineage markers for settings and group synthesis.
 
@@ -161,6 +165,21 @@ It supports:
 - manual resync via command:
   `Sync goals to Full Calendar`
 
+## Milestone Notes
+
+The plugin can turn the milestones inside each goal into first-class Markdown notes under `Deleometer/Milestones` by default. This makes milestones easier to review, search, link, and reorganise in Obsidian.
+
+Milestone support includes:
+
+- automatic milestone notes when goals are drafted or created
+- manual resync via command:
+  `Sync milestones to folder`
+- a dashboard and settings button for syncing milestones
+- consolidation of similar milestone notes via command:
+  `Consolidate similar milestones`
+
+Consolidation keeps one merged milestone note and marks the duplicate milestone notes as merged redirects, so the history of where the milestone came from is not simply erased.
+
 ## Commands
 
 The plugin includes commands for:
@@ -171,7 +190,9 @@ The plugin includes commands for:
 - creating goals
 - taking the personality assessment
 - syncing goals to Full Calendar
+- syncing milestones to their folder
 - consolidating similar goals
+- consolidating similar milestones
 - repairing goal note frontmatter
 - backfilling analysis chat links for older notes
 
