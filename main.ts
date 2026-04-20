@@ -4203,16 +4203,21 @@ class DeleometerSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName('API key')
       .setDesc(this.plugin.settings.openaiApiKey
-        ? 'Your API key for AI analysis. A key is currently stored in plugin data and reloaded on startup.'
-        : 'Your API key for AI analysis.')
-      .addText(text => text
-        .setPlaceholder('Paste your API key')
-        .setValue(this.plugin.settings.openaiApiKey)
-        .onChange(async (value) => {
+        ? 'Your API key is hidden on screen, but it is still stored locally in Obsidian plugin data and may be included in vault backups or sync.'
+        : 'Your API key for AI analysis. It will be hidden on screen after you paste it, but stored locally in Obsidian plugin data.')
+      .addText((text) => {
+        text.inputEl.type = 'password';
+        text.inputEl.autocomplete = 'off';
+        text.inputEl.spellcheck = false;
+        text
+          .setPlaceholder('Paste your API key')
+          .setValue(this.plugin.settings.openaiApiKey)
+          .onChange(async (value) => {
           this.plugin.settings.openaiApiKey = value;
           await this.plugin.saveSettings();
           if (value) this.plugin.initializeOpenAI();
-        }));
+          });
+      });
 
     new Setting(containerEl)
       .setName('Journal folder')

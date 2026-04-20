@@ -11,6 +11,8 @@ The Deleometer is a reflective conversation and journaling tool. It is not a med
 
 AI can make mistakes and can sound more certain than it is. Treat Deleometer responses as invitations to think with, question, revise, and discuss, not as truth to absorb undiluted. Use it like a rigorous conversation with a thoughtful friend, not an all-knowing or infallible robot. Continuing to chat with the AI can help mistakes become clearer, because you can challenge the response, ask for evidence, request a simpler explanation, or ask it to reinterpret the same entry through another frame.
 
+Your OpenAI API key is hidden in the settings screen, but it is still stored locally in Obsidian plugin data. If your vault, device backups, or plugin data are synced or shared, treat the key as sensitive.
+
 ## License Position
 
 This project is licensed under the GNU Affero General Public License v3.0.
