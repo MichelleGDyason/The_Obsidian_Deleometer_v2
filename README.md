@@ -237,7 +237,7 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 206 individual analysis frames. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
+The Deleometer currently includes 218 individual analysis frames. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
 
 ### Philosophy as First Discipline
 
@@ -251,6 +251,7 @@ The Deleometer currently includes 206 individual analysis frames. Generated anal
 - Metaphysical Analysis
 - Ontological Analysis
 - Ethical Analysis
+- Moral Philosophy
 - Philosophy of Mind
 - René Descartes' Cogito and Subject
 - Spinoza's Theologic-Ethico Philosophy
@@ -265,13 +266,19 @@ The Deleometer currently includes 206 individual analysis frames. Generated anal
 - Set Theory
 - Phenomenology
 - J. L. Austin's Speech Act Philosophy
+- Analytic Moral Philosophy
 - Martin Heidegger's Dasein Analysis
 - Emmanuel Levinas' Ethics of the Other
+- Continental Moral Philosophy
 - Hermeneutics
 - Existential Analysis
 - Jean-Paul Sartre's Subjectivity
 - Simone de Beauvoir's Situated Subject
 - Maurice Merleau-Ponty's Embodied Subject
+- Enactivism
+- Feminist Philosophy
+- Continental Feminist Philosophy
+- Feminist Ethics
 - Process Philosophical Analysis
 - Vitalism
 - Organicism
@@ -282,8 +289,12 @@ The Deleometer currently includes 206 individual analysis frames. Generated anal
 - Paul Ricoeur's Narrative Identity
 - Derek Parfit's Reductionist Identity
 - Jürgen Habermas' Communicative Subject
+- Discourse Ethics
+- Hannah Arendt's Action and Plurality
 - Charles Taylor's Sources of the Self
 - Alasdair MacIntyre's Narrative Self
+- Edith Cowan's Civic Reform
+- Diane "Ding" Dyason's Practical Ethics
 - Jean-Luc Nancy's Being-With
 - Judith Butler's Performativity and Subjectivation
 - Catriona Mackenzie's Relational Autonomy
@@ -296,6 +307,7 @@ The Deleometer currently includes 206 individual analysis frames. Generated anal
 - Shaun Gallagher's Embodied Self
 - Shaun Gallagher's Pattern Theory of Self
 - Rosi Braidotti's Nomadic Subjectivity
+- Continental Political Aesthetics
 - Topological Analysis
 
 ### Religious, Mythic, and Pagan Interpretations
@@ -362,6 +374,7 @@ The Deleometer currently includes 206 individual analysis frames. Generated anal
 - Marxian Analysis
 - Georges Bataillean Analysis
 - Critical Theory
+- Frankfurt School Critical Theory
 - Simondonian Analysis
 - Foucaultian Analysis
 - Derridian Analysis

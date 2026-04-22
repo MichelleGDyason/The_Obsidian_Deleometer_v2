@@ -89,6 +89,7 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   metaphysical_analysis: { title: 'Metaphysical Analysis', description: 'Reality, causality, substance, possibility, identity, and ultimate commitments', group: PHILOSOPHY_GROUP_KEY },
   ontological_analysis: { title: 'Ontological Analysis', description: 'Modes of being, entities, relations, becoming, and existential structure', group: PHILOSOPHY_GROUP_KEY },
   ethical_analysis: { title: 'Ethical Analysis', description: 'Obligation, virtue, care, harm, responsibility, and practical judgment', group: PHILOSOPHY_GROUP_KEY },
+  moral_philosophy_analysis: { title: 'Moral Philosophy', description: 'Right action, the good life, virtue, duty, consequence, character, judgment, value conflict, and how one ought to live with others', group: PHILOSOPHY_GROUP_KEY },
   philosophy_of_mind_perspective: { title: 'Philosophy of Mind', description: 'Consciousness, intention, emotion, agency, selfhood, and mental causation', group: PHILOSOPHY_GROUP_KEY },
   descartes_cogito_subject: { title: "René Descartes' Cogito and Subject", description: 'Doubt, certainty, mind-body distinction, thinking substance, inwardness, rational selfhood, and the cogito as a ground of knowledge', group: PHILOSOPHY_GROUP_KEY },
   spinoza_theologic_ethico_perspective: { title: "Spinoza's Theologic-Ethico Philosophy", description: 'Immanence, affect, necessity, freedom, substance, and ethical life', group: PHILOSOPHY_GROUP_KEY },
@@ -116,7 +117,11 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   sartrean_subjectivity: { title: "Jean-Paul Sartre's Subjectivity", description: 'Freedom, bad faith, nothingness, the look, responsibility, choice, and the self as project rather than essence', group: PHILOSOPHY_GROUP_KEY },
   de_beauvoir_situated_subject: { title: "Simone de Beauvoir's Situated Subject", description: 'Ambiguity, freedom, oppression, gendered becoming, immanence, transcendence, and the ethical demand to become with others', group: PHILOSOPHY_GROUP_KEY },
   merleau_ponty_embodied_subject: { title: "Maurice Merleau-Ponty's Embodied Subject", description: 'Embodiment, perception, habit, flesh, motor intentionality, intersubjectivity, and the lived body as subject', group: PHILOSOPHY_GROUP_KEY },
+  enactivism_analysis: { title: 'Enactivism', description: 'Sense-making, embodied cognition, organism-environment coupling, action, autonomy, perception, participation, and knowing as something done in relation', group: PHILOSOPHY_GROUP_KEY },
+  continental_moral_philosophy: { title: 'Continental Moral Philosophy', description: 'Alterity, responsibility, ambiguity, recognition, embodiment, critique, historical life, and ethical thought shaped through lived relations rather than abstract rule alone', group: PHILOSOPHY_GROUP_KEY },
   feminist_philosophy: { title: 'Feminist Philosophy', description: 'Power, embodiment, knowledge, sex and gender, autonomy, care, justice, difference, critique, and the transformation of inherited philosophical problems', group: PHILOSOPHY_GROUP_KEY },
+  continental_feminist_philosophy: { title: 'Continental Feminist Philosophy', description: 'Sexual difference, embodiment, becoming, critique of phallocentrism, relation, materiality, desire, and feminist thought shaped through continental lineages', group: PHILOSOPHY_GROUP_KEY },
+  feminist_ethics: { title: 'Feminist Ethics', description: 'Care, power, dependency, vulnerability, justice, embodiment, relation, lived inequality, and ethical judgment shaped by concrete social life', group: PHILOSOPHY_GROUP_KEY },
   whitehead_process_philosophy: { title: "Alfred North Whitehead's Process Philosophy", description: 'Actual occasions, process, relation, creativity, prehension, concrescence, novelty, and reality as event rather than static substance', group: PHILOSOPHY_GROUP_KEY },
   process_philosophical_analysis: { title: 'Process Philosophical Analysis', description: 'Becoming, relation, event, creativity, temporality, and emergent order', group: PHILOSOPHY_GROUP_KEY },
   vitalism_analysis: { title: 'Vitalism', description: 'Life force, organismic animation, irreducibility of living processes, growth, self-organization, formative powers, and the question of whether life exceeds mechanism', group: PHILOSOPHY_GROUP_KEY },
@@ -124,6 +129,7 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   philosophy_of_language_analysis: { title: 'Philosophy of Language', description: 'Meaning, reference, naming, use, speech acts, interpretation, translation, rule-following, and how language shapes thought and worldhood', group: PHILOSOPHY_GROUP_KEY },
   wittgenstein_language_games: { title: "Ludwig Wittgenstein's Language Games", description: 'Use, rule-following, forms of life, language games, family resemblance, ordinary language, and the limits of what can be said clearly', group: PHILOSOPHY_GROUP_KEY },
   jl_austin_speech_acts: { title: "J. L. Austin's Speech Act Philosophy", description: 'Speech acts, performatives, ordinary language, felicity conditions, doing things with words, uptake, force, and how utterances act within shared situations', group: PHILOSOPHY_GROUP_KEY },
+  analytic_moral_philosophy: { title: 'Analytic Moral Philosophy', description: 'Reasons, obligation, normativity, action-guidance, moral language, thought experiments, clarity, and the analysis of what makes a judgment morally defensible', group: PHILOSOPHY_GROUP_KEY },
   pf_strawson_personhood: { title: "P. F. Strawson's Personhood", description: 'Persons, reactive attitudes, responsibility, ordinary language, embodiment, mutual recognition, and the social grammar of accountability', group: PHILOSOPHY_GROUP_KEY },
   harry_frankfurt_volitional_self: { title: "Harry Frankfurt's Volitional Self", description: 'Second-order desires, wholeheartedness, identification, free will, care, ambivalence, and what a person wants to want', group: PHILOSOPHY_GROUP_KEY },
   sydney_shoemaker_self_knowledge: { title: "Sydney Shoemaker's Self-Knowledge", description: 'Self-reference, immunity to error, first-person authority, embodiment, memory, and how one knows oneself as oneself', group: PHILOSOPHY_GROUP_KEY },
@@ -131,8 +137,12 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   paul_ricoeur_narrative_identity: { title: "Paul Ricoeur's Narrative Identity", description: 'Selfhood, sameness, narrative time, promise, memory, interpretation, and identity as the story one can answer for', group: PHILOSOPHY_GROUP_KEY },
   derek_parfit_reductionist_identity: { title: "Derek Parfit's Reductionist Identity", description: 'Psychological continuity, connectedness, survival, reductionism, relation R, and why identity may matter less than we think', group: PHILOSOPHY_GROUP_KEY },
   habermasian_communicative_subject: { title: "Jürgen Habermas' Communicative Subject", description: 'Communicative action, discourse ethics, public reason, validity claims, lifeworld, recognition, and subjectivity formed through dialogue', group: PHILOSOPHY_GROUP_KEY },
+  discourse_ethics_analysis: { title: 'Discourse Ethics', description: 'Reason-giving, reciprocity, validity claims, fair dialogue, mutual justification, accountability, and testing norms through inclusive communication', group: PHILOSOPHY_GROUP_KEY },
+  hannah_arendt_action_plurality: { title: "Hannah Arendt's Action and Plurality", description: 'Action, natality, public space, appearance, plurality, judgment, worldliness, responsibility, and how political life begins when people speak and act together', group: PHILOSOPHY_GROUP_KEY },
   charles_taylor_sources_self: { title: "Charles Taylor's Sources of the Self", description: 'Moral horizons, strong evaluation, authenticity, recognition, modern identity, and the goods that orient selfhood', group: PHILOSOPHY_GROUP_KEY },
   macintyre_narrative_self: { title: "Alasdair MacIntyre's Narrative Self", description: 'Virtue, tradition, practices, narrative unity, intelligibility, moral agency, and a life understood as an unfolding story', group: PHILOSOPHY_GROUP_KEY },
+  edith_cowan_civic_reform: { title: "Edith Cowan's Civic Reform", description: 'Education, welfare reform, parliamentary action, women’s civic leadership, social justice, practical institution-building, and public responsibility anchored in lived community needs', group: PHILOSOPHY_GROUP_KEY },
+  diane_ding_dyason_practical_ethics: { title: `Diane "Ding" Dyason's Practical Ethics`, description: 'Everyday judgment, family memory, direct speech, practical care, survival wisdom, social tact, humour, and ethical discernment worked out through ordinary life rather than abstraction', group: PHILOSOPHY_GROUP_KEY },
   jean_luc_nancy_being_with: { title: "Jean-Luc Nancy's Being-With", description: 'Being singular plural, exposure, community, finitude, co-existence, touch, spacing, and the self as always with others', group: PHILOSOPHY_GROUP_KEY },
   judith_butler_performativity: { title: "Judith Butler's Performativity and Subjectivation", description: 'Performativity, norms, recognizability, gendered subject formation, repetition, vulnerability, and livable life', group: PHILOSOPHY_GROUP_KEY },
   catriona_mackenzie_relational_autonomy: { title: "Catriona Mackenzie's Relational Autonomy", description: 'Autonomy, vulnerability, self-trust, social recognition, agency, relational support, and how conditions enable or block self-direction', group: PHILOSOPHY_GROUP_KEY },
@@ -150,6 +160,7 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   philosophy_of_physics_analysis: { title: 'Philosophy of Physics', description: 'Space, time, matter, causation, laws, fields, measurement, scale, and how physical theory frames reality', group: PHILOSOPHY_GROUP_KEY },
   feyerabend_epistemological_anarchism: { title: "Paul Feyerabend's Epistemological Anarchism", description: 'Methodological pluralism, epistemic dissent, against rigid method, scientific change, heterodoxy, and the politics of knowledge-making', group: PHILOSOPHY_GROUP_KEY },
   michel_serres_relations: { title: "Michel Serres' Relations and Parasites", description: 'Noise, parasitism, relation, passage, communication, mediation, contamination, and how systems are transformed by interference', group: PHILOSOPHY_GROUP_KEY },
+  continental_political_aesthetics: { title: 'Continental Political Aesthetics', description: 'Appearance, sensibility, dissensus, spectacle, form, collective feeling, public worlds, and how politics is shaped through what can be seen, felt, and said', group: PHILOSOPHY_GROUP_KEY },
   jacques_ranciere_politics_aesthetics: { title: "Jacques Rancière's Politics and Aesthetics", description: 'The distribution of the sensible, dissensus, equality, politics, aesthetics, voice, partition, and who gets to appear and be heard', group: PHILOSOPHY_GROUP_KEY },
   topological_analysis: { title: 'Topological Analysis', description: 'Relations, surfaces, thresholds, folds, nearness, boundaries, and spatial transformations of meaning', group: PHILOSOPHY_GROUP_KEY },
 
@@ -227,6 +238,7 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   post_structuralism_analysis: { title: 'Post-Structuralism', description: 'Difference, discourse, instability, subject formation, signifying chains, power, critique of fixed meaning, and the undoing of essential categories', group: 'archeo_genealogical_deconstruction' },
   bataillean_analysis: { title: 'Georges Bataillean Analysis', description: 'Excess, expenditure, transgression, sovereignty, taboo, sacrifice, eroticism, base materialism, and the limits of utility', group: 'archeo_genealogical_deconstruction' },
   critical_theory_perspective: { title: 'Critical Theory', description: 'Social critique and emancipation', group: 'archeo_genealogical_deconstruction' },
+  frankfurt_school_analysis: { title: 'Frankfurt School Critical Theory', description: 'Culture industry, domination, ideology, authoritarianism, instrumental reason, negative critique, emancipation, and diagnosing modern social pathologies', group: 'archeo_genealogical_deconstruction' },
   horkheimer_critical_theory: { title: "Max Horkheimer's Critical Theory", description: 'Instrumental reason, domination, emancipation, ideology, capitalism, culture, authoritarian tendencies, and critique aimed at social transformation', group: 'archeo_genealogical_deconstruction' },
   simondonian_analysis: { title: 'Simondonian Analysis', description: 'Individuation, preindividual fields, technics, relation, and collective becoming', group: 'archeo_genealogical_deconstruction' },
   foucaultian_analysis: { title: 'Foucaultian Analysis', description: 'Power, discourse, discipline, subject formation, and historical conditions of truth', group: 'archeo_genealogical_deconstruction' },
@@ -309,12 +321,22 @@ const PERSPECTIVE_HEADING_ALIASES: Record<string, string[]> = {
   tacktical_methodological_analysis: ['Tactical Methodological Analysis'],
   maslow_hierarchy_needs: ["Marlow's Hierarchy of Needs", "Maslow's Hierarchy of Human Needs"],
   descartes_cogito_subject: ["Rene Descartes' Cogito and Subject"],
+  hannah_arendt_action_plurality: ['Arendt', "Hannah Arendt's Action and Plurality", "Hannah Arendt's Political Action"],
+  edith_cowan_civic_reform: ['Edith Cowen', "Edith Cowan's Civic Reform"],
+  diane_ding_dyason_practical_ethics: ['Diane Ding Dyason', `Diane "Ding" Dyason`, `Diane "Ding" Dyason's Practical Ethics`],
   bernard_williams_personal_identity: ["Barnard Williams' Personal Identity", 'Barnard Williams Personal Identity'],
   pf_strawson_personhood: ["P.F. Strawson's Personhood", "PF Strawson's Personhood"],
   jl_austin_speech_acts: ['J.L. Austin', 'JL Austin', 'J. L. Austin', "J. L. Austin's Speech Act Philosophy", "Austin's Speech Act Theory"],
+  analytic_moral_philosophy: ['Analytic Moral Philosophy'],
+  continental_moral_philosophy: ['Continental Moral Philosophy'],
+  moral_philosophy_analysis: ['Moral Philosophy'],
+  feminist_ethics: ['Feminist Ethics'],
+  continental_feminist_philosophy: ['Continental Feminist Philosophy', 'Continental Feminist Philosophy Analysis'],
+  enactivism_analysis: ['Enactivism'],
   leibniz_monadology_perspective: ["Leibniz's Monadology", 'Leibniz'],
   levinasian_ethics: ["Levinas' Ethics of the Other", 'Levinasian Ethics'],
   habermasian_communicative_subject: ["Habermas' Communicative Subject", 'Habermasian Communicative Subject'],
+  discourse_ethics_analysis: ['Discourse Ethics', 'Habermasian Discourse Ethics'],
   jean_luc_nancy_being_with: ["Jean Luc Nancy's Being-With", 'Jean-Luc Nancy'],
   fanonian_analysis: ['Franz Fanon Analysis', 'Frantz Fanon Analysis'],
   kristevan_abjection_semiotic: ["Julia Kristeva's Abjection and the Semiotic", 'Kristevan Analysis', 'Julia Kristeva'],
@@ -337,6 +359,8 @@ const PERSPECTIVE_HEADING_ALIASES: Record<string, string[]> = {
   metascience_analysis: ['MetaScience', 'Metascience'],
   bourdieu_analysis: ['Bourdieu', 'Pierre Bourdieu', 'Bourdieusian Analysis', "Pierre Bourdieu's Theory of Practice"],
   baudrillard_analysis: ['Baudrillard', 'Jean Baudrillard', 'Baudrillardian Analysis', 'Simulacra and Hyperreality'],
+  continental_political_aesthetics: ['Continental Political Aesthetics'],
+  frankfurt_school_analysis: ['Frankfurt School', 'Frankfurt School Critical Theory', 'Frankfurt School Analysis'],
   set_theory_analysis: ['Set Theory', 'Cantorian Set Theory', "Georg Cantor's Set Theory"]
 };
 
@@ -362,6 +386,7 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'metaphysical_analysis',
   'ontological_analysis',
   'ethical_analysis',
+  'moral_philosophy_analysis',
   'philosophy_of_mind_perspective',
   'descartes_cogito_subject',
   'spinoza_theologic_ethico_perspective',
@@ -405,7 +430,11 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'sartrean_subjectivity',
   'de_beauvoir_situated_subject',
   'merleau_ponty_embodied_subject',
+  'enactivism_analysis',
+  'continental_moral_philosophy',
   'feminist_philosophy',
+  'continental_feminist_philosophy',
+  'feminist_ethics',
   'feminist_perspective',
   'standpoint_theory',
   'radical_feminism',
@@ -413,9 +442,12 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'lacanian_perspective',
   'kristevan_abjection_semiotic',
   'critical_theory_perspective',
+  'frankfurt_school_analysis',
   'horkheimer_critical_theory',
+  'hannah_arendt_action_plurality',
   'wittgenstein_language_games',
   'jl_austin_speech_acts',
+  'analytic_moral_philosophy',
   'philosophy_of_language_analysis',
   'pf_strawson_personhood',
   'social_theories_of_deviance',
@@ -438,8 +470,11 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'paul_ricoeur_narrative_identity',
   'derek_parfit_reductionist_identity',
   'habermasian_communicative_subject',
+  'discourse_ethics_analysis',
   'charles_taylor_sources_self',
   'macintyre_narrative_self',
+  'edith_cowan_civic_reform',
+  'diane_ding_dyason_practical_ethics',
   'jean_luc_nancy_being_with',
   'irigarayian_perspective',
   'bell_hooks_love_pedagogy',
@@ -462,6 +497,7 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'baudrillard_analysis',
   'post_structuralism_analysis',
   'schizoanalytic_insights',
+  'continental_political_aesthetics',
   'jacques_ranciere_politics_aesthetics',
   'zizekian_analysis',
   'spivak_subaltern_analysis',
@@ -682,9 +718,9 @@ const GROUP_DEFAULT_METADATA: Record<string, PerspectiveMetadata> = {
     lineage: 'Semiotic, linguistic, media, and interpretive traditions'
   },
   psychoanalytic_clinical: {
-    tradition: 'Psychoanalytic, developmental, and clinical traditions',
+    tradition: 'Psychological, psychiatric, psychoanalytic, developmental, and clinical traditions',
     orientation: 'Mixed clinical and theoretical lineages',
-    lineage: 'Freudian, post-Freudian, developmental, and therapeutic traditions'
+    lineage: 'Psychiatric, psychological, psychoanalytic, developmental, and therapeutic traditions'
   },
   family_care_guidance: {
     tradition: 'Education, development, and family guidance',
@@ -785,6 +821,12 @@ const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
     chronology: '18th century',
     lineage: 'British empiricism -> skepticism -> later analytic debates'
   },
+  moral_philosophy_analysis: {
+    tradition: 'Moral philosophy',
+    orientation: 'Mixed across pre-divide, analytic, and continental traditions',
+    chronology: 'Ancient to contemporary',
+    lineage: 'Greek ethics -> religious moral reflection -> modern moral theory -> contemporary normative debate'
+  },
   moral_naturalism_perspective: {
     tradition: 'Ethics and metaethics',
     orientation: 'Mostly analytic',
@@ -863,11 +905,23 @@ const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
     chronology: '20th century',
     lineage: 'Husserl -> Merleau-Ponty -> embodiment, perception, postphenomenology'
   },
+  enactivism_analysis: {
+    tradition: 'Enactivism and embodied cognition',
+    orientation: 'Bridge across continental phenomenology and cognitive science',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Phenomenology, biology, cybernetics, and cognitive science -> Varela, Thompson, Rosch -> enactive mind'
+  },
   levinasian_ethics: {
     tradition: 'Phenomenology and ethics',
     orientation: 'Continental',
     chronology: '20th century',
     lineage: 'Husserl and Heidegger -> Levinas -> ethics of alterity'
+  },
+  continental_moral_philosophy: {
+    tradition: 'Continental moral philosophy',
+    orientation: 'Continental',
+    chronology: '19th and 20th century onward',
+    lineage: 'Hegel, Kierkegaard, Nietzsche, phenomenology, existentialism, and critical theory -> continental ethics'
   },
   whitehead_process_philosophy: {
     tradition: 'Process philosophy',
@@ -935,6 +989,18 @@ const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
     chronology: '20th century',
     lineage: 'Frankfurt School -> Habermas -> discourse ethics and deliberation'
   },
+  discourse_ethics_analysis: {
+    tradition: 'Critical theory and practical philosophy',
+    orientation: 'Continental',
+    chronology: 'Late 20th century',
+    lineage: 'Apel and Habermas -> discourse ethics, deliberative legitimacy, and reciprocal norm justification'
+  },
+  hannah_arendt_action_plurality: {
+    tradition: 'Continental political philosophy',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Greek political thought, phenomenology, and anti-totalitarian reflection -> Arendt'
+  },
   charles_taylor_sources_self: {
     tradition: 'Political philosophy and hermeneutic moral philosophy',
     orientation: 'Bridge across analytic and continental reception',
@@ -946,6 +1012,18 @@ const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
     orientation: 'Bridge across analytic and continental reception',
     chronology: '20th and 21st century',
     lineage: 'Aristotle and Marx -> MacIntyre -> practices and narrative unity'
+  },
+  edith_cowan_civic_reform: {
+    tradition: 'Civic reform, public ethics, and social policy',
+    orientation: 'Applied public philosophy and reform tradition',
+    chronology: 'Late 19th and early 20th century',
+    lineage: 'Women’s political leadership, education reform, and welfare advocacy in public life -> Edith Cowan'
+  },
+  diane_ding_dyason_practical_ethics: {
+    tradition: 'Everyday practical ethics and lived wisdom',
+    orientation: 'Personal and applied ethical tradition',
+    chronology: '20th and 21st century lived tradition',
+    lineage: 'Family guidance, practical judgment, and intergenerational common sense -> Diane "Ding" Dyason'
   },
   jean_luc_nancy_being_with: {
     tradition: 'Post-Heideggerian continental philosophy',
@@ -1181,6 +1259,18 @@ const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
     chronology: '20th and 21st century',
     lineage: 'de Beauvoir, Irigaray, hooks, Butler, Mackenzie, Grosz, Haraway, and feminist epistemology'
   },
+  continental_feminist_philosophy: {
+    tradition: 'Continental feminist philosophy',
+    orientation: 'Continental',
+    chronology: '20th and 21st century',
+    lineage: 'Phenomenology, psychoanalysis, deconstruction, and sexual-difference feminism -> de Beauvoir, Irigaray, Kristeva, Cixous, Grosz, Butler'
+  },
+  feminist_ethics: {
+    tradition: 'Feminist ethics',
+    orientation: 'Mixed analytic, continental, and interdisciplinary feminist traditions',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Care ethics, feminist philosophy, Black feminism, and relational autonomy debates -> feminist ethics'
+  },
   philosophy_of_language_analysis: {
     tradition: 'Philosophy of language',
     orientation: 'Mostly analytic with broader linguistic and hermeneutic dialogue',
@@ -1198,6 +1288,12 @@ const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
     orientation: 'Analytic',
     chronology: '20th century',
     lineage: 'Ordinary language philosophy -> Austin -> speech act theory, pragmatics, and social philosophy of language'
+  },
+  analytic_moral_philosophy: {
+    tradition: 'Analytic moral philosophy',
+    orientation: 'Analytic',
+    chronology: '20th and 21st century',
+    lineage: 'Moore, Ross, Hare, Foot, Williams, Korsgaard, Scanlon, and contemporary normativity debates'
   },
   naturalism_analysis: {
     tradition: 'Naturalism',
@@ -1229,11 +1325,23 @@ const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
     chronology: 'Late 20th and 21st century',
     lineage: 'French philosophy of science and relation -> Serres'
   },
+  continental_political_aesthetics: {
+    tradition: 'Continental political aesthetics',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Aesthetics, phenomenology, Marxism, and post-Althusserian thought -> politics of appearance, sensation, and dissensus'
+  },
   jacques_ranciere_politics_aesthetics: {
     tradition: 'Continental political aesthetics',
     orientation: 'Continental',
     chronology: 'Late 20th and 21st century',
     lineage: 'Post-Althusserian thought -> Rancière -> dissensus and aesthetics'
+  },
+  frankfurt_school_analysis: {
+    tradition: 'Frankfurt School critical theory',
+    orientation: 'Continental and interdisciplinary critical theory',
+    chronology: '20th century',
+    lineage: 'Marx, Lukacs, Freud, Weber -> Horkheimer, Adorno, Benjamin, Marcuse, Fromm, Habermas -> critique of domination and modernity'
   },
   horkheimer_critical_theory: {
     tradition: 'Frankfurt School critical theory',
@@ -1760,8 +1868,7 @@ export default class DeleometerPlugin extends Plugin {
     const content = editor.getValue();
     const sourceFile = this.app.workspace.getActiveFile();
     const estimateText = this.getAnalysisEstimateText(content);
-    new Notice('Analyzing emotions with multiple perspectives...');
-    new Notice(estimateText, 8000);
+    new Notice(`Analyzing emotions with multiple perspectives. ${estimateText}`, 15000);
     try {
       const analysis = await this.getMultiPerspectiveAnalysis(content, (message) => {
         new Notice(message);
@@ -6041,8 +6148,7 @@ ${this.content}
           return;
         }
         const estimateText = this.plugin.getAnalysisEstimateText(this.content);
-        new Notice('Analyzing with multiple perspectives...');
-        new Notice(estimateText, 8000);
+        new Notice(`Analyzing with multiple perspectives. ${estimateText}`, 15000);
         try {
           await this.plugin.writeAnalysisStatusToFile(file, `Analysis started. ${estimateText}`);
           const savedContent = await this.app.vault.read(file);
