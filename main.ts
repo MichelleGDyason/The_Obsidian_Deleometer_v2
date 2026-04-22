@@ -1954,8 +1954,36 @@ export default class DeleometerPlugin extends Plugin {
     const language = OUTPUT_LANGUAGES[this.settings.outputLanguage] || OUTPUT_LANGUAGES.english;
     return [
       `Output language: ${language.label}. ${language.prompt}`,
+      this.settings.outputLanguage === 'english'
+        ? "Use Australian/British English preference where relevant. For the past tense of 'learn', use 'learnt', not 'learned'."
+        : '',
       'Keep required JSON property names, enum values, exact perspective keys, file paths, and Markdown link targets exactly as requested by the app.'
-    ].join(' ');
+    ].filter(Boolean).join(' ');
+  }
+
+  normalizeGeneratedEnglishUsage(text: string): string {
+    if (!text || this.settings.outputLanguage !== 'english') return text;
+    return text.replace(/\blearned\b/g, (match) => {
+      if (match === 'LEARNED') return 'LEARNT';
+      if (match === 'Learned') return 'Learnt';
+      return 'learnt';
+    });
+  }
+
+  normalizeGeneratedEnglishUsageArray(values: string[]): string[] {
+    return values.map((value) => this.normalizeGeneratedEnglishUsage(value));
+  }
+
+  normalizeGeneratedEnglishUsageRecord(values: Record<string, string>): Record<string, string> {
+    return Object.fromEntries(
+      Object.entries(values).map(([key, value]) => [key, this.normalizeGeneratedEnglishUsage(value)])
+    );
+  }
+
+  normalizeGeneratedFurtherReadings(values: Record<string, string[]>): Record<string, string[]> {
+    return Object.fromEntries(
+      Object.entries(values).map(([key, entries]) => [key, this.normalizeGeneratedEnglishUsageArray(entries)])
+    );
   }
 
   getLocalDateContext(): string {
@@ -2074,10 +2102,14 @@ export default class DeleometerPlugin extends Plugin {
     }
 
     const groupSynthesis = typeof parsed.group_synthesis === 'string'
-      ? parsed.group_synthesis.trim()
+      ? this.normalizeGeneratedEnglishUsage(parsed.group_synthesis.trim())
       : '';
 
-    return { perspectives: results, furtherReadings, groupSynthesis };
+    return {
+      perspectives: this.normalizeGeneratedEnglishUsageRecord(results),
+      furtherReadings: this.normalizeGeneratedFurtherReadings(furtherReadings),
+      groupSynthesis
+    };
   }
 
   async getChronologicalPerspectiveAnalysis(
@@ -2180,7 +2212,10 @@ export default class DeleometerPlugin extends Plugin {
       }
     }
 
-    return { perspectives: results, furtherReadings };
+    return {
+      perspectives: this.normalizeGeneratedEnglishUsageRecord(results),
+      furtherReadings: this.normalizeGeneratedFurtherReadings(furtherReadings)
+    };
   }
 
   async getLineageGroupSynthesis(
@@ -2224,7 +2259,7 @@ export default class DeleometerPlugin extends Plugin {
       ]
     });
 
-    return response.choices[0]?.message?.content?.trim() || '';
+    return this.normalizeGeneratedEnglishUsage(response.choices[0]?.message?.content?.trim() || '');
   }
 
   async getSingleGeneratedPerspectiveAnalysis(
@@ -2263,9 +2298,11 @@ export default class DeleometerPlugin extends Plugin {
     const rawContent = response.choices[0]?.message?.content;
     if (!rawContent) return { analysis: '', furtherReadings: [] };
     const parsed = this.parseJsonObject(rawContent);
-    const analysis = typeof parsed.analysis === 'string' ? parsed.analysis.trim() : '';
+    const analysis = typeof parsed.analysis === 'string' ? this.normalizeGeneratedEnglishUsage(parsed.analysis.trim()) : '';
     const furtherReadings = Array.isArray(parsed.further_readings)
-      ? parsed.further_readings.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean).slice(0, 5)
+      ? this.normalizeGeneratedEnglishUsageArray(
+          parsed.further_readings.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean).slice(0, 5)
+        )
       : [];
     return { analysis, furtherReadings };
   }
@@ -2320,10 +2357,10 @@ export default class DeleometerPlugin extends Plugin {
 
     const parsed = this.parseJsonObject(rawContent);
     const philosophicalReaccumulation = typeof parsed.philosophical_reaccumulation === 'string'
-      ? parsed.philosophical_reaccumulation.trim()
+      ? this.normalizeGeneratedEnglishUsage(parsed.philosophical_reaccumulation.trim())
       : '';
     const authorMemorySummary = typeof parsed.author_memory_summary === 'string'
-      ? parsed.author_memory_summary.trim()
+      ? this.normalizeGeneratedEnglishUsage(parsed.author_memory_summary.trim())
       : this.settings.authorMemorySummary;
     const goalSuggestions = this.parseGoalSuggestions(parsed.goal_suggestions).slice(0, 3);
 
@@ -2335,8 +2372,8 @@ export default class DeleometerPlugin extends Plugin {
       .map((goal): GoalSuggestion | null => {
         if (!goal || typeof goal !== 'object') return null;
         const suggestion = goal as Record<string, unknown>;
-        const title = typeof suggestion.title === 'string' ? suggestion.title.trim() : '';
-        const description = typeof suggestion.description === 'string' ? suggestion.description.trim() : '';
+        const title = typeof suggestion.title === 'string' ? this.normalizeGeneratedEnglishUsage(suggestion.title.trim()) : '';
+        const description = typeof suggestion.description === 'string' ? this.normalizeGeneratedEnglishUsage(suggestion.description.trim()) : '';
         if (!title || !description) return null;
 
         const category = typeof suggestion.category === 'string' && GOAL_CATEGORIES[suggestion.category]
@@ -2347,7 +2384,9 @@ export default class DeleometerPlugin extends Plugin {
           : '';
         const targetDate = this.isUsableGoalTargetDate(rawTargetDate) ? rawTargetDate : '';
         const milestones = Array.isArray(suggestion.milestones)
-          ? suggestion.milestones.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
+          ? this.normalizeGeneratedEnglishUsageArray(
+              suggestion.milestones.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
+            )
           : [];
         const sourcePerspectives = Array.isArray(suggestion.sourcePerspectives)
           ? suggestion.sourcePerspectives.filter((item): item is string => typeof item === 'string').filter((item) => !!PERSPECTIVES[item])
@@ -2377,7 +2416,9 @@ export default class DeleometerPlugin extends Plugin {
       content: this.prepareTextForAI(message.content)
     }));
     const response = await this.openai.chat.completions.create({ model: 'gpt-4o-mini', messages: [systemMessage, ...conversation] });
-    return response.choices[0]?.message?.content || 'I apologize, I could not generate a response.';
+    return this.normalizeGeneratedEnglishUsage(
+      response.choices[0]?.message?.content || 'I apologize, I could not generate a response.'
+    );
   }
 
   async getRandomJournalPrompt(): Promise<string> {
@@ -2440,7 +2481,9 @@ export default class DeleometerPlugin extends Plugin {
       ]
     });
 
-    return response.choices[0]?.message?.content?.trim() || 'Write about a moment today that quietly echoed one of your deeper goals, and follow that thread until it reveals what you most need right now.';
+    return this.normalizeGeneratedEnglishUsage(
+      response.choices[0]?.message?.content?.trim() || 'Write about a moment today that quietly echoed one of your deeper goals, and follow that thread until it reveals what you most need right now.'
+    );
   }
 
   async openChatFromSourceNote(sourceFilePath: string, perspectiveKey: string) {

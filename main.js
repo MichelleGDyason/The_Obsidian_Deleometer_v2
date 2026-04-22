@@ -8150,8 +8150,30 @@ ${content}`
     const language = OUTPUT_LANGUAGES[this.settings.outputLanguage] || OUTPUT_LANGUAGES.english;
     return [
       `Output language: ${language.label}. ${language.prompt}`,
+      this.settings.outputLanguage === "english" ? "Use Australian/British English preference where relevant. For the past tense of 'learn', use 'learnt', not 'learned'." : "",
       "Keep required JSON property names, enum values, exact perspective keys, file paths, and Markdown link targets exactly as requested by the app."
-    ].join(" ");
+    ].filter(Boolean).join(" ");
+  }
+  normalizeGeneratedEnglishUsage(text) {
+    if (!text || this.settings.outputLanguage !== "english") return text;
+    return text.replace(/\blearned\b/g, (match) => {
+      if (match === "LEARNED") return "LEARNT";
+      if (match === "Learned") return "Learnt";
+      return "learnt";
+    });
+  }
+  normalizeGeneratedEnglishUsageArray(values) {
+    return values.map((value) => this.normalizeGeneratedEnglishUsage(value));
+  }
+  normalizeGeneratedEnglishUsageRecord(values) {
+    return Object.fromEntries(
+      Object.entries(values).map(([key, value]) => [key, this.normalizeGeneratedEnglishUsage(value)])
+    );
+  }
+  normalizeGeneratedFurtherReadings(values) {
+    return Object.fromEntries(
+      Object.entries(values).map(([key, entries]) => [key, this.normalizeGeneratedEnglishUsageArray(entries)])
+    );
   }
   getLocalDateContext() {
     const now = /* @__PURE__ */ new Date();
@@ -8252,8 +8274,12 @@ ${content}`
         furtherReadings[key] = value.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 5);
       }
     }
-    const groupSynthesis = typeof parsed.group_synthesis === "string" ? parsed.group_synthesis.trim() : "";
-    return { perspectives: results, furtherReadings, groupSynthesis };
+    const groupSynthesis = typeof parsed.group_synthesis === "string" ? this.normalizeGeneratedEnglishUsage(parsed.group_synthesis.trim()) : "";
+    return {
+      perspectives: this.normalizeGeneratedEnglishUsageRecord(results),
+      furtherReadings: this.normalizeGeneratedFurtherReadings(furtherReadings),
+      groupSynthesis
+    };
   }
   async getChronologicalPerspectiveAnalysis(content, perspectives, personalityContext, authorMemoryContext, readerContext) {
     var _a2, _b;
@@ -8341,7 +8367,10 @@ ${content}`
         furtherReadings[key] = value.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 5);
       }
     }
-    return { perspectives: results, furtherReadings };
+    return {
+      perspectives: this.normalizeGeneratedEnglishUsageRecord(results),
+      furtherReadings: this.normalizeGeneratedFurtherReadings(furtherReadings)
+    };
   }
   async getLineageGroupSynthesis(content, groupKey, perspectiveKeys, perspectiveAnalyses, personalityContext, authorMemoryContext, readerContext) {
     var _a2, _b, _c;
@@ -8385,7 +8414,7 @@ ${content.slice(0, 6e3)}`
         }
       ]
     });
-    return ((_c = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content) == null ? void 0 : _c.trim()) || "";
+    return this.normalizeGeneratedEnglishUsage(((_c = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content) == null ? void 0 : _c.trim()) || "");
   }
   async getSingleGeneratedPerspectiveAnalysis(content, key, perspective, personalityContext, authorMemoryContext, readerContext) {
     var _a2, _b;
@@ -8427,8 +8456,10 @@ ${content}`
     const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
     if (!rawContent) return { analysis: "", furtherReadings: [] };
     const parsed = this.parseJsonObject(rawContent);
-    const analysis = typeof parsed.analysis === "string" ? parsed.analysis.trim() : "";
-    const furtherReadings = Array.isArray(parsed.further_readings) ? parsed.further_readings.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 5) : [];
+    const analysis = typeof parsed.analysis === "string" ? this.normalizeGeneratedEnglishUsage(parsed.analysis.trim()) : "";
+    const furtherReadings = Array.isArray(parsed.further_readings) ? this.normalizeGeneratedEnglishUsageArray(
+      parsed.further_readings.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 5)
+    ) : [];
     return { analysis, furtherReadings };
   }
   async getWholeAnalysisSynthesis(content, selectedGroupKeys, perspectives, groupSyntheses, personalityContext, authorMemoryContext, readerContext, dateContext) {
@@ -8484,8 +8515,8 @@ ${content}`
       return { philosophicalReaccumulation: "", authorMemorySummary: this.settings.authorMemorySummary, goalSuggestions: [] };
     }
     const parsed = this.parseJsonObject(rawContent);
-    const philosophicalReaccumulation = typeof parsed.philosophical_reaccumulation === "string" ? parsed.philosophical_reaccumulation.trim() : "";
-    const authorMemorySummary = typeof parsed.author_memory_summary === "string" ? parsed.author_memory_summary.trim() : this.settings.authorMemorySummary;
+    const philosophicalReaccumulation = typeof parsed.philosophical_reaccumulation === "string" ? this.normalizeGeneratedEnglishUsage(parsed.philosophical_reaccumulation.trim()) : "";
+    const authorMemorySummary = typeof parsed.author_memory_summary === "string" ? this.normalizeGeneratedEnglishUsage(parsed.author_memory_summary.trim()) : this.settings.authorMemorySummary;
     const goalSuggestions = this.parseGoalSuggestions(parsed.goal_suggestions).slice(0, 3);
     return { philosophicalReaccumulation, authorMemorySummary, goalSuggestions };
   }
@@ -8493,13 +8524,15 @@ ${content}`
     return (Array.isArray(rawGoalSuggestions) ? rawGoalSuggestions : []).map((goal) => {
       if (!goal || typeof goal !== "object") return null;
       const suggestion = goal;
-      const title = typeof suggestion.title === "string" ? suggestion.title.trim() : "";
-      const description = typeof suggestion.description === "string" ? suggestion.description.trim() : "";
+      const title = typeof suggestion.title === "string" ? this.normalizeGeneratedEnglishUsage(suggestion.title.trim()) : "";
+      const description = typeof suggestion.description === "string" ? this.normalizeGeneratedEnglishUsage(suggestion.description.trim()) : "";
       if (!title || !description) return null;
       const category = typeof suggestion.category === "string" && GOAL_CATEGORIES[suggestion.category] ? suggestion.category : "personal_growth";
       const rawTargetDate = typeof suggestion.targetDate === "string" && suggestion.targetDate.trim() ? suggestion.targetDate.trim() : "";
       const targetDate = this.isUsableGoalTargetDate(rawTargetDate) ? rawTargetDate : "";
-      const milestones = Array.isArray(suggestion.milestones) ? suggestion.milestones.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean) : [];
+      const milestones = Array.isArray(suggestion.milestones) ? this.normalizeGeneratedEnglishUsageArray(
+        suggestion.milestones.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean)
+      ) : [];
       const sourcePerspectives = Array.isArray(suggestion.sourcePerspectives) ? suggestion.sourcePerspectives.filter((item) => typeof item === "string").filter((item) => !!PERSPECTIVES[item]) : [];
       return { title, description, category, targetDate, milestones, sourcePerspectives };
     }).filter((goal) => !!goal);
@@ -8529,7 +8562,9 @@ ${authorContext}` : ""}`
       content: this.prepareTextForAI(message.content)
     }));
     const response = await this.openai.chat.completions.create({ model: "gpt-4o-mini", messages: [systemMessage, ...conversation] });
-    return ((_d = (_c = response.choices[0]) == null ? void 0 : _c.message) == null ? void 0 : _d.content) || "I apologize, I could not generate a response.";
+    return this.normalizeGeneratedEnglishUsage(
+      ((_d = (_c = response.choices[0]) == null ? void 0 : _c.message) == null ? void 0 : _d.content) || "I apologize, I could not generate a response."
+    );
   }
   async getRandomJournalPrompt() {
     var _a2, _b, _c;
@@ -8584,7 +8619,9 @@ ${preparedJournalContext}`
         }
       ]
     });
-    return ((_c = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content) == null ? void 0 : _c.trim()) || "Write about a moment today that quietly echoed one of your deeper goals, and follow that thread until it reveals what you most need right now.";
+    return this.normalizeGeneratedEnglishUsage(
+      ((_c = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content) == null ? void 0 : _c.trim()) || "Write about a moment today that quietly echoed one of your deeper goals, and follow that thread until it reveals what you most need right now."
+    );
   }
   async openChatFromSourceNote(sourceFilePath, perspectiveKey) {
     var _a2, _b;
