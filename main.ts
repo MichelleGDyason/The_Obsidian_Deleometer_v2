@@ -173,6 +173,7 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   social_policy_analysis: { title: 'Social Policy', description: 'Welfare, care, public provision, inequality, redistribution, institutions, safety nets, governance, and policy impacts on everyday life', group: 'social_spatial_research' },
   healthy_in_all_policies: { title: 'Health in All Policies for Healthy Communities', description: 'Public health across sectors, prevention, equity, housing, transport, food, community wellbeing, interdepartmental policy, and healthy environments', group: 'social_spatial_research' },
   social_research_methods: { title: 'Social Research Methods', description: 'Research questions, interviews, observation, surveys, sampling, ethics, coding, reflexivity, validity, positionality, and evidence-building in social inquiry', group: 'social_spatial_research' },
+  bourdieu_analysis: { title: "Pierre Bourdieu's Field, Habitus, and Capital", description: 'Habitus, field, capital, distinction, practice, social reproduction, symbolic violence, taste, classed dispositions, and the struggle over legitimacy in social space', group: 'social_spatial_research' },
 
   linguistic_analysis: { title: 'Linguistic Analysis', description: 'Words, grammar, naming, register, metaphor, speech acts, code-switching, silence, and how language organizes experience', group: 'narrative_media_frame' },
   semiotic_analysis: { title: 'Semiotic Analysis', description: 'Signs, symbols, signifier and signified, codes, icons, indexes, myths, and how meaning is made and circulated', group: 'narrative_media_frame' },
@@ -184,6 +185,7 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   frame_analysis: { title: 'Frame Analysis', description: 'Interpretive frames, salience, boundaries, alignment, and meaning organization', group: 'narrative_media_frame' },
   goffman_frame_analysis: { title: "Erving Goffman's Frame Analysis", description: 'Interaction order, presentation of self, keyed events, footing, and everyday frames', group: 'narrative_media_frame' },
   media_studies: { title: 'Media Studies', description: 'Platforms, mediation, publics, representation, attention, circulation, and media power', group: 'narrative_media_frame' },
+  baudrillard_analysis: { title: "Jean Baudrillard's Simulacra and Hyperreality", description: 'Simulacra, hyperreality, sign value, simulation, codes, spectacle, consumption, implosion of the social, mediation, and the replacement of lived referents by circulating images', group: 'narrative_media_frame' },
   poetics_analysis: { title: 'Poetics', description: 'Image, rhythm, metaphor, sound, line, voice, form, compression, resonance, and how language becomes patterned intensity', group: 'narrative_media_frame' },
   art_theory_analysis: { title: 'Art Theory', description: 'Medium, form, spectatorship, representation, aesthetic judgment, interpretation, image politics, craft, and the work of art in culture', group: 'narrative_media_frame' },
   susan_sontag_interpretation: { title: "Susan Sontag on Interpretation", description: 'Against over-interpretation, style, sensuous surface, camp, image culture, illness metaphors, and the ethics of looking and reading', group: 'narrative_media_frame' },
@@ -192,7 +194,7 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   freudian_psychoanalysis: { title: 'Freudian Psychoanalysis', description: 'Unconscious conflict, repression, dream-work, sexuality, and symptom formation', group: 'psychoanalytic_clinical' },
   jungian_perspective: { title: 'Jungian Analysis', description: 'Archetypes, shadow, and individuation', group: 'psychoanalytic_clinical' },
   lacanian_perspective: { title: 'Lacanian Psychoanalysis', description: 'Analysis through desire, the Other, and symbolic order', group: 'psychoanalytic_clinical' },
-  kristevan_abjection_semiotic: { title: "Julia Kristeva's Abjection and Semiotic", description: 'Abjection, the semiotic and symbolic, maternal body, borders of self, revolt, intertextuality, foreignness, and subject formation through language and affect', group: 'psychoanalytic_clinical' },
+  kristevan_abjection_semiotic: { title: "Julia Kristeva's Abjection and Semiotic", description: 'Psychoanalysis and philosophy through abjection, the semiotic and symbolic, maternal body, borders of self, revolt, intertextuality, foreignness, and subject formation through language and affect', group: 'psychoanalytic_clinical' },
   psychiatry_perspective: { title: 'Psychiatric Assessment', description: 'Clinical patterns and mental health', group: 'psychoanalytic_clinical' },
   attachment_theory_perspective: { title: 'Attachment Theory', description: 'Attachment styles and relational patterns', group: 'psychoanalytic_clinical' },
   gestalt_perspective: { title: 'Gestalt Therapy', description: 'Awareness, wholeness, and present experience', group: 'psychoanalytic_clinical' },
@@ -233,7 +235,7 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   posthumanism_perspective: { title: 'Posthumanism', description: 'Beyond human-centered thinking', group: 'archeo_genealogical_deconstruction' },
 
   feminist_perspective: { title: 'Feminist Psychology', description: 'Gender, power, and social context', group: 'gender_sexuality_queer' },
-  irigarayian_perspective: { title: 'Irigarayian Feminine', description: 'Sexual difference and feminine subjectivity', group: 'gender_sexuality_queer' },
+  irigarayian_perspective: { title: 'Irigarayian Feminine', description: 'Philosophy and psychoanalysis of sexual difference, feminine subjectivity, language, embodiment, desire, mimicry, and the critique of phallocentric order', group: 'gender_sexuality_queer' },
   standpoint_theory: { title: 'Standpoint Theory', description: 'Situated social location, epistemic privilege from the margins, structural position, reflexivity, power, experience, and standpoint as a method of knowledge', group: 'gender_sexuality_queer' },
   radical_feminism: { title: 'Radical Feminism', description: 'Patriarchy, sex-class, violence, reproductive politics, structural domination, consciousness-raising, and transformative critique of male power', group: 'gender_sexuality_queer' },
   ecofeminism: { title: 'Ecofeminism', description: 'Gendered domination, ecology, care, extraction, embodiment, environmental justice, relational ethics, and the linked critique of patriarchy and ecological destruction', group: 'gender_sexuality_queer' },
@@ -329,7 +331,9 @@ const PERSPECTIVE_HEADING_ALIASES: Record<string, string[]> = {
   socio_technical_transitions_mlp: ['Multi-Level Perspective', 'Socio-Technical Transitions', 'Socio-technical Transitions and the Multi-Level Perspective'],
   poetics_analysis: ['Poetry', 'Poetics'],
   isabelle_stengers_cosmopolitics: ['Isobella Stengers', 'Isabelle Stengers', "Stengers' Cosmopolitics"],
-  metascience_analysis: ['MetaScience', 'Metascience']
+  metascience_analysis: ['MetaScience', 'Metascience'],
+  bourdieu_analysis: ['Bourdieu', 'Pierre Bourdieu', 'Bourdieusian Analysis', "Pierre Bourdieu's Theory of Practice"],
+  baudrillard_analysis: ['Baudrillard', 'Jean Baudrillard', 'Baudrillardian Analysis', 'Simulacra and Hyperreality']
 };
 
 const PERSPECTIVE_CHRONOLOGY: string[] = [
@@ -421,6 +425,7 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'tertiary_pedagogy',
   'trades_pedagogy',
   'critical_theory_perspective',
+  'bourdieu_analysis',
   'harry_frankfurt_volitional_self',
   'sydney_shoemaker_self_knowledge',
   'bernard_williams_personal_identity',
@@ -448,6 +453,7 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'simondonian_analysis',
   'foucaultian_analysis',
   'derridian_analysis',
+  'baudrillard_analysis',
   'post_structuralism_analysis',
   'schizoanalytic_insights',
   'jacques_ranciere_politics_aesthetics',
@@ -1096,6 +1102,18 @@ const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
     orientation: 'Continental and interdisciplinary',
     chronology: 'Late 20th and 21st century',
     lineage: 'STS -> actor-network theory -> Latour'
+  },
+  bourdieu_analysis: {
+    tradition: 'Sociology and theory of practice',
+    orientation: 'Interdisciplinary social theory with continental and anthropological lineages',
+    chronology: 'Late 20th century',
+    lineage: 'Marx, Weber, Durkheim, structuralism, and anthropology -> Bourdieu -> practice theory, class, and cultural reproduction'
+  },
+  baudrillard_analysis: {
+    tradition: 'Media theory, social theory, and post-structural critique',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th century',
+    lineage: 'Marx, semiotics, structuralism, and media critique -> Baudrillard -> simulation, sign value, and hyperreality debates'
   },
   karen_barad_agential_realism: {
     tradition: 'Feminist science studies and new materialism',
@@ -1810,6 +1828,34 @@ export default class DeleometerPlugin extends Plugin {
       throw new Error('Analysis response did not include any usable perspectives');
     }
 
+    const missingFurtherReadings = perspectives.filter(({ key }) => results[key] && (furtherReadings[key]?.length || 0) < 3);
+    const furtherReadingChunks = this.chunkArray(missingFurtherReadings, 8);
+    for (let chunkIndex = 0; chunkIndex < furtherReadingChunks.length; chunkIndex += 1) {
+      const chunk = furtherReadingChunks[chunkIndex];
+      if (chunk.length === 0) continue;
+
+      try {
+        await onProgress?.(`Backfilling further readings, batch ${chunkIndex + 1}/${furtherReadingChunks.length}...`);
+        const batchReadings = await this.getPerspectiveFurtherReadingsBatch(
+          analysisContent,
+          chunk,
+          results,
+          personalityContext,
+          authorMemoryContext,
+          readerContext
+        );
+        for (const { key } of chunk) {
+          if (batchReadings[key]?.length) {
+            furtherReadings[key] = batchReadings[key];
+          }
+        }
+      } catch (error) {
+        const warning = `Further reading batch ${chunkIndex + 1} could not be generated: ${this.getErrorMessage(error)}`;
+        analysisWarnings.push(warning);
+        console.error(error);
+      }
+    }
+
     for (let groupIndex = 0; groupIndex < selectedGroupKeys.length; groupIndex += 1) {
       const groupKey = selectedGroupKeys[groupIndex];
       const group = PERSPECTIVE_GROUPS[groupKey];
@@ -2045,7 +2091,8 @@ export default class DeleometerPlugin extends Plugin {
             `- for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.\n` +
             `- for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.\n` +
             `- for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.\n` +
-            `- for Julia Kristeva, explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, and revolt through concrete details in the entry.\n` +
+            `- for Julia Kristeva, include both her psychoanalysis and her philosophy. Explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, revolt, and subject formation through concrete details in the entry.\n` +
+            `- for Luce Irigaray, include both her philosophy and her psychoanalysis. Explain sexual difference, desire, embodiment, mimicry, speech, maternal relation, and the critique of phallocentric language through concrete details in the entry.\n` +
             `- for Maslow, Montessori, Piaget, and Vygotsky, interpret needs, development, learning, environment, scaffolding, independence, play, and social support as practical conditions, not abstract labels.\n` +
             `- for organisational transformation, connect culture, structure, leadership, resistance, capability, implementation, and sustained change to specific patterns in the entry.\n` +
             `- for Gregory Bateson, interpret communication, feedback loops, learning levels, double binds, relational patterns, and ecology of mind as systems that shape the entry's situation.\n` +
@@ -2157,7 +2204,8 @@ export default class DeleometerPlugin extends Plugin {
             `- for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.\n` +
             `- for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.\n` +
             `- for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.\n` +
-            `- for Julia Kristeva, explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, and revolt through concrete details in the entry.\n` +
+            `- for Julia Kristeva, include both her psychoanalysis and her philosophy. Explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, revolt, and subject formation through concrete details in the entry.\n` +
+            `- for Luce Irigaray, include both her philosophy and her psychoanalysis. Explain sexual difference, desire, embodiment, mimicry, speech, maternal relation, and the critique of phallocentric language through concrete details in the entry.\n` +
             `- for Maslow, Montessori, Piaget, and Vygotsky, interpret needs, development, learning, environment, scaffolding, independence, play, and social support as practical conditions, not abstract labels.\n` +
             `- for organisational transformation, connect culture, structure, leadership, resistance, capability, implementation, and sustained change to specific patterns in the entry.\n` +
             `- for Gregory Bateson, interpret communication, feedback loops, learning levels, double binds, relational patterns, and ecology of mind as systems that shape the entry's situation.\n` +
@@ -2288,6 +2336,8 @@ export default class DeleometerPlugin extends Plugin {
             `- analysis must be 220-360 words, teach the frame, explain key terms, interpret the entry, show implications, predict likely outcomes, and give a precise next step.\n` +
             `- further_readings must be an array of 3-5 strings naming author/work and why it helps.\n\n` +
             `If the frame is Aesthetics, treat the term as contested rather than fixed. Explain whether the interpretation turns on sensation, beauty, art, taste, judgment, or the sensible, and why.\n\n` +
+            `If the frame is Julia Kristeva, include both her psychoanalysis and her philosophy.\n` +
+            `If the frame is Luce Irigaray, include both her philosophy and her psychoanalysis.\n\n` +
             `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n` +
             `${this.getOutputLanguagePrompt()}\n\n` +
             `Perspective: ${buildPerspectivePromptDescriptor(key, perspective)}\n\n` +
@@ -2305,6 +2355,70 @@ export default class DeleometerPlugin extends Plugin {
         )
       : [];
     return { analysis, furtherReadings };
+  }
+
+  async getPerspectiveFurtherReadingsBatch(
+    content: string,
+    perspectives: { key: string; perspective: PerspectiveDefinition }[],
+    perspectiveAnalyses: Record<string, string>,
+    personalityContext: string,
+    authorMemoryContext: string,
+    readerContext: string
+  ): Promise<Record<string, string[]>> {
+    if (!this.openai) throw new Error('OpenAI not initialized');
+    const perspectiveList = perspectives
+      .map(({ key, perspective }) => {
+        const analysisExcerpt = (perspectiveAnalyses[key] || '').slice(0, 800);
+        return `- ${buildPerspectivePromptDescriptor(key, perspective)}\n  Existing analysis excerpt: ${analysisExcerpt}`;
+      })
+      .join('\n');
+
+    const response = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      response_format: { type: 'json_object' },
+      max_tokens: 5000,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an interdisciplinary reading guide. Return valid JSON only.'
+        },
+        {
+          role: 'user',
+          content:
+            `Generate only the missing further reading suggestions for these already-completed analyses.\n\n` +
+            `Return JSON with exactly one top-level key: further_readings.\n` +
+            `- further_readings must be an object where each key is the exact perspective key and each value is an array of 3-5 reading suggestions.\n` +
+            `- Each suggestion should name an author and work, then briefly say why it helps with this frame.\n` +
+            `- Make the readings specific to the exact analytic frame, not general theory reading.\n` +
+            `- Use the existing analysis excerpt to infer which canonical or especially useful texts fit that lens.\n\n` +
+            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${this.getOutputLanguagePrompt()}\n\n` +
+            `Requested perspectives needing further readings:\n${perspectiveList}\n\n` +
+            `Journal entry:\n${content}`
+        }
+      ]
+    });
+
+    const rawContent = response.choices[0]?.message?.content;
+    if (!rawContent) return {};
+
+    const parsed = this.parseJsonObject(rawContent);
+    const parsedFurtherReadings = parsed.further_readings && typeof parsed.further_readings === 'object'
+      ? parsed.further_readings as Record<string, unknown>
+      : {};
+    const furtherReadings: Record<string, string[]> = {};
+
+    for (const { key } of perspectives) {
+      const value = parsedFurtherReadings[key];
+      if (Array.isArray(value)) {
+        furtherReadings[key] = value
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .slice(0, 5);
+      }
+    }
+
+    return this.normalizeGeneratedFurtherReadings(furtherReadings);
   }
 
   async getWholeAnalysisSynthesis(

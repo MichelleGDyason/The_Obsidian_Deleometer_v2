@@ -237,7 +237,7 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 202 individual analysis frames. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
+The Deleometer currently includes 204 individual analysis frames. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
 
 ### Philosophy as First Discipline
 
@@ -314,6 +314,7 @@ The Deleometer currently includes 202 individual analysis frames. Generated anal
 - Geography
 - Sociology
 - Social Research Methods
+- Pierre Bourdieu's Field, Habitus, and Capital
 
 ### Narrative, Media, and Frame Studies
 
@@ -326,6 +327,7 @@ The Deleometer currently includes 202 individual analysis frames. Generated anal
 - Frame Analysis
 - Erving Goffman's Frame Analysis
 - Media Studies
+- Jean Baudrillard's Simulacra and Hyperreality
 - Tessa Laird's Cinemal
 
 ### Psychoanalytic and Clinical Psychologies
