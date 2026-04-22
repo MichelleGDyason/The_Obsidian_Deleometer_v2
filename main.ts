@@ -105,6 +105,7 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   nietzschean_perspective: { title: 'Nietzschean Philosophy', description: 'Will to power, values, and self-overcoming', group: PHILOSOPHY_GROUP_KEY },
   collingwood_historical_imagination: { title: "R. G. Collingwood's Historical Imagination", description: 'Re-enactment of thought, historical consciousness, question-and-answer logic, evidence, context, and understanding action from within its problem-space', group: PHILOSOPHY_GROUP_KEY },
   logics_analysis: { title: 'Logics Analysis', description: 'Inference, validity, contradiction, entailment, formal structure, argument patterns, and what follows from what', group: PHILOSOPHY_GROUP_KEY },
+  set_theory_analysis: { title: 'Set Theory', description: 'Sets, membership, subset, union, infinity, cardinality, formal relation, abstraction, structure, and how multiplicities can be rigorously organized', group: PHILOSOPHY_GROUP_KEY },
   epistemology_analysis: { title: 'Epistemology', description: 'Knowledge, belief, evidence, justification, error, testimony, certainty, ignorance, and the conditions under which a claim counts as known', group: PHILOSOPHY_GROUP_KEY },
   husserlian_phenomenology: { title: "Edmund Husserl's Phenomenology", description: 'Intentionality, epoché, reduction, evidence, lived experience, constitution, time-consciousness, and the structures of appearing', group: PHILOSOPHY_GROUP_KEY },
   phenomenology_perspective: { title: 'Phenomenology', description: 'Lived experience and consciousness', group: PHILOSOPHY_GROUP_KEY },
@@ -333,7 +334,8 @@ const PERSPECTIVE_HEADING_ALIASES: Record<string, string[]> = {
   isabelle_stengers_cosmopolitics: ['Isobella Stengers', 'Isabelle Stengers', "Stengers' Cosmopolitics"],
   metascience_analysis: ['MetaScience', 'Metascience'],
   bourdieu_analysis: ['Bourdieu', 'Pierre Bourdieu', 'Bourdieusian Analysis', "Pierre Bourdieu's Theory of Practice"],
-  baudrillard_analysis: ['Baudrillard', 'Jean Baudrillard', 'Baudrillardian Analysis', 'Simulacra and Hyperreality']
+  baudrillard_analysis: ['Baudrillard', 'Jean Baudrillard', 'Baudrillardian Analysis', 'Simulacra and Hyperreality'],
+  set_theory_analysis: ['Set Theory', 'Cantorian Set Theory', "Georg Cantor's Set Theory"]
 };
 
 const PERSPECTIVE_CHRONOLOGY: string[] = [
@@ -382,6 +384,7 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'freudian_psychoanalysis',
   'jungian_perspective',
   'logics_analysis',
+  'set_theory_analysis',
   'epistemology_analysis',
   'linguistic_analysis',
   'semiotic_analysis',
@@ -1157,6 +1160,12 @@ const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
     chronology: 'Ancient to contemporary',
     lineage: 'Aristotle -> symbolic logic -> analytic method'
   },
+  set_theory_analysis: {
+    tradition: 'Mathematical logic and foundations of mathematics',
+    orientation: 'Pre-divide to analytic and formal traditions',
+    chronology: 'Late 19th and 20th century onward',
+    lineage: 'Cantor -> Frege, Russell, Zermelo-Fraenkel, mathematical logic, and formal ontology'
+  },
   epistemology_analysis: {
     tradition: 'Epistemology',
     orientation: 'Mixed across pre-divide, analytic, and continental traditions',
@@ -1421,11 +1430,25 @@ interface BigFiveScores { openness: number; conscientiousness: number; extravers
 interface PersonalityProfile { big_five_scores: BigFiveScores; assessment_date: string; dominant_traits: string[]; psychological_type: string; growth_areas: string[]; }
 interface Milestone { title: string; completed: boolean; completion_date?: string; }
 interface GoalSuggestion { title: string; description: string; category: string; targetDate?: string; milestones: string[]; sourcePerspectives: string[]; sourceAnalysisPath?: string; }
+interface InspirationalSong {
+  title: string;
+  rationale: string;
+  mood: string;
+  tempoBpm: number;
+  keyCenter: string;
+  scaleMode: 'major' | 'minor';
+  chordProgression: string[];
+  motifDegrees: number[];
+  hookLine: string;
+  lyrics: string;
+  audioFilePath?: string;
+}
 interface AnalysisPayload {
   perspectives: Record<string, string>;
   furtherReadings: Record<string, string[]>;
   groupSyntheses: Record<string, string>;
   philosophicalReaccumulation: string;
+  inspirationalSong: InspirationalSong | null;
   authorMemorySummary: string;
   goalSuggestions: GoalSuggestion[];
   analysisWarnings: string[];
@@ -1481,9 +1504,11 @@ interface DeleometerSettings {
   journalFolder: string;
   goalsFolder: string;
   milestonesFolder: string;
+  songsFolder: string;
   chatsFolder: string;
   fullCalendarFolder: string;
   autoSyncGoalsToFullCalendar: boolean;
+  generateInspirationalSong: boolean;
   redactSensitiveDataBeforeAI: boolean;
   enableAuthorMemory: boolean;
   includeAuthorMemoryInAI: boolean;
@@ -1498,7 +1523,8 @@ interface DeleometerSettings {
 
 const DEFAULT_SETTINGS: DeleometerSettings = {
   openaiApiKey: '', journalFolder: 'Deleometer/Journal', goalsFolder: 'Deleometer/Goals',
-  milestonesFolder: 'Deleometer/Milestones', chatsFolder: 'Deleometer/Chats', fullCalendarFolder: 'Deleometer', autoSyncGoalsToFullCalendar: true,
+  milestonesFolder: 'Deleometer/Milestones', songsFolder: 'Deleometer/Songs', chatsFolder: 'Deleometer/Chats', fullCalendarFolder: 'Deleometer', autoSyncGoalsToFullCalendar: true,
+  generateInspirationalSong: true,
   redactSensitiveDataBeforeAI: true, enableAuthorMemory: true, includeAuthorMemoryInAI: true,
   includePersonalityProfileInAI: true, sendFullJournalToChat: false,
   selectedPerspectives: getChronologicalPerspectiveKeys(), zpdLevel: 'tertiary_year_2', outputLanguage: 'english',
@@ -1721,12 +1747,13 @@ export default class DeleometerPlugin extends Plugin {
   async analyzeCurrentNote(editor: Editor) {
     if (!this.openai) { new Notice('Please set your API key in settings'); return; }
     const content = editor.getValue();
+    const sourceFile = this.app.workspace.getActiveFile();
     new Notice('Analyzing emotions with multiple perspectives...');
     try {
       const analysis = await this.getMultiPerspectiveAnalysis(content, (message) => {
         new Notice(message);
       });
-      new AnalysisResultModal(this.app, this, analysis, content).open();
+      new AnalysisResultModal(this.app, this, analysis, content, sourceFile).open();
     } catch (error) {
       new Notice(this.getOpenAIErrorMessage(error, 'Error analyzing emotions'));
       console.error(error);
@@ -1776,6 +1803,7 @@ export default class DeleometerPlugin extends Plugin {
         furtherReadings: {},
         groupSyntheses: {},
         philosophicalReaccumulation: '',
+        inspirationalSong: null,
         authorMemorySummary: this.settings.enableAuthorMemory ? this.settings.authorMemorySummary : '',
         goalSuggestions: [],
         analysisWarnings: []
@@ -1880,6 +1908,25 @@ export default class DeleometerPlugin extends Plugin {
 
     await onProgress?.('Synthesizing the full analysis and three proposed goals...');
     const synthesis = await this.getWholeAnalysisSynthesis(analysisContent, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext, dateContext);
+    let inspirationalSong: InspirationalSong | null = null;
+    if (this.settings.generateInspirationalSong) {
+      try {
+        await onProgress?.('Composing an inspirational song sketch...');
+        inspirationalSong = await this.getInspirationalSong(
+          analysisContent,
+          results,
+          groupSyntheses,
+          synthesis.philosophicalReaccumulation,
+          personalityContext,
+          authorMemoryContext,
+          readerContext
+        );
+      } catch (error) {
+        const warning = `Inspirational song could not be generated: ${this.getErrorMessage(error)}`;
+        analysisWarnings.push(warning);
+        console.error(error);
+      }
+    }
     const authorMemorySummary = this.settings.enableAuthorMemory
       ? synthesis.authorMemorySummary || this.settings.authorMemorySummary
       : '';
@@ -1894,6 +1941,7 @@ export default class DeleometerPlugin extends Plugin {
       furtherReadings,
       groupSyntheses,
       philosophicalReaccumulation: synthesis.philosophicalReaccumulation,
+      inspirationalSong,
       authorMemorySummary,
       goalSuggestions: synthesis.goalSuggestions,
       analysisWarnings
@@ -2481,6 +2529,65 @@ export default class DeleometerPlugin extends Plugin {
     return { philosophicalReaccumulation, authorMemorySummary, goalSuggestions };
   }
 
+  async getInspirationalSong(
+    content: string,
+    perspectives: Record<string, string>,
+    groupSyntheses: Record<string, string>,
+    philosophicalReaccumulation: string,
+    personalityContext: string,
+    authorMemoryContext: string,
+    readerContext: string
+  ): Promise<InspirationalSong | null> {
+    if (!this.openai) throw new Error('OpenAI not initialized');
+
+    const perspectiveSummaries = Object.entries(perspectives)
+      .slice(0, 24)
+      .map(([key, value]) => `- ${key}: ${value.slice(0, 320)}`)
+      .join('\n');
+    const synthesisSummaries = Object.entries(groupSyntheses)
+      .map(([key, value]) => `- ${PERSPECTIVE_GROUPS[key]?.title || key}: ${value.slice(0, 320)}`)
+      .join('\n');
+
+    const response = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      response_format: { type: 'json_object' },
+      max_tokens: 2200,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a careful songwriter and reflective guide. Return valid JSON only.'
+        },
+        {
+          role: 'user',
+          content:
+            `Create a positive construction of a song that could inspire the author after the analyses have been completed.\n\n` +
+            `Return JSON with exactly these keys:\n` +
+            `- title: short song title.\n` +
+            `- rationale: 90-160 words explaining how the song gently transforms the journal entry's tensions into movement, courage, or hope without denying difficulty.\n` +
+            `- mood: a short phrase such as "steady, luminous, determined".\n` +
+            `- tempo_bpm: integer from 72 to 124.\n` +
+            `- key_center: one of C, D, E, F, G, A, B.\n` +
+            `- scale_mode: either major or minor.\n` +
+            `- chord_progression: array of exactly 4 simple chord symbols using only A-G roots with optional m, for example ["Am", "F", "C", "G"].\n` +
+            `- motif_degrees: array of exactly 8 integers from 1 to 7.\n` +
+            `- hook_line: one memorable, encouraging line under 14 words.\n` +
+            `- lyrics: 2 short verses and 1 chorus, written plainly enough to sing.\n\n` +
+            `The song should be encouraging, intelligent, and grounded in the author's actual material situation. Do not become saccharine, preachy, or falsely triumphant. Let the song retain struggle while still building a listenable path forward.\n\n` +
+            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${this.getOutputLanguagePrompt()}\n\n` +
+            `Philosophy re-accumulation:\n${philosophicalReaccumulation}\n\n` +
+            `Group syntheses:\n${synthesisSummaries}\n\n` +
+            `Selected individual analysis excerpts:\n${perspectiveSummaries}\n\n` +
+            `Journal entry excerpt:\n${content.slice(0, 5000)}`
+        }
+      ]
+    });
+
+    const rawContent = response.choices[0]?.message?.content;
+    if (!rawContent) return null;
+
+    return this.parseInspirationalSong(this.parseJsonObject(rawContent));
+  }
+
   parseGoalSuggestions(rawGoalSuggestions: unknown): GoalSuggestion[] {
     return (Array.isArray(rawGoalSuggestions) ? rawGoalSuggestions : [])
       .map((goal): GoalSuggestion | null => {
@@ -2509,6 +2616,55 @@ export default class DeleometerPlugin extends Plugin {
         return { title, description, category, targetDate, milestones, sourcePerspectives };
       })
       .filter((goal): goal is GoalSuggestion => !!goal);
+  }
+
+  parseInspirationalSong(rawSong: unknown): InspirationalSong | null {
+    if (!rawSong || typeof rawSong !== 'object') return null;
+    const song = rawSong as Record<string, unknown>;
+    const title = typeof song.title === 'string' ? this.normalizeGeneratedEnglishUsage(song.title.trim()) : '';
+    const rationale = typeof song.rationale === 'string' ? this.normalizeGeneratedEnglishUsage(song.rationale.trim()) : '';
+    const mood = typeof song.mood === 'string' ? this.normalizeGeneratedEnglishUsage(song.mood.trim()) : '';
+    const hookLine = typeof song.hook_line === 'string' ? this.normalizeGeneratedEnglishUsage(song.hook_line.trim()) : '';
+    const lyrics = typeof song.lyrics === 'string' ? this.normalizeGeneratedEnglishUsage(song.lyrics.trim()) : '';
+    const keyCenter = typeof song.key_center === 'string' && /^[A-G]$/.test(song.key_center.trim())
+      ? song.key_center.trim()
+      : 'C';
+    const scaleMode = song.scale_mode === 'minor' ? 'minor' : 'major';
+    const rawTempo = typeof song.tempo_bpm === 'number'
+      ? song.tempo_bpm
+      : (typeof song.tempo_bpm === 'string' ? Number(song.tempo_bpm) : NaN);
+    const tempoBpm = Number.isFinite(rawTempo)
+      ? Math.max(72, Math.min(124, Math.round(rawTempo)))
+      : 96;
+    const chordProgression = Array.isArray(song.chord_progression)
+      ? song.chord_progression
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim())
+          .filter((item) => /^[A-G]m?$/.test(item))
+          .slice(0, 4)
+      : [];
+    const motifDegrees = Array.isArray(song.motif_degrees)
+      ? song.motif_degrees
+          .map((item) => typeof item === 'number' ? item : Number(item))
+          .filter((item) => Number.isFinite(item))
+          .map((item) => Math.max(1, Math.min(7, Math.round(item))))
+          .slice(0, 8)
+      : [];
+
+    if (!title || !rationale || !hookLine || !lyrics) return null;
+
+    return {
+      title,
+      rationale,
+      mood: mood || 'steady, hopeful, grounded',
+      tempoBpm,
+      keyCenter,
+      scaleMode,
+      chordProgression: chordProgression.length === 4 ? chordProgression : (scaleMode === 'minor' ? ['Am', 'F', 'C', 'G'] : ['C', 'G', 'Am', 'F']),
+      motifDegrees: motifDegrees.length === 8 ? motifDegrees : [1, 3, 5, 3, 6, 5, 3, 2],
+      hookLine,
+      lyrics
+    };
   }
 
   async getSinglePerspectiveResponse(
@@ -2893,6 +3049,7 @@ export default class DeleometerPlugin extends Plugin {
         furtherReadings: {},
         groupSyntheses: {},
         philosophicalReaccumulation: '',
+        inspirationalSong: null,
         authorMemorySummary: '',
         goalSuggestions: [],
         analysisWarnings: []
@@ -2940,6 +3097,7 @@ export default class DeleometerPlugin extends Plugin {
       furtherReadings: {},
       groupSyntheses: {},
       philosophicalReaccumulation: '',
+      inspirationalSong: null,
       authorMemorySummary: '',
       goalSuggestions: [],
       analysisWarnings: []
@@ -3072,6 +3230,230 @@ export default class DeleometerPlugin extends Plugin {
     const wikiTarget = this.getWikiLinkTarget(path);
     const parts = wikiTarget.split('/');
     return parts[parts.length - 1] || wikiTarget;
+  }
+
+  getSongFolderPath(sourceFilePath: string): string {
+    const baseName = this.sanitizeFileNamePart(this.getFileDisplayName(sourceFilePath) || 'journal');
+    return `${this.settings.songsFolder}/${baseName}`;
+  }
+
+  getSongFilePath(sourceFilePath: string, songTitle: string): string {
+    return `${this.getSongFolderPath(sourceFilePath)}/${this.sanitizeFileNamePart(songTitle || 'Inspiration-Song')}.wav`;
+  }
+
+  async ensureInspirationalSongFile(sourceFile: TFile, analysis: AnalysisPayload): Promise<void> {
+    if (!this.settings.generateInspirationalSong || !analysis.inspirationalSong) return;
+
+    const song = analysis.inspirationalSong;
+    await this.ensureFolder(this.settings.songsFolder);
+    await this.ensureFolder(this.getSongFolderPath(sourceFile.path));
+    const filePath = this.getSongFilePath(sourceFile.path, song.title);
+    const audioBuffer = this.renderInspirationalSongWav(song);
+    const existing = this.app.vault.getAbstractFileByPath(filePath);
+
+    if (existing instanceof TFile) {
+      await this.app.vault.modifyBinary(existing, audioBuffer);
+    } else {
+      await this.app.vault.createBinary(filePath, audioBuffer);
+    }
+
+    song.audioFilePath = filePath;
+  }
+
+  renderInspirationalSongWav(song: InspirationalSong): ArrayBuffer {
+    const sampleRate = 22050;
+    const beatsPerBar = 4;
+    const bars = 8;
+    const totalBeats = bars * beatsPerBar;
+    const secondsPerBeat = 60 / Math.max(72, Math.min(124, song.tempoBpm));
+    const totalDuration = totalBeats * secondsPerBeat;
+    const totalSamples = Math.ceil(totalDuration * sampleRate);
+    const buffer = new Float32Array(totalSamples);
+    const rng = this.createSeededRng(this.hashString(`${song.title}|${song.hookLine}|${song.keyCenter}|${song.scaleMode}`));
+    const scaleIntervals = song.scaleMode === 'minor'
+      ? [0, 2, 3, 5, 7, 8, 10]
+      : [0, 2, 4, 5, 7, 9, 11];
+    const keySemitone = this.getNaturalNoteSemitone(song.keyCenter);
+    const progression = song.chordProgression.length ? song.chordProgression : ['C', 'G', 'Am', 'F'];
+    const motifDegrees = song.motifDegrees.length ? song.motifDegrees : [1, 3, 5, 3, 6, 5, 3, 2];
+
+    for (let bar = 0; bar < bars; bar += 1) {
+      const chordSymbol = progression[bar % progression.length];
+      const chord = this.parseSimpleChord(chordSymbol);
+      const barStartBeat = bar * beatsPerBar;
+      const barStartSeconds = barStartBeat * secondsPerBeat;
+
+      const chordMidi = this.chordToMidiNotes(chord, 3);
+      for (const midi of chordMidi) {
+        this.addWaveNote(buffer, sampleRate, barStartSeconds, secondsPerBeat * beatsPerBar * 0.96, this.midiToFrequency(midi), 0.055, 'sine', 0.03, 0.18);
+        this.addWaveNote(buffer, sampleRate, barStartSeconds, secondsPerBeat * beatsPerBar * 0.96, this.midiToFrequency(midi + 12), 0.025, 'triangle', 0.02, 0.18);
+      }
+
+      for (let beat = 0; beat < beatsPerBar; beat += 1) {
+        const beatSeconds = (barStartBeat + beat) * secondsPerBeat;
+        const bassMidi = chord.rootMidi;
+        if (beat === 0 || beat === 2) {
+          this.addWaveNote(buffer, sampleRate, beatSeconds, secondsPerBeat * 0.9, this.midiToFrequency(bassMidi), 0.08, 'triangle', 0.01, 0.12);
+        }
+
+        const motifIndex = (bar * beatsPerBar + beat) % motifDegrees.length;
+        const degree = motifDegrees[motifIndex];
+        const melodicSemitone = keySemitone + scaleIntervals[(degree - 1) % scaleIntervals.length];
+        const melodicMidi = 72 + melodicSemitone;
+        const melodicDurationBeats = beat === beatsPerBar - 1 ? 1.2 : 0.9;
+        const pitchBend = (rng() - 0.5) * 0.35;
+        this.addWaveNote(
+          buffer,
+          sampleRate,
+          beatSeconds,
+          secondsPerBeat * melodicDurationBeats,
+          this.midiToFrequency(melodicMidi + pitchBend),
+          0.14,
+          'sine',
+          0.01,
+          0.14
+        );
+
+        if (rng() > 0.58) {
+          const harmonyDegree = ((degree + 2) % 7) + 1;
+          const harmonyMidi = 72 + keySemitone + scaleIntervals[(harmonyDegree - 1) % scaleIntervals.length];
+          this.addWaveNote(buffer, sampleRate, beatSeconds, secondsPerBeat * 0.72, this.midiToFrequency(harmonyMidi), 0.05, 'triangle', 0.01, 0.12);
+        }
+      }
+    }
+
+    this.normalizeAudioBuffer(buffer, 0.85);
+    return this.encodeMonoWav(buffer, sampleRate);
+  }
+
+  hashString(value: string): number {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index += 1) {
+      hash ^= value.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  createSeededRng(seed: number): () => number {
+    let state = seed || 1;
+    return () => {
+      state ^= state << 13;
+      state ^= state >>> 17;
+      state ^= state << 5;
+      return ((state >>> 0) % 1000000) / 1000000;
+    };
+  }
+
+  getNaturalNoteSemitone(note: string): number {
+    const semitones: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+    return semitones[note] ?? 0;
+  }
+
+  parseSimpleChord(symbol: string): { root: string; minor: boolean; rootMidi: number } {
+    const match = symbol.trim().match(/^([A-G])(m?)$/);
+    const root = match?.[1] || 'C';
+    const minor = match?.[2] === 'm';
+    return {
+      root,
+      minor,
+      rootMidi: 48 + this.getNaturalNoteSemitone(root)
+    };
+  }
+
+  chordToMidiNotes(chord: { root: string; minor: boolean; rootMidi: number }, octave: number): number[] {
+    const rootMidi = octave * 12 + 12 + this.getNaturalNoteSemitone(chord.root);
+    const third = rootMidi + (chord.minor ? 3 : 4);
+    const fifth = rootMidi + 7;
+    return [rootMidi, third, fifth];
+  }
+
+  midiToFrequency(midi: number): number {
+    return 440 * Math.pow(2, (midi - 69) / 12);
+  }
+
+  addWaveNote(
+    buffer: Float32Array,
+    sampleRate: number,
+    startSeconds: number,
+    durationSeconds: number,
+    frequency: number,
+    amplitude: number,
+    waveform: 'sine' | 'triangle',
+    attackSeconds: number,
+    releaseSeconds: number
+  ) {
+    const startSample = Math.max(0, Math.floor(startSeconds * sampleRate));
+    const totalSamples = Math.max(1, Math.floor(durationSeconds * sampleRate));
+    const attackSamples = Math.max(1, Math.floor(attackSeconds * sampleRate));
+    const releaseSamples = Math.max(1, Math.floor(releaseSeconds * sampleRate));
+
+    for (let offset = 0; offset < totalSamples; offset += 1) {
+      const sampleIndex = startSample + offset;
+      if (sampleIndex >= buffer.length) break;
+
+      const time = offset / sampleRate;
+      let envelope = 1;
+      if (offset < attackSamples) {
+        envelope = offset / attackSamples;
+      } else if (offset > totalSamples - releaseSamples) {
+        envelope = Math.max(0, (totalSamples - offset) / releaseSamples);
+      }
+
+      const phase = 2 * Math.PI * frequency * time;
+      const wave = waveform === 'triangle'
+        ? (2 / Math.PI) * Math.asin(Math.sin(phase))
+        : Math.sin(phase);
+      buffer[sampleIndex] += wave * amplitude * envelope;
+    }
+  }
+
+  normalizeAudioBuffer(buffer: Float32Array, peakTarget: number) {
+    let peak = 0;
+    for (let index = 0; index < buffer.length; index += 1) {
+      peak = Math.max(peak, Math.abs(buffer[index]));
+    }
+    if (peak <= 0) return;
+    const scale = peakTarget / peak;
+    for (let index = 0; index < buffer.length; index += 1) {
+      buffer[index] *= scale;
+    }
+  }
+
+  encodeMonoWav(samples: Float32Array, sampleRate: number): ArrayBuffer {
+    const bytesPerSample = 2;
+    const dataLength = samples.length * bytesPerSample;
+    const buffer = new ArrayBuffer(44 + dataLength);
+    const view = new DataView(buffer);
+
+    const writeString = (offset: number, value: string) => {
+      for (let index = 0; index < value.length; index += 1) {
+        view.setUint8(offset + index, value.charCodeAt(index));
+      }
+    };
+
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + dataLength, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * bytesPerSample, true);
+    view.setUint16(32, bytesPerSample, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, dataLength, true);
+
+    let offset = 44;
+    for (let index = 0; index < samples.length; index += 1) {
+      const clamped = Math.max(-1, Math.min(1, samples[index]));
+      view.setInt16(offset, clamped < 0 ? clamped * 0x8000 : clamped * 0x7FFF, true);
+      offset += 2;
+    }
+
+    return buffer;
   }
 
   getPerspectiveHeadingTitle(perspectiveKey: string): string {
@@ -4500,6 +4882,15 @@ ${event.kind === 'goal_due'
   }
 
   async appendAnalysisToFile(sourceFile: TFile, analysis: AnalysisPayload) {
+    try {
+      await this.ensureInspirationalSongFile(sourceFile, analysis);
+    } catch (error) {
+      const warning = `Inspirational song audio could not be rendered: ${this.getErrorMessage(error)}`;
+      if (!analysis.analysisWarnings.includes(warning)) {
+        analysis.analysisWarnings.push(warning);
+      }
+      console.error(error);
+    }
     const currentContent = await this.app.vault.read(sourceFile);
     const analysisStart = this.findAnalysisSectionStart(currentContent);
 
@@ -4554,6 +4945,21 @@ ${event.kind === 'goal_due'
 
     if (analysis.philosophicalReaccumulation) {
       analysisMarkdown += `\n## Philosophy Re-accumulation\n${analysis.philosophicalReaccumulation}\n`;
+    }
+
+    if (analysis.inspirationalSong) {
+      const song = analysis.inspirationalSong;
+      analysisMarkdown += `\n## Inspirational Song\n`;
+      analysisMarkdown += `### ${song.title}\n`;
+      analysisMarkdown += `**Mood:** ${song.mood}\n`;
+      analysisMarkdown += `**Tempo:** ${song.tempoBpm} BPM\n`;
+      analysisMarkdown += `**Key:** ${song.keyCenter} ${song.scaleMode}\n`;
+      analysisMarkdown += `**Hook:** ${song.hookLine}\n`;
+      if (song.audioFilePath) {
+        analysisMarkdown += `**Listen:** ![[${this.getWikiLinkTarget(song.audioFilePath)}]]\n`;
+      }
+      analysisMarkdown += `${song.rationale}\n`;
+      analysisMarkdown += `#### Lyrics\n${song.lyrics}\n`;
     }
 
     if (analysis.analysisWarnings.length > 0) {
@@ -4666,9 +5072,15 @@ ${event.kind === 'goal_due'
     this.settings.sendFullJournalToChat = typeof this.settings.sendFullJournalToChat === 'boolean'
       ? this.settings.sendFullJournalToChat
       : DEFAULT_SETTINGS.sendFullJournalToChat;
+    this.settings.generateInspirationalSong = typeof this.settings.generateInspirationalSong === 'boolean'
+      ? this.settings.generateInspirationalSong
+      : DEFAULT_SETTINGS.generateInspirationalSong;
     this.settings.milestonesFolder = typeof this.settings.milestonesFolder === 'string' && this.settings.milestonesFolder.trim()
       ? this.settings.milestonesFolder
       : DEFAULT_SETTINGS.milestonesFolder;
+    this.settings.songsFolder = typeof this.settings.songsFolder === 'string' && this.settings.songsFolder.trim()
+      ? this.settings.songsFolder
+      : DEFAULT_SETTINGS.songsFolder;
     const perspectiveKeys = getChronologicalPerspectiveKeys();
     if (!Array.isArray(this.settings.selectedPerspectives) || this.settings.selectedPerspectives.length === 0) {
       this.settings.selectedPerspectives = perspectiveKeys;
@@ -6222,6 +6634,21 @@ class AnalysisResultModal extends Modal {
       philosophySection.createEl('p', { text: this.analysis.philosophicalReaccumulation });
     }
 
+    if (this.analysis.inspirationalSong) {
+      const songSection = contentEl.createDiv({ cls: 'analysis-section' });
+      songSection.createEl('h3', { text: 'Inspirational song' });
+      songSection.createEl('h4', { text: this.analysis.inspirationalSong.title });
+      songSection.createEl('p', { text: this.analysis.inspirationalSong.rationale });
+      songSection.createEl('p', {
+        text: `Mood: ${this.analysis.inspirationalSong.mood} | Tempo: ${this.analysis.inspirationalSong.tempoBpm} BPM | Key: ${this.analysis.inspirationalSong.keyCenter} ${this.analysis.inspirationalSong.scaleMode}`
+      });
+      songSection.createEl('p', { text: `Hook: ${this.analysis.inspirationalSong.hookLine}` });
+      songSection.createEl('pre', { text: this.analysis.inspirationalSong.lyrics });
+      if (this.analysis.inspirationalSong.audioFilePath) {
+        songSection.createEl('p', { text: `Audio file: ${this.plugin.getFileDisplayName(this.analysis.inspirationalSong.audioFilePath)}`, cls: 'analysis-source' });
+      }
+    }
+
     if (this.analysis.analysisWarnings.length > 0) {
       const warningSection = contentEl.createDiv({ cls: 'analysis-section' });
       warningSection.createEl('h3', { text: 'Analysis notes' });
@@ -6419,6 +6846,17 @@ class DeleometerSettingTab extends PluginSettingTab {
         }));
 
     new Setting(containerEl)
+      .setName('Generate inspirational song')
+      .setDesc('After philosophy re-accumulation, generate a positive song sketch with lyrics and a locally rendered audio file.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.generateInspirationalSong)
+        .onChange(async (value) => {
+          this.plugin.settings.generateInspirationalSong = value;
+          await this.plugin.saveSettings();
+          this.display();
+        }));
+
+    new Setting(containerEl)
       .setName('Journal folder')
       .setDesc('Folder for journal entries')
       .addText(text => text
@@ -6456,6 +6894,16 @@ class DeleometerSettingTab extends PluginSettingTab {
         .setButtonText('Consolidate')
         .onClick(async () => {
           await this.plugin.openMilestoneConsolidationModal();
+        }));
+
+    new Setting(containerEl)
+      .setName('Songs folder')
+      .setDesc('Folder for generated inspirational song audio files.')
+      .addText(text => text
+        .setValue(this.plugin.settings.songsFolder)
+        .onChange(async (value) => {
+          this.plugin.settings.songsFolder = value;
+          await this.plugin.saveSettings();
         }));
 
     new Setting(containerEl).setName('Calendar integration').setHeading();
