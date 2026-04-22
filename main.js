@@ -8681,7 +8681,7 @@ ${this.settings.authorMemorySummary.trim()}`);
     if (this.settings.generateInspirationalSong) {
       try {
         await (onProgress == null ? void 0 : onProgress("Composing an inspirational song sketch..."));
-        inspirationalSong = await this.getInspirationalSong(
+        const songResult = await this.getInspirationalSong(
           analysisContent,
           results,
           groupSyntheses,
@@ -8690,6 +8690,10 @@ ${this.settings.authorMemorySummary.trim()}`);
           authorMemoryContext,
           readerContext
         );
+        inspirationalSong = songResult.song;
+        if (songResult.warning) {
+          analysisWarnings.push(songResult.warning);
+        }
       } catch (error) {
         const warning = `Inspirational song could not be generated: ${this.getErrorMessage(error)}`;
         analysisWarnings.push(warning);
@@ -9316,8 +9320,28 @@ ${content.slice(0, 5e3)}`
       ]
     });
     const rawContent = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content;
-    if (!rawContent) return null;
-    return this.parseInspirationalSong(this.parseJsonObject(rawContent));
+    if (!rawContent) {
+      return {
+        song: this.buildFallbackInspirationalSong(content, philosophicalReaccumulation),
+        warning: "Inspirational song used a local fallback because the AI returned no song payload."
+      };
+    }
+    try {
+      const parsedSong = this.parseInspirationalSong(
+        this.parseJsonObject(rawContent),
+        philosophicalReaccumulation,
+        content
+      );
+      if (parsedSong) {
+        return { song: parsedSong };
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    return {
+      song: this.buildFallbackInspirationalSong(content, philosophicalReaccumulation),
+      warning: "Inspirational song used a local fallback because the AI song payload was incomplete."
+    };
   }
   parseGoalSuggestions(rawGoalSuggestions) {
     return (Array.isArray(rawGoalSuggestions) ? rawGoalSuggestions : []).map((goal) => {
@@ -9336,32 +9360,169 @@ ${content.slice(0, 5e3)}`
       return { title, description, category, targetDate, milestones, sourcePerspectives };
     }).filter((goal) => !!goal);
   }
-  parseInspirationalSong(rawSong) {
-    if (!rawSong || typeof rawSong !== "object") return null;
-    const song = rawSong;
-    const title = typeof song.title === "string" ? this.normalizeGeneratedEnglishUsage(song.title.trim()) : "";
-    const rationale = typeof song.rationale === "string" ? this.normalizeGeneratedEnglishUsage(song.rationale.trim()) : "";
-    const mood = typeof song.mood === "string" ? this.normalizeGeneratedEnglishUsage(song.mood.trim()) : "";
-    const hookLine = typeof song.hook_line === "string" ? this.normalizeGeneratedEnglishUsage(song.hook_line.trim()) : "";
-    const lyrics = typeof song.lyrics === "string" ? this.normalizeGeneratedEnglishUsage(song.lyrics.trim()) : "";
-    const keyCenter = typeof song.key_center === "string" && /^[A-G]$/.test(song.key_center.trim()) ? song.key_center.trim() : "C";
-    const scaleMode = song.scale_mode === "minor" ? "minor" : "major";
-    const rawTempo = typeof song.tempo_bpm === "number" ? song.tempo_bpm : typeof song.tempo_bpm === "string" ? Number(song.tempo_bpm) : NaN;
-    const tempoBpm = Number.isFinite(rawTempo) ? Math.max(72, Math.min(124, Math.round(rawTempo))) : 96;
-    const chordProgression = Array.isArray(song.chord_progression) ? song.chord_progression.filter((item) => typeof item === "string").map((item) => item.trim()).filter((item) => /^[A-G]m?$/.test(item)).slice(0, 4) : [];
-    const motifDegrees = Array.isArray(song.motif_degrees) ? song.motif_degrees.map((item) => typeof item === "number" ? item : Number(item)).filter((item) => Number.isFinite(item)).map((item) => Math.max(1, Math.min(7, Math.round(item)))).slice(0, 8) : [];
-    if (!title || !rationale || !hookLine || !lyrics) return null;
+  getSongStringValue(song, keys) {
+    for (const key of keys) {
+      const value = song[key];
+      if (typeof value === "string" && value.trim()) {
+        return this.normalizeGeneratedEnglishUsage(value.trim());
+      }
+      if (Array.isArray(value)) {
+        const joined = value.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean).join("\n");
+        if (joined) {
+          return this.normalizeGeneratedEnglishUsage(joined);
+        }
+      }
+    }
+    return "";
+  }
+  getSongNumberValue(song, keys) {
+    for (const key of keys) {
+      const value = song[key];
+      if (typeof value === "number" && Number.isFinite(value)) return value;
+      if (typeof value === "string") {
+        const numeric = Number(value);
+        if (Number.isFinite(numeric)) return numeric;
+      }
+    }
+    return null;
+  }
+  getSongChordProgression(song) {
+    const directKeys = ["chord_progression", "chordProgression", "chords"];
+    for (const key of directKeys) {
+      const value = song[key];
+      if (Array.isArray(value)) {
+        const chords = value.filter((item) => typeof item === "string").map((item) => item.trim()).filter((item) => /^[A-G]m?$/.test(item)).slice(0, 4);
+        if (chords.length > 0) return chords;
+      }
+      if (typeof value === "string") {
+        const chords = value.split(/[^A-Gm]+/).map((item) => item.trim()).filter((item) => /^[A-G]m?$/.test(item)).slice(0, 4);
+        if (chords.length > 0) return chords;
+      }
+    }
+    return [];
+  }
+  getSongMotifDegrees(song) {
+    const directKeys = ["motif_degrees", "motifDegrees", "motif", "melody_degrees"];
+    for (const key of directKeys) {
+      const value = song[key];
+      if (Array.isArray(value)) {
+        const degrees = value.map((item) => typeof item === "number" ? item : Number(item)).filter((item) => Number.isFinite(item)).map((item) => Math.max(1, Math.min(7, Math.round(item)))).slice(0, 8);
+        if (degrees.length > 0) return degrees;
+      }
+      if (typeof value === "string") {
+        const degrees = value.split(/[^0-9]+/).map((item) => Number(item)).filter((item) => Number.isFinite(item)).map((item) => Math.max(1, Math.min(7, Math.round(item)))).slice(0, 8);
+        if (degrees.length > 0) return degrees;
+      }
+    }
+    return [];
+  }
+  buildFallbackInspirationalSong(content, philosophicalReaccumulation) {
+    const seedText = `${philosophicalReaccumulation}
+${content}`.trim();
+    const significantWords = (seedText.match(/[A-Za-z][A-Za-z'-]{2,}/g) || []).map((word) => word.toLowerCase()).filter((word) => !(/* @__PURE__ */ new Set([
+      "the",
+      "and",
+      "that",
+      "with",
+      "from",
+      "this",
+      "have",
+      "your",
+      "into",
+      "their",
+      "about",
+      "there",
+      "where",
+      "which",
+      "while",
+      "through",
+      "could",
+      "would",
+      "should",
+      "journal",
+      "entry",
+      "analysis",
+      "author",
+      "after",
+      "still",
+      "them",
+      "they",
+      "then"
+    ])).has(word));
+    const titleWords = Array.from(new Set(significantWords)).slice(0, 3);
+    const title = titleWords.length > 0 ? titleWords.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ") : "Carry the Morning";
+    const negativeSignals = (seedText.match(/\b(fear|grief|hurt|loss|anxious|violence|dark|alone|tired|doubt)\b/gi) || []).length;
+    const scaleMode = negativeSignals >= 3 ? "minor" : "major";
+    const hookLine = scaleMode === "minor" ? "Keep moving, even when the night feels close" : "Carry this light into the next clear day";
+    const rationaleSource = philosophicalReaccumulation.trim() || content.trim();
+    const rationaleSnippet = rationaleSource.replace(/\s+/g, " ").trim().slice(0, 240);
+    const rationale = this.normalizeGeneratedEnglishUsage(
+      `${rationaleSnippet || "This song stays close to the journal entry and turns difficulty into motion."} It keeps the pressure of the entry visible, but gives that pressure rhythm, breath, and a small forward pulse so the author can hear struggle becoming movement rather than stasis.`
+    );
     return {
       title,
       rationale,
-      mood: mood || "steady, hopeful, grounded",
-      tempoBpm,
-      keyCenter,
+      mood: scaleMode === "minor" ? "steady, brave, grounded" : "luminous, grounded, determined",
+      tempoBpm: scaleMode === "minor" ? 88 : 96,
+      keyCenter: scaleMode === "minor" ? "A" : "C",
       scaleMode,
-      chordProgression: chordProgression.length === 4 ? chordProgression : scaleMode === "minor" ? ["Am", "F", "C", "G"] : ["C", "G", "Am", "F"],
-      motifDegrees: motifDegrees.length === 8 ? motifDegrees : [1, 3, 5, 3, 6, 5, 3, 2],
+      chordProgression: scaleMode === "minor" ? ["Am", "F", "C", "G"] : ["C", "G", "Am", "F"],
+      motifDegrees: [1, 3, 5, 3, 6, 5, 3, 2],
       hookLine,
-      lyrics
+      lyrics: this.normalizeGeneratedEnglishUsage(
+        `Verse 1
+I carried the weight and I carried the weather
+Held one small breath when the ground felt thin
+I did not vanish inside the pressure
+I kept one door unlatched within
+
+Verse 2
+Now the road is made of ordinary choices
+Water, rest, a call, a page, a light
+What grows tomorrow starts in these small voices
+One clear step answering the night
+
+Chorus
+${hookLine}
+Let the tired heart gather what it knows
+Not every answer has to arrive at once
+Keep moving, and the wider morning grows`
+      )
+    };
+  }
+  parseInspirationalSong(rawSong, philosophicalReaccumulation = "", content = "") {
+    if (!rawSong || typeof rawSong !== "object") return null;
+    const song = rawSong;
+    const fallback = this.buildFallbackInspirationalSong(content, philosophicalReaccumulation);
+    const title = this.getSongStringValue(song, ["title", "song_title", "name"]);
+    const rationale = this.getSongStringValue(song, ["rationale", "reason", "summary", "explanation"]);
+    const mood = this.getSongStringValue(song, ["mood", "feeling", "tone"]);
+    const hookLine = this.getSongStringValue(song, ["hook_line", "hookLine", "hook", "chorus_hook"]);
+    const lyrics = this.getSongStringValue(song, ["lyrics", "lyric", "verses", "song_lyrics"]);
+    const keyCandidate = this.getSongStringValue(song, ["key_center", "keyCenter", "key"]);
+    const keyCenter = /^[A-G]$/.test(keyCandidate) ? keyCandidate : "";
+    const scaleCandidate = this.getSongStringValue(song, ["scale_mode", "scaleMode", "mode"]).toLowerCase();
+    const scaleMode = scaleCandidate === "minor" ? "minor" : scaleCandidate === "major" ? "major" : fallback.scaleMode;
+    const rawTempo = this.getSongNumberValue(song, ["tempo_bpm", "tempoBpm", "tempo"]);
+    const tempoBpm = Number.isFinite(rawTempo) ? Math.max(72, Math.min(124, Math.round(rawTempo))) : fallback.tempoBpm;
+    const chordProgression = this.getSongChordProgression(song);
+    const motifDegrees = this.getSongMotifDegrees(song);
+    const resolvedTitle = title || fallback.title;
+    const resolvedRationale = rationale || fallback.rationale;
+    const resolvedHookLine = hookLine || fallback.hookLine;
+    const resolvedLyrics = lyrics || fallback.lyrics;
+    if (!resolvedTitle || !resolvedRationale || !resolvedHookLine || !resolvedLyrics) return null;
+    return {
+      title: resolvedTitle,
+      rationale: resolvedRationale,
+      mood: mood || fallback.mood,
+      tempoBpm,
+      keyCenter: keyCenter || fallback.keyCenter,
+      scaleMode,
+      chordProgression: chordProgression.length === 4 ? chordProgression : fallback.chordProgression,
+      motifDegrees: motifDegrees.length === 8 ? motifDegrees : fallback.motifDegrees,
+      hookLine: resolvedHookLine,
+      lyrics: resolvedLyrics
     };
   }
   async getSinglePerspectiveResponse(messages, perspective, contextOverride) {
