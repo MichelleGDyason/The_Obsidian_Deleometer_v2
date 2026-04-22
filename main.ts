@@ -118,6 +118,8 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   feminist_philosophy: { title: 'Feminist Philosophy', description: 'Power, embodiment, knowledge, sex and gender, autonomy, care, justice, difference, critique, and the transformation of inherited philosophical problems', group: PHILOSOPHY_GROUP_KEY },
   whitehead_process_philosophy: { title: "Alfred North Whitehead's Process Philosophy", description: 'Actual occasions, process, relation, creativity, prehension, concrescence, novelty, and reality as event rather than static substance', group: PHILOSOPHY_GROUP_KEY },
   process_philosophical_analysis: { title: 'Process Philosophical Analysis', description: 'Becoming, relation, event, creativity, temporality, and emergent order', group: PHILOSOPHY_GROUP_KEY },
+  vitalism_analysis: { title: 'Vitalism', description: 'Life force, organismic animation, irreducibility of living processes, growth, self-organization, formative powers, and the question of whether life exceeds mechanism', group: PHILOSOPHY_GROUP_KEY },
+  organicism_analysis: { title: 'Organicism', description: 'Wholes, parts, development, interdependence, living systems, pattern, organization, and understanding entities through their relations within an organismic whole', group: PHILOSOPHY_GROUP_KEY },
   philosophy_of_language_analysis: { title: 'Philosophy of Language', description: 'Meaning, reference, naming, use, speech acts, interpretation, translation, rule-following, and how language shapes thought and worldhood', group: PHILOSOPHY_GROUP_KEY },
   wittgenstein_language_games: { title: "Ludwig Wittgenstein's Language Games", description: 'Use, rule-following, forms of life, language games, family resemblance, ordinary language, and the limits of what can be said clearly', group: PHILOSOPHY_GROUP_KEY },
   pf_strawson_personhood: { title: "P. F. Strawson's Personhood", description: 'Persons, reactive attitudes, responsibility, ordinary language, embodiment, mutual recognition, and the social grammar of accountability', group: PHILOSOPHY_GROUP_KEY },
@@ -312,6 +314,8 @@ const PERSPECTIVE_HEADING_ALIASES: Record<string, string[]> = {
   husserlian_phenomenology: ["Husserl's Phenomenology", 'Edmund Husserl', 'Husserl'],
   whitehead_process_philosophy: ["Whitehead's Process Philosophy", 'Alfred North Whitehead', 'Whitehead'],
   aesthetics_untranslatables: ['Aesthetics', 'Aesthetics and the Untranslatable', 'Dictionary of Untranslatables Aesthetics'],
+  vitalism_analysis: ['Vitalism'],
+  organicism_analysis: ['Organicism'],
   spivak_subaltern_analysis: ['Gayatry Chacravorty Spivak', 'Gayatri Chakravorty Spivak', "Spivak's Subaltern Analysis"],
   jasper_hoffmeyer_biosemiotics: ['Jasper Hoffmeyer', 'Jesper Hoffmeyer', "Hoffmeyer's Biosemiotics"],
   andre_baier_tins_d_analysis: ["André Baier's TINS_D Analysis", "Andre Baier's TINS_D Analysis", 'TINS_D Analysis'],
@@ -356,7 +360,6 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'kierkegaard_existential_faith',
   'schopenhauer_will_representation',
   'marxian_analysis',
-  'sociology_analysis',
   'political_thought',
   'theories_of_world_politics',
   'democracy_analysis',
@@ -377,6 +380,8 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'heideggerian_dasein_analysis',
   'whitehead_process_philosophy',
   'process_philosophical_analysis',
+  'vitalism_analysis',
+  'organicism_analysis',
   'bataillean_analysis',
   'levinasian_ethics',
   'hermeneutics_perspective',
@@ -396,9 +401,10 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'wittgenstein_language_games',
   'philosophy_of_language_analysis',
   'pf_strawson_personhood',
-  'social_research_methods',
   'social_theories_of_deviance',
   'discourse_analysis',
+  'sociology_analysis',
+  'social_research_methods',
   'montessori_method',
   'piaget_developmental_theory',
   'vygotsky_sociocultural_theory',
@@ -852,6 +858,18 @@ const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
     orientation: 'Bridge across analytic and continental reception',
     chronology: '20th century onward',
     lineage: 'Whitehead -> process philosophy, process theology, ecological and relational thought'
+  },
+  vitalism_analysis: {
+    tradition: 'Vitalism and philosophy of life',
+    orientation: 'Pre-divide to mixed modern reception',
+    chronology: '18th to 20th century',
+    lineage: 'Life-force debates -> vitalism -> Bergson, philosophy of biology, and organismic thought'
+  },
+  organicism_analysis: {
+    tradition: 'Organicism and philosophy of biology',
+    orientation: 'Bridge across philosophy and life sciences',
+    chronology: '19th and 20th century',
+    lineage: 'Aristotelian organism, romantic science, biology, systems thought -> organicism'
   },
   pf_strawson_personhood: {
     tradition: 'Ordinary language philosophy and analytic metaphysics',
@@ -2805,6 +2823,50 @@ export default class DeleometerPlugin extends Plugin {
     return candidate;
   }
 
+  getMarkdownFilesInFolderRecursive(folderPath: string): TFile[] {
+    const folder = this.app.vault.getAbstractFileByPath(folderPath);
+    if (!(folder instanceof TFolder)) return [];
+
+    const files: TFile[] = [];
+    const walk = (current: TFolder) => {
+      for (const child of current.children) {
+        if (child instanceof TFile && child.extension === 'md') {
+          files.push(child);
+        } else if (child instanceof TFolder) {
+          walk(child);
+        }
+      }
+    };
+
+    walk(folder);
+    return files;
+  }
+
+  getOrCreateSplitLeaf(): WorkspaceLeaf {
+    const splitLeaf = this.app.workspace.getLeaf('split', 'vertical');
+    if (splitLeaf) return splitLeaf;
+    return this.app.workspace.getRightLeaf(false) || this.app.workspace.getLeaf(true);
+  }
+
+  async openFileInSplit(file: TFile) {
+    const leaf = this.getOrCreateSplitLeaf();
+    await leaf.openFile(file);
+    await this.app.workspace.revealLeaf(leaf);
+  }
+
+  buildPerspectiveSourceNoteLink(sourceFilePath: string, perspectiveKey: string): string {
+    const perspective = PERSPECTIVES[perspectiveKey];
+    if (!perspective) {
+      return `[[${this.getWikiLinkTarget(sourceFilePath)}|${this.getFileDisplayName(sourceFilePath)}]]`;
+    }
+    return `[[${this.getWikiLinkTarget(sourceFilePath)}#${perspective.title}|${perspective.title}]]`;
+  }
+
+  getGoalMilestoneFolderPath(goalFilePath: string, goalTitle: string): string {
+    const baseName = this.sanitizeFileNamePart(this.getFileDisplayName(goalFilePath) || goalTitle || 'goal');
+    return `${this.settings.milestonesFolder}/${baseName}`;
+  }
+
   async saveGeneratedGoal(goal: GoalSuggestion): Promise<TFile> {
     await this.ensureFolder(this.settings.goalsFolder);
     const date = new Date();
@@ -2862,14 +2924,17 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join('\n') || '- [ ] 
 
     const file = await this.app.vault.create(fileName, template);
     await this.syncGoalMilestonesToFolder(file, true);
+    const savedGoal = await this.getGoalFileData(file);
+    if (savedGoal) {
+      await this.app.vault.modify(file, this.buildStandardGoalNote(savedGoal));
+      await this.updateGoalLinksInSourceAnalysis(savedGoal);
+    }
     await this.syncGoalFileToFullCalendar(file);
     return file;
   }
 
   getMilestoneFolderFiles(): TFile[] {
-    const folder = this.app.vault.getAbstractFileByPath(this.settings.milestonesFolder);
-    if (!(folder instanceof TFolder)) return [];
-    return folder.children.filter((child): child is TFile => child instanceof TFile && child.extension === 'md');
+    return this.getMarkdownFilesInFolderRecursive(this.settings.milestonesFolder);
   }
 
   getGoalOwnedMilestoneFiles(goalFilePath: string): TFile[] {
@@ -2878,6 +2943,16 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join('\n') || '- [ ] 
       return frontmatter?.deleometer_owner === 'deleometer'
         && typeof frontmatter.deleometer_goal_path === 'string'
         && frontmatter.deleometer_goal_path === goalFilePath;
+    }).sort((a, b) => {
+      const frontmatterA = this.app.metadataCache.getFileCache(a)?.frontmatter;
+      const frontmatterB = this.app.metadataCache.getFileCache(b)?.frontmatter;
+      const indexA = typeof frontmatterA?.deleometer_milestone_index === 'number'
+        ? frontmatterA.deleometer_milestone_index
+        : Number(frontmatterA?.deleometer_milestone_index || 0);
+      const indexB = typeof frontmatterB?.deleometer_milestone_index === 'number'
+        ? frontmatterB.deleometer_milestone_index
+        : Number(frontmatterB?.deleometer_milestone_index || 0);
+      return indexA - indexB;
     });
   }
 
@@ -2946,6 +3021,9 @@ ${event.description}
     sourceAnalysisPath?: string;
     sourcePerspectives?: string[];
   }): Promise<TFile> {
+    const milestoneFolderPath = this.getGoalMilestoneFolderPath(event.goalFile.path, event.goalTitle);
+    await this.ensureFolder(milestoneFolderPath);
+
     if (existingFile) {
       const content = await this.app.vault.cachedRead(existingFile);
       const looseFrontmatter = this.parseLooseFrontmatter(content);
@@ -2960,12 +3038,18 @@ ${event.description}
 
     const note = this.buildMilestoneNote(event);
     if (existingFile) {
+      const desiredPath = `${milestoneFolderPath}/${this.sanitizeFileNamePart(`Milestone ${event.milestoneIndex} ${event.goalTitle}`)}.md`;
+      if (existingFile.path !== desiredPath && !this.app.vault.getAbstractFileByPath(desiredPath)) {
+        await this.app.fileManager.renameFile(existingFile, desiredPath);
+        const renamed = this.getVaultMarkdownFile(desiredPath);
+        if (renamed) existingFile = renamed;
+      }
       await this.app.vault.modify(existingFile, note);
       return existingFile;
     }
 
     const path = this.getUniqueMarkdownPath(
-      this.settings.milestonesFolder,
+      milestoneFolderPath,
       this.sanitizeFileNamePart(`Milestone ${event.milestoneIndex} ${event.goalTitle}`)
     );
     return await this.app.vault.create(path, note);
@@ -2985,6 +3069,7 @@ ${event.description}
     if (!goal) return false;
 
     await this.ensureFolder(this.settings.milestonesFolder);
+    await this.ensureFolder(this.getGoalMilestoneFolderPath(goal.file.path, goal.title));
 
     const existingFiles = this.getGoalOwnedMilestoneFiles(goalFile.path);
     const byIndex = new Map<number, TFile>();
@@ -3626,6 +3711,10 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
     const mergedFromLinks = extras?.mergedFrom?.length
       ? extras.mergedFrom.map((path) => `- [[${this.getWikiLinkTarget(path)}|${this.getFileDisplayName(path)}]]`).join('\n')
       : '';
+    const milestoneFiles = this.getGoalOwnedMilestoneFiles(goal.file.path);
+    const milestoneNoteLinks = milestoneFiles.length
+      ? milestoneFiles.map((file) => `- [[${this.getWikiLinkTarget(file.path)}|${this.getFileDisplayName(file.path)}]]`).join('\n')
+      : '';
 
     return `---
 type: goal
@@ -3654,6 +3743,7 @@ ${goal.description}
 
 ## Milestones
 ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join('\n') || '- [ ] Add first milestone'}
+${milestoneNoteLinks ? `\n\n## Milestone Notes\n${milestoneNoteLinks}\n` : ''}
 ${mergedFromLinks ? `\n\n## Merged From Goals\n${mergedFromLinks}\n` : ''}
 
 ## Progress Notes
@@ -3960,13 +4050,14 @@ ${event.kind === 'goal_due'
     }
   }
 
-  buildChatFileBaseName(sourceFilePath: string | undefined, perspectiveKey: string): string {
+  buildChatFileBaseName(sourceFilePath: string | undefined, perspectiveKey: string, dateStamp?: string): string {
     const perspective = this.sanitizeFileNamePart(this.getPerspectiveHeadingTitle(perspectiveKey));
+    const safeDate = this.sanitizeFileNamePart(dateStamp || new Date().toISOString().split('T')[0]);
     if (!sourceFilePath) {
-      return `Chat-${perspective}-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+      return `${safeDate}-${perspective}-Chat`;
     }
 
-    return `${this.sanitizeFileNamePart(this.getFileDisplayName(sourceFilePath))}-${perspective}-Chat`;
+    return `${safeDate}-${this.sanitizeFileNamePart(this.getFileDisplayName(sourceFilePath))}-${perspective}-Chat`;
   }
 
   async ensurePerspectiveChatLinks(sourceFile: TFile, analysis: AnalysisPayload) {
@@ -3978,6 +4069,60 @@ ${event.kind === 'goal_due'
   buildGoalDraftLink(sourceFilePath: string): string {
     const encodedPath = encodeURIComponent(sourceFilePath);
     return `**Draft Goals:** [Open proposed goals](deleometer://goals?source=${encodedPath})`;
+  }
+
+  async updateGoalLinksInSourceAnalysis(goal: GoalFileData) {
+    if (!goal.sourceAnalysisPath) return;
+    const abstractFile = this.getVaultMarkdownFile(goal.sourceAnalysisPath);
+    if (!abstractFile) return;
+
+    const currentContent = await this.app.vault.read(abstractFile);
+    const suggestionsStart = currentContent.search(/^##\s+.*Suggested Goals.*$/m);
+    if (suggestionsStart === -1) return;
+
+    const suggestionsSection = currentContent.slice(suggestionsStart);
+    const nextSectionMatch = /^##\s+(?!.*Suggested Goals).*$/m.exec(suggestionsSection.slice(1));
+    const boundedLength = nextSectionMatch ? nextSectionMatch.index + 1 : suggestionsSection.length;
+    const boundedSection = suggestionsSection.slice(0, boundedLength);
+    const headingRegex = /^###\s+(.+)$/gm;
+    const headingMatches: { title: string; index: number; fullMatch: string }[] = [];
+    let match: RegExpExecArray | null;
+
+    while ((match = headingRegex.exec(boundedSection)) !== null) {
+      headingMatches.push({ title: match[1].trim(), index: match.index, fullMatch: match[0] });
+    }
+
+    const targetIndex = headingMatches.findIndex((heading) => (
+      this.normalizeHeadingText(heading.title) === this.normalizeHeadingText(goal.title)
+    ));
+    if (targetIndex === -1) return;
+
+    const heading = headingMatches[targetIndex];
+    const bodyEnd = targetIndex + 1 < headingMatches.length ? headingMatches[targetIndex + 1].index : boundedSection.length;
+    const goalSection = boundedSection.slice(heading.index, bodyEnd);
+    const goalLinkLine = `**Saved Goal:** [[${this.getWikiLinkTarget(goal.file.path)}|${goal.title}]]`;
+    const milestoneFiles = this.getGoalOwnedMilestoneFiles(goal.file.path);
+    const milestoneLinks = milestoneFiles
+      .map((file) => `[[${this.getWikiLinkTarget(file.path)}|${this.getFileDisplayName(file.path)}]]`)
+      .join(', ');
+    const milestoneLinkLine = milestoneLinks ? `**Milestone Notes:** ${milestoneLinks}` : '';
+    const upsertLine = (section: string, prefix: string, fullLine: string) => {
+      const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const lineRegex = new RegExp(`${escapedPrefix}.*(?:\\n|$)`);
+      return lineRegex.test(section)
+        ? section.replace(lineRegex, `${fullLine}\n`)
+        : `${section.trimEnd()}\n${fullLine}\n`;
+    };
+
+    let updatedGoalSection = goalSection;
+    updatedGoalSection = upsertLine(updatedGoalSection, '**Saved Goal:**', goalLinkLine);
+    if (milestoneLinkLine) {
+      updatedGoalSection = upsertLine(updatedGoalSection, '**Milestone Notes:**', milestoneLinkLine);
+    }
+
+    const updatedBoundedSection = `${boundedSection.slice(0, heading.index)}${updatedGoalSection}${boundedSection.slice(bodyEnd)}`;
+    const updatedContent = `${currentContent.slice(0, suggestionsStart)}${updatedBoundedSection}${currentContent.slice(suggestionsStart + boundedLength)}`;
+    await this.app.vault.modify(abstractFile, updatedContent);
   }
 
   async upsertPerspectiveSectionLine(sourceFilePath: string, perspectiveKey: string, linePrefix: string, fullLine: string) {
@@ -4003,14 +4148,14 @@ ${event.kind === 'goal_due'
     );
   }
 
-  async saveChatBackToSourceNote(sourceFilePath: string, perspectiveKey: string, chatMessages: ConversationMessage[], chatStartTime: Date) {
-    if (!PERSPECTIVES[perspectiveKey]) return;
+  async saveChatBackToSourceNote(sourceFilePath: string, perspectiveKey: string, chatMessages: ConversationMessage[], chatStartTime: Date): Promise<boolean> {
+    if (!PERSPECTIVES[perspectiveKey]) return false;
     const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
-    if (!abstractFile) return;
+    if (!abstractFile) return false;
 
     const currentContent = await this.app.vault.read(abstractFile);
     const bounds = this.findPerspectiveSectionBounds(currentContent, perspectiveKey);
-    if (!bounds) return;
+    if (!bounds) return false;
 
     const perspectiveTitle = this.getPerspectiveHeadingTitle(perspectiveKey);
     const messagesToPersist = chatMessages.filter((message, index) => {
@@ -4032,6 +4177,7 @@ ${event.kind === 'goal_due'
       abstractFile,
       `${currentContent.slice(0, bounds.start)}${updatedSection}${currentContent.slice(bounds.end)}`
     );
+    return true;
   }
 
   async appendAnalysisToFile(sourceFile: TFile, analysis: AnalysisPayload) {
@@ -4580,6 +4726,7 @@ class AIChatView extends ItemView {
   plugin: DeleometerPlugin;
   chatMessages: ConversationMessage[] = [];
   currentPerspective: string = 'lacanian_perspective';
+  sourcePerspectiveKey: string = '';
   messagesContainer: HTMLElement;
   inputArea: HTMLTextAreaElement;
   chatTitle: string = '';
@@ -4610,11 +4757,13 @@ class AIChatView extends ItemView {
     this.journalContext = '';
     this.sourceFilePath = '';
     this.initialAnalysis = '';
+    this.sourcePerspectiveKey = '';
 
     // Check for pending context from journal analysis
     const context = this.plugin.pendingChatContext;
     if (context) {
       this.currentPerspective = context.perspective;
+      this.sourcePerspectiveKey = context.perspective;
       this.journalContext = context.journalContent;
       this.chatTitle = `Journal analysis - ${PERSPECTIVES[context.perspective]?.title}`;
       this.sourceFilePath = context.sourceFilePath || '';
@@ -4750,6 +4899,10 @@ class AIChatView extends ItemView {
         new Notice('This chat is not linked to a journal analysis note. Use export if you want a separate note.');
         return;
       }
+      if (!this.sourcePerspectiveKey) {
+        new Notice('This chat is missing its source analysis lens. Re-open it from the lens link in the analysis note.');
+        return;
+      }
       const messagesToSave = this.chatMessages.filter((message, index) => {
         if (index === 0 && message.role === 'user' && message.content.startsWith('Here is a journal entry I wrote:')) {
           return false;
@@ -4763,7 +4916,11 @@ class AIChatView extends ItemView {
         new Notice('No new chat messages to save beyond the existing analysis');
         return;
       }
-      await this.plugin.saveChatBackToSourceNote(this.sourceFilePath, this.currentPerspective, messagesToSave, this.chatStartTime);
+      const saved = await this.plugin.saveChatBackToSourceNote(this.sourceFilePath, this.sourcePerspectiveKey, messagesToSave, this.chatStartTime);
+      if (!saved) {
+        new Notice('Could not find the source analysis lens section in the note. Re-open the chat from the lens link and try again.');
+        return;
+      }
       new Notice('Chat saved back to the source analysis section');
     } catch (error) {
       new Notice('Error saving chat');
@@ -4779,15 +4936,29 @@ class AIChatView extends ItemView {
 
     await this.plugin.ensureFolder(this.plugin.settings.chatsFolder);
     const timestamp = new Date().toISOString().split('T')[0];
-    const perspTitle = PERSPECTIVES[this.currentPerspective]?.title || 'Unknown';
-    const fileName = `${this.plugin.settings.chatsFolder}/Chat-Export-${timestamp}-${Date.now()}.md`;
+    const sourcePerspectiveKey = this.sourcePerspectiveKey || this.currentPerspective;
+    const perspTitle = PERSPECTIVES[sourcePerspectiveKey]?.title || PERSPECTIVES[this.currentPerspective]?.title || 'Unknown';
+    const chatBaseName = this.plugin.buildChatFileBaseName(this.sourceFilePath, sourcePerspectiveKey, timestamp);
+    const fileName = this.plugin.getUniqueMarkdownPath(this.plugin.settings.chatsFolder, chatBaseName);
+    let initialAnalysis = this.initialAnalysis;
+    if (!initialAnalysis && this.sourceFilePath && sourcePerspectiveKey) {
+      const sourceFile = this.plugin.getVaultMarkdownFile(this.sourceFilePath);
+      if (sourceFile) {
+        const sourceContent = await this.app.vault.read(sourceFile);
+        const sourceAnalysis = this.plugin.extractAnalysisPayloadFromNote(sourceContent);
+        initialAnalysis = sourceAnalysis.perspectives[sourcePerspectiveKey] || '';
+      }
+    }
 
-    let content = `# 💬 Chat Export: ${this.chatTitle}\n\n`;
+    let content = `# 💬 ${perspTitle} Chat - ${timestamp}\n\n`;
     content += `**Perspective:** ${perspTitle}\n`;
     content += `**Date:** ${this.chatStartTime.toLocaleString()}\n`;
     content += `**Exported:** ${new Date().toLocaleString()}\n\n`;
     if (this.sourceFilePath) {
       content += `**Source Note:** [[${this.plugin.getWikiLinkTarget(this.sourceFilePath)}|${this.plugin.getFileDisplayName(this.sourceFilePath)}]]\n\n`;
+      if (sourcePerspectiveKey) {
+        content += `**Source Analysis Lens:** ${this.plugin.buildPerspectiveSourceNoteLink(this.sourceFilePath, sourcePerspectiveKey)}\n\n`;
+      }
     }
 
     if (this.journalContext) {
@@ -4795,16 +4966,16 @@ class AIChatView extends ItemView {
       content += `${this.journalContext}\n\n`;
     }
 
-    if (this.initialAnalysis) {
+    if (initialAnalysis) {
       content += `## 🔍 Linked Analysis\n\n`;
-      content += `${this.initialAnalysis}\n\n`;
+      content += `${initialAnalysis}\n\n`;
     }
 
     const exportedConversation = this.chatMessages.filter((message, index) => {
       if (index === 0 && message.role === 'user' && message.content.startsWith('Here is a journal entry I wrote:')) {
         return false;
       }
-      if (this.initialAnalysis && message.role === 'assistant' && message.content === this.initialAnalysis) {
+      if (initialAnalysis && message.role === 'assistant' && message.content === initialAnalysis) {
         return false;
       }
       return true;
@@ -4828,7 +4999,7 @@ class AIChatView extends ItemView {
 
     try {
       const file = await this.app.vault.create(fileName, content);
-      await this.app.workspace.getLeaf().openFile(file);
+      await this.plugin.openFileInSplit(file);
       new Notice('Chat exported to note');
     } catch (error) {
       new Notice('Could not export chat');
@@ -4842,6 +5013,7 @@ class AIChatView extends ItemView {
     this.journalContext = '';
     this.chatTitle = `Chat - ${new Date().toLocaleDateString()}`;
     this.currentPerspective = 'lacanian_perspective';
+    this.sourcePerspectiveKey = '';
     this.sourceFilePath = '';
     this.initialAnalysis = '';
     void this.onOpen(); // Re-render
@@ -5155,8 +5327,12 @@ ${this.milestones.map(m => `- [ ] ${m.title}`).join('\n')}
 `;
     const file = await this.app.vault.create(fileName, template);
     await this.plugin.syncGoalMilestonesToFolder(file, true);
+    const savedGoal = await this.plugin.getGoalFileData(file);
+    if (savedGoal) {
+      await this.app.vault.modify(file, this.plugin.buildStandardGoalNote(savedGoal));
+    }
     await this.plugin.syncGoalFileToFullCalendar(file);
-    await this.app.workspace.getLeaf().openFile(file);
+    await this.plugin.openFileInSplit(file);
     new Notice('Goal created!');
     this.close();
   }
@@ -5266,7 +5442,7 @@ class GoalDraftsModal extends Modal {
       }
 
       if (lastFile) {
-        await this.app.workspace.getLeaf().openFile(lastFile);
+        await this.plugin.openFileInSplit(lastFile);
       }
 
       new Notice(`Saved ${validDrafts.length} goal draft${validDrafts.length === 1 ? '' : 's'}!`);
