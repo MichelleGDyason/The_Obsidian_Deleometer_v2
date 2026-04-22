@@ -17,6 +17,18 @@ interface PerspectiveDefinition {
   group: string;
 }
 
+interface PerspectiveMetadata {
+  tradition?: string;
+  orientation?: string;
+  lineage?: string;
+  chronology?: string;
+}
+
+interface OutputLanguageOption {
+  label: string;
+  prompt: string;
+}
+
 const PHILOSOPHY_GROUP_KEY = 'philosophy_first_discipline';
 
 const PERSPECTIVE_GROUPS: Record<string, PerspectiveGroup> = {
@@ -83,10 +95,18 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   leibniz_monadology_perspective: { title: "Gottfried Wilhelm Leibniz's Monadology", description: 'Monads, pre-established harmony, sufficient reason, possible worlds, perception, appetite, relation, and rational order', group: PHILOSOPHY_GROUP_KEY },
   lockean_personal_identity: { title: "John Locke's Personal Identity", description: 'Consciousness, memory, personhood, accountability, continuity, moral responsibility, and the self over time', group: PHILOSOPHY_GROUP_KEY },
   humean_bundle_self: { title: "David Hume's Bundle Theory of Self", description: 'Impressions, perceptions, habit, continuity, skepticism, identity as fiction, and the self as a bundle of experiences', group: PHILOSOPHY_GROUP_KEY },
+  rousseau_political_thought: { title: "Jean-Jacques Rousseau's Political Thought", description: 'General will, inequality, freedom, education, civic life, corruption, dependence, moral sentiment, and the making of political community', group: PHILOSOPHY_GROUP_KEY },
+  aesthetics_untranslatables: { title: 'Aesthetics', description: 'Aisthesis, sensation, taste, beauty, art, the sensible, judgment, translation, and the contested history of what aesthetics is taken to mean', group: PHILOSOPHY_GROUP_KEY },
   moral_naturalism_perspective: { title: 'Moral Naturalism', description: 'Moral facts, natural properties, human flourishing, reasons, science, normativity, value, and ethical life without supernatural grounding', group: PHILOSOPHY_GROUP_KEY },
   kantian_transcendental_subject: { title: "Immanuel Kant's Transcendental Subject", description: 'Apperception, categories, autonomy, moral law, conditions of experience, and the self that organizes knowledge', group: PHILOSOPHY_GROUP_KEY },
   hegelian_recognition_subject: { title: "G.W.F. Hegel's Recognition and Subjectivity", description: 'Recognition, self-consciousness, lordship and bondage, dialectic, social freedom, history, and becoming a subject through others', group: PHILOSOPHY_GROUP_KEY },
+  kierkegaard_existential_faith: { title: "Søren Kierkegaard's Existential Faith", description: 'Anxiety, despair, subjectivity, inwardness, choice, faith, repetition, the leap, and becoming a self before God and others', group: PHILOSOPHY_GROUP_KEY },
+  schopenhauer_will_representation: { title: "Arthur Schopenhauer's Will and Representation", description: 'Will, suffering, desire, representation, compassion, pessimism, ascetic interruption, and the restless structure of experience', group: PHILOSOPHY_GROUP_KEY },
   nietzschean_perspective: { title: 'Nietzschean Philosophy', description: 'Will to power, values, and self-overcoming', group: PHILOSOPHY_GROUP_KEY },
+  collingwood_historical_imagination: { title: "R. G. Collingwood's Historical Imagination", description: 'Re-enactment of thought, historical consciousness, question-and-answer logic, evidence, context, and understanding action from within its problem-space', group: PHILOSOPHY_GROUP_KEY },
+  logics_analysis: { title: 'Logics Analysis', description: 'Inference, validity, contradiction, entailment, formal structure, argument patterns, and what follows from what', group: PHILOSOPHY_GROUP_KEY },
+  epistemology_analysis: { title: 'Epistemology', description: 'Knowledge, belief, evidence, justification, error, testimony, certainty, ignorance, and the conditions under which a claim counts as known', group: PHILOSOPHY_GROUP_KEY },
+  husserlian_phenomenology: { title: "Edmund Husserl's Phenomenology", description: 'Intentionality, epoché, reduction, evidence, lived experience, constitution, time-consciousness, and the structures of appearing', group: PHILOSOPHY_GROUP_KEY },
   phenomenology_perspective: { title: 'Phenomenology', description: 'Lived experience and consciousness', group: PHILOSOPHY_GROUP_KEY },
   heideggerian_dasein_analysis: { title: "Martin Heidegger's Dasein Analysis", description: 'Being-in-the-world, thrownness, care, everydayness, authenticity, temporality, and the self as situated existence', group: PHILOSOPHY_GROUP_KEY },
   levinasian_ethics: { title: "Emmanuel Levinas' Ethics of the Other", description: 'Face-to-face encounter, infinite responsibility, alterity, vulnerability, ethics before ontology, and the demand of the Other', group: PHILOSOPHY_GROUP_KEY },
@@ -95,7 +115,11 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   sartrean_subjectivity: { title: "Jean-Paul Sartre's Subjectivity", description: 'Freedom, bad faith, nothingness, the look, responsibility, choice, and the self as project rather than essence', group: PHILOSOPHY_GROUP_KEY },
   de_beauvoir_situated_subject: { title: "Simone de Beauvoir's Situated Subject", description: 'Ambiguity, freedom, oppression, gendered becoming, immanence, transcendence, and the ethical demand to become with others', group: PHILOSOPHY_GROUP_KEY },
   merleau_ponty_embodied_subject: { title: "Maurice Merleau-Ponty's Embodied Subject", description: 'Embodiment, perception, habit, flesh, motor intentionality, intersubjectivity, and the lived body as subject', group: PHILOSOPHY_GROUP_KEY },
+  feminist_philosophy: { title: 'Feminist Philosophy', description: 'Power, embodiment, knowledge, sex and gender, autonomy, care, justice, difference, critique, and the transformation of inherited philosophical problems', group: PHILOSOPHY_GROUP_KEY },
+  whitehead_process_philosophy: { title: "Alfred North Whitehead's Process Philosophy", description: 'Actual occasions, process, relation, creativity, prehension, concrescence, novelty, and reality as event rather than static substance', group: PHILOSOPHY_GROUP_KEY },
   process_philosophical_analysis: { title: 'Process Philosophical Analysis', description: 'Becoming, relation, event, creativity, temporality, and emergent order', group: PHILOSOPHY_GROUP_KEY },
+  philosophy_of_language_analysis: { title: 'Philosophy of Language', description: 'Meaning, reference, naming, use, speech acts, interpretation, translation, rule-following, and how language shapes thought and worldhood', group: PHILOSOPHY_GROUP_KEY },
+  wittgenstein_language_games: { title: "Ludwig Wittgenstein's Language Games", description: 'Use, rule-following, forms of life, language games, family resemblance, ordinary language, and the limits of what can be said clearly', group: PHILOSOPHY_GROUP_KEY },
   pf_strawson_personhood: { title: "P. F. Strawson's Personhood", description: 'Persons, reactive attitudes, responsibility, ordinary language, embodiment, mutual recognition, and the social grammar of accountability', group: PHILOSOPHY_GROUP_KEY },
   harry_frankfurt_volitional_self: { title: "Harry Frankfurt's Volitional Self", description: 'Second-order desires, wholeheartedness, identification, free will, care, ambivalence, and what a person wants to want', group: PHILOSOPHY_GROUP_KEY },
   sydney_shoemaker_self_knowledge: { title: "Sydney Shoemaker's Self-Knowledge", description: 'Self-reference, immunity to error, first-person authority, embodiment, memory, and how one knows oneself as oneself', group: PHILOSOPHY_GROUP_KEY },
@@ -117,6 +141,12 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   shaun_gallagher_embodied_self: { title: "Shaun Gallagher's Embodied Self", description: 'Body schema, agency, ownership, intersubjectivity, cognition, enactivism, and the self as embodied action', group: PHILOSOPHY_GROUP_KEY },
   gallagher_pattern_theory_self: { title: "Shaun Gallagher's Pattern Theory of Self", description: 'Self-pattern, embodied, experiential, affective, intersubjective, narrative, extended, ecological, and normative dimensions of selfhood as a dynamic configuration', group: PHILOSOPHY_GROUP_KEY },
   rosi_braidotti_nomadic_subjectivity: { title: "Rosi Braidotti's Nomadic Subjectivity", description: 'Nomadic subject, posthuman feminism, becoming, embodiment, difference, affirmative ethics, and non-unitary selfhood', group: PHILOSOPHY_GROUP_KEY },
+  naturalism_analysis: { title: 'Naturalism', description: 'Nature, lawfulness, continuity, explanation, anti-supernaturalism, human embeddedness, and what it means to explain life and mind without transcendence', group: PHILOSOPHY_GROUP_KEY },
+  philosophy_of_science_analysis: { title: 'Philosophy of Science', description: 'Explanation, theory choice, evidence, experiment, models, realism, falsifiability, underdetermination, and the making of scientific knowledge', group: PHILOSOPHY_GROUP_KEY },
+  philosophy_of_physics_analysis: { title: 'Philosophy of Physics', description: 'Space, time, matter, causation, laws, fields, measurement, scale, and how physical theory frames reality', group: PHILOSOPHY_GROUP_KEY },
+  feyerabend_epistemological_anarchism: { title: "Paul Feyerabend's Epistemological Anarchism", description: 'Methodological pluralism, epistemic dissent, against rigid method, scientific change, heterodoxy, and the politics of knowledge-making', group: PHILOSOPHY_GROUP_KEY },
+  michel_serres_relations: { title: "Michel Serres' Relations and Parasites", description: 'Noise, parasitism, relation, passage, communication, mediation, contamination, and how systems are transformed by interference', group: PHILOSOPHY_GROUP_KEY },
+  jacques_ranciere_politics_aesthetics: { title: "Jacques Rancière's Politics and Aesthetics", description: 'The distribution of the sensible, dissensus, equality, politics, aesthetics, voice, partition, and who gets to appear and be heard', group: PHILOSOPHY_GROUP_KEY },
   topological_analysis: { title: 'Topological Analysis', description: 'Relations, surfaces, thresholds, folds, nearness, boundaries, and spatial transformations of meaning', group: PHILOSOPHY_GROUP_KEY },
 
   ancient_religious_interpretation: { title: 'Ancient Religious Interpretation', description: 'Ritual, sacrifice, omen, sacred order, taboo, ancestor, cosmology, and ancient religious imagination', group: 'religious_mythic_interpretation' },
@@ -131,10 +161,19 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   cartographic_analysis: { title: 'Cartographic Analysis', description: 'Maps, scale, projection, legend, boundary-making, orientation, territory, omission, routes, and how mapping turns experience into spatial knowledge', group: 'social_spatial_research' },
   geography_analysis: { title: 'Geography', description: 'Place, space, landscape, region, mobility, environment, human geography, physical geography, uneven development, and relations between people and land', group: 'social_spatial_research' },
   sociology_analysis: { title: 'Sociology', description: 'Social structure, institutions, norms, class, status, roles, groups, interaction, social change, power, and the patterning of everyday life', group: 'social_spatial_research' },
+  social_theories_of_deviance: { title: 'Social Theories of Deviance', description: 'Norm violation, labeling, stigma, moral panic, social control, subculture, anomie, criminalization, and how societies define and manage deviance', group: 'social_spatial_research' },
+  discourse_analysis: { title: 'Discourse Analysis', description: 'Speech, text, framing, repetition, genre, institutional language, positioning, rhetoric, and how discourse shapes what can be thought and said', group: 'social_spatial_research' },
+  political_thought: { title: 'Political Thought', description: 'Authority, legitimacy, liberty, power, conflict, order, justice, obligation, and the ideas that shape collective life', group: 'social_spatial_research' },
+  democracy_analysis: { title: 'Democracy', description: 'Representation, participation, equality, deliberation, institutions, dissent, citizenship, accountability, and collective decision-making', group: 'social_spatial_research' },
+  theories_of_world_politics: { title: 'Theories of World Politics', description: 'International order, sovereignty, realism, liberalism, imperialism, interdependence, geopolitics, security, and global power relations', group: 'social_spatial_research' },
+  critique_of_human_rights: { title: 'Critique of Human Rights', description: 'Rights discourse, universality, exclusion, state power, humanitarianism, enforcement gaps, abstraction, and the politics of legal moral claims', group: 'social_spatial_research' },
+  social_policy_analysis: { title: 'Social Policy', description: 'Welfare, care, public provision, inequality, redistribution, institutions, safety nets, governance, and policy impacts on everyday life', group: 'social_spatial_research' },
+  healthy_in_all_policies: { title: 'Health in All Policies for Healthy Communities', description: 'Public health across sectors, prevention, equity, housing, transport, food, community wellbeing, interdepartmental policy, and healthy environments', group: 'social_spatial_research' },
   social_research_methods: { title: 'Social Research Methods', description: 'Research questions, interviews, observation, surveys, sampling, ethics, coding, reflexivity, validity, positionality, and evidence-building in social inquiry', group: 'social_spatial_research' },
 
   linguistic_analysis: { title: 'Linguistic Analysis', description: 'Words, grammar, naming, register, metaphor, speech acts, code-switching, silence, and how language organizes experience', group: 'narrative_media_frame' },
   semiotic_analysis: { title: 'Semiotic Analysis', description: 'Signs, symbols, signifier and signified, codes, icons, indexes, myths, and how meaning is made and circulated', group: 'narrative_media_frame' },
+  argumentation_construction_analysis: { title: 'Argumentation Construction and Analysis', description: 'Claims, warrants, evidence, assumptions, validity, rhetoric, counterargument, inference, and how arguments are built and tested', group: 'narrative_media_frame' },
   narrative_psychology_perspective: { title: 'Narrative Psychology', description: 'Life stories and meaning-making', group: 'narrative_media_frame' },
   creative_nonfiction_perspective: { title: 'Creative Non-Fiction', description: 'Scene, voice, witness, memory, essaying, and truthful narrative craft', group: 'narrative_media_frame' },
   music_songwriting_analysis: { title: 'Music Songwriting Analysis', description: 'Melody, lyric, rhythm, refrain, hook, voice, affect, arrangement, genre, performance, and how songs turn feeling into form', group: 'narrative_media_frame' },
@@ -142,6 +181,9 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   frame_analysis: { title: 'Frame Analysis', description: 'Interpretive frames, salience, boundaries, alignment, and meaning organization', group: 'narrative_media_frame' },
   goffman_frame_analysis: { title: "Erving Goffman's Frame Analysis", description: 'Interaction order, presentation of self, keyed events, footing, and everyday frames', group: 'narrative_media_frame' },
   media_studies: { title: 'Media Studies', description: 'Platforms, mediation, publics, representation, attention, circulation, and media power', group: 'narrative_media_frame' },
+  poetics_analysis: { title: 'Poetics', description: 'Image, rhythm, metaphor, sound, line, voice, form, compression, resonance, and how language becomes patterned intensity', group: 'narrative_media_frame' },
+  art_theory_analysis: { title: 'Art Theory', description: 'Medium, form, spectatorship, representation, aesthetic judgment, interpretation, image politics, craft, and the work of art in culture', group: 'narrative_media_frame' },
+  susan_sontag_interpretation: { title: "Susan Sontag on Interpretation", description: 'Against over-interpretation, style, sensuous surface, camp, image culture, illness metaphors, and the ethics of looking and reading', group: 'narrative_media_frame' },
   tessa_laird_cinemal: { title: "Tessa Laird's Cinemal", description: 'Becoming-animal experimental film, sensory cinema, nonhuman perception, more-than-human voices, ecological collapse, and cinematic animality', group: 'narrative_media_frame' },
 
   freudian_psychoanalysis: { title: 'Freudian Psychoanalysis', description: 'Unconscious conflict, repression, dream-work, sexuality, and symptom formation', group: 'psychoanalytic_clinical' },
@@ -164,27 +206,42 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   montessori_method: { title: 'Montessori Method', description: 'Prepared environment, self-directed activity, sensitive periods, observation, independence, practical life, embodied learning, and respect for the child', group: 'family_care_guidance' },
   piaget_developmental_theory: { title: "Jean Piaget's Developmental Theory", description: 'Schemas, assimilation, accommodation, stages of cognitive development, constructivism, play, reasoning, and how children build knowledge', group: 'family_care_guidance' },
   vygotsky_sociocultural_theory: { title: "Lev Vygotsky's Sociocultural Theory", description: 'Zone of proximal development, scaffolding, language, social learning, cultural tools, mediation, collaboration, and guided development', group: 'family_care_guidance' },
+  primary_pedagogy: { title: 'Teaching in Primary School', description: 'Foundational learning, play, scaffolding, safety, routine, literacy, numeracy, care, explanation, and teaching for early developmental stages', group: 'family_care_guidance' },
+  secondary_pedagogy: { title: 'Teaching in Secondary School', description: 'Adolescence, identity formation, discipline, motivation, curriculum, peer culture, assessment, transition, and guided independence', group: 'family_care_guidance' },
+  tertiary_pedagogy: { title: 'Teaching in Tertiary Education', description: 'Advanced study, disciplinary method, critical thinking, self-direction, research literacy, academic formation, transition, and adult learning', group: 'family_care_guidance' },
+  trades_pedagogy: { title: 'Trades Pedagogy', description: 'Apprenticeship, practical competence, tacit knowledge, repetition, safety, embodied skill, tools, mentoring, and learning through doing', group: 'family_care_guidance' },
   asian_japanese_parental_guidance: { title: 'Asian / Japanese Parental Guidance Practices', description: 'Interdependence, family obligation, amae, discipline, social harmony, education, respect, and relational guidance in Japanese and wider Asian contexts', group: 'family_care_guidance' },
   african_zimbabwean_parental_guidance: { title: 'African / Zimbabwean Parental Guidance Practices', description: 'Ubuntu, extended kinship, respect, communal responsibility, oral teaching, discipline, survival, and intergenerational guidance in Zimbabwean and wider African contexts', group: 'family_care_guidance' },
   western_parental_guidance: { title: 'Western Parental Guidance Theories', description: 'Attachment, autonomy, authoritative guidance, boundaries, praise, discipline, rights, developmental milestones, and individual self-formation', group: 'family_care_guidance' },
+  advice_from_grandma: { title: 'Advice from Grandma', description: 'Intergenerational wisdom, practical care, household knowledge, caution, humour, memory, everyday ethics, relational guidance, and lived common sense', group: 'family_care_guidance' },
 
-  marxian_analysis: { title: 'Marxian Analysis', description: 'Class, labor, alienation, material conditions, ideology, commodity form, exploitation, social reproduction, and historical change', group: 'archeo_genealogical_deconstruction' },
+  marxian_analysis: { title: 'Marx and Engels Historical Materialism', description: 'Class, labor, alienation, material conditions, ideology, commodity form, exploitation, social reproduction, historical materialism, and revolutionary change', group: 'archeo_genealogical_deconstruction' },
+  post_structuralism_analysis: { title: 'Post-Structuralism', description: 'Difference, discourse, instability, subject formation, signifying chains, power, critique of fixed meaning, and the undoing of essential categories', group: 'archeo_genealogical_deconstruction' },
   bataillean_analysis: { title: 'Georges Bataillean Analysis', description: 'Excess, expenditure, transgression, sovereignty, taboo, sacrifice, eroticism, base materialism, and the limits of utility', group: 'archeo_genealogical_deconstruction' },
   critical_theory_perspective: { title: 'Critical Theory', description: 'Social critique and emancipation', group: 'archeo_genealogical_deconstruction' },
+  horkheimer_critical_theory: { title: "Max Horkheimer's Critical Theory", description: 'Instrumental reason, domination, emancipation, ideology, capitalism, culture, authoritarian tendencies, and critique aimed at social transformation', group: 'archeo_genealogical_deconstruction' },
   simondonian_analysis: { title: 'Simondonian Analysis', description: 'Individuation, preindividual fields, technics, relation, and collective becoming', group: 'archeo_genealogical_deconstruction' },
   foucaultian_analysis: { title: 'Foucaultian Analysis', description: 'Power, discourse, discipline, subject formation, and historical conditions of truth', group: 'archeo_genealogical_deconstruction' },
   derridian_analysis: { title: 'Derridian Analysis', description: 'Deconstruction, differance, trace, supplement, undecidability, and textual instability', group: 'archeo_genealogical_deconstruction' },
   schizoanalytic_insights: { title: 'Deleuzian Schizoanalysis', description: 'Rhizomatic thinking, lines of flight, and becoming', group: 'archeo_genealogical_deconstruction' },
   zizekian_analysis: { title: 'Žižekian Analysis', description: 'Ideology, fantasy, contradiction, enjoyment, subjectivity, and the Real', group: 'archeo_genealogical_deconstruction' },
+  spivak_subaltern_analysis: { title: "Gayatri Chakravorty Spivak's Subaltern Analysis", description: 'Subalternity, representation, epistemic violence, strategic essentialism, imperialism, translation, voice, mediation, and who can speak within dominant discourse', group: 'archeo_genealogical_deconstruction' },
   posthumanism_perspective: { title: 'Posthumanism', description: 'Beyond human-centered thinking', group: 'archeo_genealogical_deconstruction' },
 
   feminist_perspective: { title: 'Feminist Psychology', description: 'Gender, power, and social context', group: 'gender_sexuality_queer' },
   irigarayian_perspective: { title: 'Irigarayian Feminine', description: 'Sexual difference and feminine subjectivity', group: 'gender_sexuality_queer' },
+  standpoint_theory: { title: 'Standpoint Theory', description: 'Situated social location, epistemic privilege from the margins, structural position, reflexivity, power, experience, and standpoint as a method of knowledge', group: 'gender_sexuality_queer' },
+  radical_feminism: { title: 'Radical Feminism', description: 'Patriarchy, sex-class, violence, reproductive politics, structural domination, consciousness-raising, and transformative critique of male power', group: 'gender_sexuality_queer' },
+  ecofeminism: { title: 'Ecofeminism', description: 'Gendered domination, ecology, care, extraction, embodiment, environmental justice, relational ethics, and the linked critique of patriarchy and ecological destruction', group: 'gender_sexuality_queer' },
   lgbtq_studies_perspective: { title: 'Lesbian & Gay Studies', description: 'Lesbian and gay histories, cultures, communities, marginalization, resilience, and affirmation', group: 'gender_sexuality_queer' },
   sexualities_studies: { title: 'Sexualities Studies', description: 'Sexual cultures, practices, identities, norms, pleasure, stigma, and social regulation', group: 'gender_sexuality_queer' },
   gender_studies: { title: 'Gender Studies', description: 'Gender systems, identities, embodiment, institutions, power, and everyday life', group: 'gender_sexuality_queer' },
   queer_theory_perspective: { title: 'Queer Theory', description: 'Norms, identity, fluidity, and the politics of desire', group: 'gender_sexuality_queer' },
+  bell_hooks_love_pedagogy: { title: "bell hooks' Love and Pedagogy", description: 'Love as ethic, engaged pedagogy, domination, liberation, community, care, voice, feminist teaching, and transforming everyday life through critical relation', group: 'gender_sexuality_queer' },
   trans_studies: { title: 'Trans Studies', description: 'Trans life, embodiment, transition, self-determination, institutions, and gender variance', group: 'gender_sexuality_queer' },
+  identity_politics_analysis: { title: 'Identity Politics', description: 'Collective identification, recognition, coalition, difference, strategic naming, inclusion, exclusion, representation, and the politics of belonging', group: 'gender_sexuality_queer' },
+  elizabeth_grosz_corporeal_feminism: { title: "Elizabeth Grosz's Corporeal Feminism", description: 'Embodiment, sexual difference, becoming, materiality, time, space, animality, and feminist philosophy beyond static identity', group: 'gender_sexuality_queer' },
+  donna_haraway_situated_knowledges: { title: "Donna Haraway's Situated Knowledges", description: 'Situated knowledge, partial perspective, cyborgs, technoscience, kin-making, response-ability, species entanglement, and accountable positioning', group: 'gender_sexuality_queer' },
 
   critical_race_studies: { title: 'Critical Race Studies', description: 'Racial formation, structural racism, intersectionality, law, culture, and lived experience', group: 'race_coloniality_embodiment' },
   fanonian_analysis: { title: 'Frantz Fanonian Analysis', description: 'Colonial violence, racialization, alienation, recognition, embodiment, national consciousness, liberation, and the psychic life of colonial power', group: 'race_coloniality_embodiment' },
@@ -193,17 +250,33 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   mad_studies: { title: 'Mad Studies', description: 'Psychiatric power, mad knowledge, distress, survival, and alternatives to pathologization', group: 'race_coloniality_embodiment' },
 
   ecology_perspective: { title: 'Ecology', description: 'Organisms, habitats, interdependence, niches, energy flows, disturbance, adaptation, and relations between living systems and environments', group: 'systems_ecology_food' },
+  traditional_ecological_knowledges: { title: 'Traditional Ecological Knowledges', description: 'Long-term ecological observation, seasonal knowledge, custodianship, species relation, practice-based environmental learning, place memory, reciprocity, and intergenerational survival knowledge', group: 'systems_ecology_food' },
   quantum_theory_analysis: { title: 'Quantum Theory Analysis', description: 'Observation, indeterminacy, probability, entanglement, measurement, fields, scale, uncertainty, and the limits of classical causality', group: 'systems_ecology_food' },
+  chaos_theory_analysis: { title: 'Chaos Theory', description: 'Nonlinearity, sensitivity to initial conditions, strange attractors, turbulence, emergence, unpredictability, pattern, and dynamic systems near instability', group: 'systems_ecology_food' },
   gregory_bateson_ecology_mind: { title: "Gregory Bateson's Ecology of Mind", description: 'Cybernetics, feedback, pattern, communication, double bind, learning levels, mind-in-system, relational ecology, and the pattern that connects', group: 'systems_ecology_food' },
+  science_technology_studies: { title: 'Science and Technology Studies', description: 'Technoscience, laboratories, infrastructures, social construction, expertise, controversy, publics, material practice, and how science and technology are made in society', group: 'systems_ecology_food' },
   latourian_analysis: { title: 'Latourian Analysis', description: 'Actor-networks, mediation, translation, nonhuman agency, and assembled realities', group: 'systems_ecology_food' },
   karen_barad_agential_realism: { title: "Karen Barad's Agential Realism", description: 'Intra-action, apparatus, diffraction, mattering, entanglement, ethics, material-discursive practice, and quantum feminist theory', group: 'systems_ecology_food' },
+  isabelle_stengers_cosmopolitics: { title: "Isabelle Stengers' Cosmopolitics", description: 'Cosmopolitics, ecology of practices, slowing down reasoning, speculative pragmatics, obligation, situated knowledge, and composing with heterogeneous worlds', group: 'systems_ecology_food' },
+  new_materialisms: { title: 'New Materialisms', description: 'Matter, agency, relation, vitality, embodiment, assemblage, nonhuman force, material-discursive practice, and the liveliness of the world', group: 'systems_ecology_food' },
   resilience_analysis: { title: 'Resilience', description: 'Adaptive capacity, recovery, redundancy, stress response, and durable support systems', group: 'systems_ecology_food' },
   social_ecological_systems_theory: { title: 'Social-Ecological Systems Theory', description: 'Linked human and ecological systems, feedback loops, thresholds, adaptive governance, resilience, institutions, and environmental change', group: 'systems_ecology_food' },
   critical_food_systems_analysis: { title: 'Critical Food Systems Analysis', description: 'Food justice, supply chains, agriculture, labor, ecology, access, and power', group: 'systems_ecology_food' },
+  feminist_food_studies: { title: 'Feminist Food Studies', description: 'Care, labor, eating, embodiment, domesticity, agriculture, consumption, food justice, gendered power, and the politics of nourishment', group: 'systems_ecology_food' },
   biomimicry_perspective: { title: 'Biomimicry', description: 'Learning from living systems, adaptation, form, function, and regenerative design', group: 'systems_ecology_food' },
+  environmental_humanities: { title: 'Environmental Humanities', description: 'Culture, ecology, ethics, story, extinction, more-than-human worlds, environmental justice, and how human meaning is entangled with damaged environments', group: 'systems_ecology_food' },
   ecopoiesis_perspective: { title: 'Ecopoiesis', description: 'World-making ecologies, habitat creation, planetary repair, and life-supporting systems', group: 'systems_ecology_food' },
+  rewilding_analysis: { title: 'Rewilding', description: 'Ecological restoration, trophic complexity, habitat recovery, nonhuman autonomy, corridor thinking, repair, and allowing damaged systems to regenerate beyond control', group: 'systems_ecology_food' },
+  regenerative_design: { title: 'Regenerative Design', description: 'Whole-systems design, reciprocity, circularity, repair, living systems, long-term flourishing, ecological health, and design that restores rather than merely sustains', group: 'systems_ecology_food' },
+  permaculture: { title: 'Permaculture', description: 'Earth care, people care, fair share, zones, stacking functions, regenerative practice, ecological design, and practical systems for resilient living', group: 'systems_ecology_food' },
+  landscape_design_theory: { title: 'Theory of Landscape Design', description: 'Site, contour, planting, circulation, ecology, aesthetics, maintenance, public use, atmosphere, and designing relations between bodies and land', group: 'systems_ecology_food' },
+  reciprocity_mutual_aid: { title: 'Reciprocity, Mutual Aid, and Sharing Economies', description: 'Reciprocity, commons, mutual aid, solidarity, gifting, sharing economies, survival networks, redistribution, and practical forms of collective support', group: 'systems_ecology_food' },
+  jasper_hoffmeyer_biosemiotics: { title: "Jesper Hoffmeyer's Biosemiotics", description: 'Sign processes in living systems, code duality, semiosis, communication, organism-environment relation, meaning in life processes, and ecological signification', group: 'systems_ecology_food' },
 
   mechanical_engineering_analysis: { title: 'Mechanical Engineering Analysis', description: 'Forces, loads, constraints, materials, mechanisms, tolerances, failure modes, energy transfer, friction, maintenance, and practical design', group: 'strategy_method_organisation' },
+  computer_science_analysis: { title: 'Computer Science', description: 'Algorithms, abstraction, data structures, computation, complexity, logic, interfaces, systems, debugging, and how procedures shape outcomes', group: 'strategy_method_organisation' },
+  data_science_analysis: { title: 'Data Science', description: 'Data collection, cleaning, patterning, modeling, prediction, bias, metrics, visualization, uncertainty, and what gets counted as signal', group: 'strategy_method_organisation' },
+  metascience_analysis: { title: 'Metascience', description: 'Research quality, reproducibility, incentives, publication bias, methods review, evidence standards, scientific institutions, and the study of how science works', group: 'strategy_method_organisation' },
   australian_legal_discourse: { title: 'Australian Legal Discourse', description: 'Common law, statute, precedent, jurisdiction, rights, obligations, evidence, administrative language, settler legality, and institutional reasoning in Australia', group: 'strategy_method_organisation' },
   swot_analysis: { title: 'SWOT Analysis', description: 'Strengths, weaknesses, opportunities, threats, and strategic positioning', group: 'strategy_method_organisation' },
   grounded_theory: { title: 'Grounded Theory', description: 'Open coding, constant comparison, memos, categories, theoretical sampling, emergence, saturation, and theory built from lived data', group: 'strategy_method_organisation' },
@@ -211,14 +284,17 @@ const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
   feasibility_analysis: { title: 'Feasibility Analysis', description: 'Practical viability, resources, constraints, dependencies, costs, and implementation readiness', group: 'strategy_method_organisation' },
   risk_analysis: { title: 'Risk Analysis', description: 'Likelihood, impact, uncertainty, exposure, prevention, mitigation, and contingency', group: 'strategy_method_organisation' },
   transitional_theory: { title: 'Transitional Theory', description: 'Liminal movement, phased change, rites of passage, continuity, and transformation', group: 'strategy_method_organisation' },
+  socio_technical_transitions_mlp: { title: 'Socio-Technical Transitions and the Multi-Level Perspective', description: 'Niches, regimes, landscape pressures, transition pathways, socio-technical change, sustainability transitions, system lock-in, and long-term transformation', group: 'strategy_method_organisation' },
   organisational_theories: { title: 'Organisational Theories', description: 'Structures, culture, governance, roles, incentives, coordination, and institutional change', group: 'strategy_method_organisation' },
   organisational_transformation: { title: 'Organisational Transformation', description: 'Change processes, leadership, culture shift, stakeholder alignment, resistance, capability building, implementation, and sustained institutional renewal', group: 'strategy_method_organisation' },
   social_movement_theories: { title: 'Theories Growing a Social Movement', description: 'Collective action, mobilization, framing, resources, leadership, and movement ecology', group: 'strategy_method_organisation' },
+  andre_baier_tins_d_analysis: { title: "André Baier's TINS_D Analysis", description: 'Democracy education, sustainability, socio-technical responsibility, engineering ethics, participatory formation, critical reflection, and collective capability-building for ecological futures', group: 'strategy_method_organisation' },
   tacktical_methodological_analysis: { title: 'Tacktical Methodological Analysis', description: "Louisa Bufardeci's tactical method, situated procedure, constraints, mapping, and action", group: 'strategy_method_organisation' },
   transformative_futures: { title: 'Imagining Transformative Futures', description: 'Speculation, prefiguration, scenario imagination, world-building, and emancipatory possibility', group: 'strategy_method_organisation' }
 };
 
 const PERSPECTIVE_HEADING_ALIASES: Record<string, string[]> = {
+  marxian_analysis: ['Marxian Analysis', 'Marx and Engels Historical Materialism', 'Marx and Engels', 'Marx and Engels Perspective'],
   lgbtq_studies_perspective: ['LGBTQ+ Studies'],
   feasibility_analysis: ['Feasability Analysis'],
   tacktical_methodological_analysis: ['Tactical Methodological Analysis'],
@@ -232,7 +308,18 @@ const PERSPECTIVE_HEADING_ALIASES: Record<string, string[]> = {
   jean_luc_nancy_being_with: ["Jean Luc Nancy's Being-With", 'Jean-Luc Nancy'],
   fanonian_analysis: ['Franz Fanon Analysis', 'Frantz Fanon Analysis'],
   kristevan_abjection_semiotic: ["Julia Kristeva's Abjection and the Semiotic", 'Kristevan Analysis', 'Julia Kristeva'],
-  gallagher_pattern_theory_self: ["Gallagher's Pattern Theory of Self", 'A Pattern Theory of Self', 'Pattern Theory of Self']
+  gallagher_pattern_theory_self: ["Gallagher's Pattern Theory of Self", 'A Pattern Theory of Self', 'Pattern Theory of Self'],
+  husserlian_phenomenology: ["Husserl's Phenomenology", 'Edmund Husserl', 'Husserl'],
+  whitehead_process_philosophy: ["Whitehead's Process Philosophy", 'Alfred North Whitehead', 'Whitehead'],
+  aesthetics_untranslatables: ['Aesthetics', 'Aesthetics and the Untranslatable', 'Dictionary of Untranslatables Aesthetics'],
+  spivak_subaltern_analysis: ['Gayatry Chacravorty Spivak', 'Gayatri Chakravorty Spivak', "Spivak's Subaltern Analysis"],
+  jasper_hoffmeyer_biosemiotics: ['Jasper Hoffmeyer', 'Jesper Hoffmeyer', "Hoffmeyer's Biosemiotics"],
+  andre_baier_tins_d_analysis: ["André Baier's TINS_D Analysis", "Andre Baier's TINS_D Analysis", 'TINS_D Analysis'],
+  donna_haraway_situated_knowledges: ["Donna Haraway's Situated Knowledges", 'Donna Haraway', 'Situated Knowledges'],
+  socio_technical_transitions_mlp: ['Multi-Level Perspective', 'Socio-Technical Transitions', 'Socio-technical Transitions and the Multi-Level Perspective'],
+  poetics_analysis: ['Poetry', 'Poetics'],
+  isabelle_stengers_cosmopolitics: ['Isobella Stengers', 'Isabelle Stengers', "Stengers' Cosmopolitics"],
+  metascience_analysis: ['MetaScience', 'Metascience']
 };
 
 const PERSPECTIVE_CHRONOLOGY: string[] = [
@@ -240,19 +327,19 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'ancient_religious_interpretation',
   'first_testament_hebrew_interpretation',
   'greek_gods_interpretation',
+  'roman_gods_interpretation',
+  'druidic_interpretation',
+  'buddhist_psychology_perspective',
+  'second_testament_christian_interpretation',
+  'muslim_interpretation',
+  'pagan_interpretation',
+  'bible_teachings_perspective',
   'cartographic_analysis',
   'geography_analysis',
-  'buddhist_psychology_perspective',
   'platonic_perspective',
   'aristotle_argonic_teachings',
   'cynics_perspective',
   'stoicism_perspective',
-  'roman_gods_interpretation',
-  'druidic_interpretation',
-  'second_testament_christian_interpretation',
-  'bible_teachings_perspective',
-  'muslim_interpretation',
-  'pagan_interpretation',
   'metaphysical_analysis',
   'ontological_analysis',
   'ethical_analysis',
@@ -262,18 +349,34 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'leibniz_monadology_perspective',
   'lockean_personal_identity',
   'humean_bundle_self',
-  'moral_naturalism_perspective',
+  'rousseau_political_thought',
+  'aesthetics_untranslatables',
   'kantian_transcendental_subject',
   'hegelian_recognition_subject',
+  'kierkegaard_existential_faith',
+  'schopenhauer_will_representation',
   'marxian_analysis',
   'sociology_analysis',
+  'political_thought',
+  'theories_of_world_politics',
+  'democracy_analysis',
+  'critique_of_human_rights',
+  'healthy_in_all_policies',
+  'social_policy_analysis',
   'nietzschean_perspective',
+  'collingwood_historical_imagination',
   'freudian_psychoanalysis',
   'jungian_perspective',
+  'logics_analysis',
+  'epistemology_analysis',
   'linguistic_analysis',
   'semiotic_analysis',
+  'argumentation_construction_analysis',
+  'husserlian_phenomenology',
   'phenomenology_perspective',
   'heideggerian_dasein_analysis',
+  'whitehead_process_philosophy',
+  'process_philosophical_analysis',
   'bataillean_analysis',
   'levinasian_ethics',
   'hermeneutics_perspective',
@@ -281,16 +384,29 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'sartrean_subjectivity',
   'de_beauvoir_situated_subject',
   'merleau_ponty_embodied_subject',
+  'feminist_philosophy',
+  'feminist_perspective',
+  'standpoint_theory',
+  'radical_feminism',
+  'ecofeminism',
   'lacanian_perspective',
   'kristevan_abjection_semiotic',
-  'process_philosophical_analysis',
   'critical_theory_perspective',
+  'horkheimer_critical_theory',
+  'wittgenstein_language_games',
+  'philosophy_of_language_analysis',
+  'pf_strawson_personhood',
   'social_research_methods',
-  'feminist_perspective',
+  'social_theories_of_deviance',
+  'discourse_analysis',
   'montessori_method',
   'piaget_developmental_theory',
   'vygotsky_sociocultural_theory',
-  'pf_strawson_personhood',
+  'primary_pedagogy',
+  'secondary_pedagogy',
+  'tertiary_pedagogy',
+  'trades_pedagogy',
+  'critical_theory_perspective',
   'harry_frankfurt_volitional_self',
   'sydney_shoemaker_self_knowledge',
   'bernard_williams_personal_identity',
@@ -301,6 +417,8 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'macintyre_narrative_self',
   'jean_luc_nancy_being_with',
   'irigarayian_perspective',
+  'bell_hooks_love_pedagogy',
+  'elizabeth_grosz_corporeal_feminism',
   'judith_butler_performativity',
   'catriona_mackenzie_relational_autonomy',
   'christine_korsgaard_self_constitution',
@@ -311,7 +429,17 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'dan_zahavi_minimal_self',
   'shaun_gallagher_embodied_self',
   'gallagher_pattern_theory_self',
+  'donna_haraway_situated_knowledges',
   'rosi_braidotti_nomadic_subjectivity',
+  'simondonian_analysis',
+  'foucaultian_analysis',
+  'derridian_analysis',
+  'post_structuralism_analysis',
+  'schizoanalytic_insights',
+  'jacques_ranciere_politics_aesthetics',
+  'zizekian_analysis',
+  'spivak_subaltern_analysis',
+  'posthumanism_perspective',
   'topological_analysis',
   'narrative_psychology_perspective',
   'creative_nonfiction_perspective',
@@ -320,6 +448,9 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'frame_analysis',
   'goffman_frame_analysis',
   'media_studies',
+  'poetics_analysis',
+  'art_theory_analysis',
+  'susan_sontag_interpretation',
   'tessa_laird_cinemal',
   'psychiatry_perspective',
   'attachment_theory_perspective',
@@ -332,33 +463,51 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'asian_japanese_parental_guidance',
   'african_zimbabwean_parental_guidance',
   'western_parental_guidance',
-  'simondonian_analysis',
-  'foucaultian_analysis',
-  'derridian_analysis',
-  'schizoanalytic_insights',
-  'zizekian_analysis',
-  'posthumanism_perspective',
+  'advice_from_grandma',
   'lgbtq_studies_perspective',
   'sexualities_studies',
   'gender_studies',
   'queer_theory_perspective',
   'trans_studies',
+  'identity_politics_analysis',
   'fanonian_analysis',
   'critical_race_studies',
   'decolonial_studies',
   'fat_studies',
   'mad_studies',
   'ecology_perspective',
+  'traditional_ecological_knowledges',
   'quantum_theory_analysis',
+  'chaos_theory_analysis',
   'gregory_bateson_ecology_mind',
+  'science_technology_studies',
   'latourian_analysis',
   'karen_barad_agential_realism',
+  'isabelle_stengers_cosmopolitics',
+  'new_materialisms',
+  'moral_naturalism_perspective',
+  'naturalism_analysis',
+  'philosophy_of_science_analysis',
+  'philosophy_of_physics_analysis',
+  'feyerabend_epistemological_anarchism',
+  'michel_serres_relations',
   'resilience_analysis',
   'social_ecological_systems_theory',
   'critical_food_systems_analysis',
+  'feminist_food_studies',
   'biomimicry_perspective',
+  'environmental_humanities',
   'ecopoiesis_perspective',
+  'rewilding_analysis',
+  'regenerative_design',
+  'permaculture',
+  'landscape_design_theory',
+  'reciprocity_mutual_aid',
+  'jasper_hoffmeyer_biosemiotics',
   'mechanical_engineering_analysis',
+  'computer_science_analysis',
+  'data_science_analysis',
+  'metascience_analysis',
   'australian_legal_discourse',
   'swot_analysis',
   'grounded_theory',
@@ -366,9 +515,11 @@ const PERSPECTIVE_CHRONOLOGY: string[] = [
   'feasibility_analysis',
   'risk_analysis',
   'transitional_theory',
+  'socio_technical_transitions_mlp',
   'organisational_theories',
   'organisational_transformation',
   'social_movement_theories',
+  'andre_baier_tins_d_analysis',
   'tacktical_methodological_analysis',
   'transformative_futures'
 ];
@@ -392,7 +543,29 @@ function getChronologicalPerspectiveKeys(): string[] {
   return orderedKeys;
 }
 
+function getChronologicalGroupKeys(): string[] {
+  const seen = new Set<string>();
+  const orderedGroups: string[] = [];
+
+  for (const key of getChronologicalPerspectiveKeys()) {
+    const groupKey = PERSPECTIVES[key]?.group;
+    if (!groupKey || seen.has(groupKey) || !PERSPECTIVE_GROUPS[groupKey]) continue;
+    seen.add(groupKey);
+    orderedGroups.push(groupKey);
+  }
+
+  for (const groupKey of Object.keys(PERSPECTIVE_GROUPS)) {
+    if (!seen.has(groupKey)) {
+      seen.add(groupKey);
+      orderedGroups.push(groupKey);
+    }
+  }
+
+  return orderedGroups;
+}
+
 const SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS = ['linguistic_analysis', 'semiotic_analysis'];
+const PHILOSOPHY_LINEAGE_PERSPECTIVE_KEYS = ['husserlian_phenomenology', 'whitehead_process_philosophy'];
 const ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS = [
   'indigenous_australian_philosophy_accumulated',
   'tessa_laird_cinemal',
@@ -458,6 +631,644 @@ const DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS = [
   'vygotsky_sociocultural_theory'
 ];
 const ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS = ['organisational_transformation'];
+
+const GROUP_DEFAULT_METADATA: Record<string, PerspectiveMetadata> = {
+  [PHILOSOPHY_GROUP_KEY]: {
+    tradition: 'Philosophy and first-principles inquiry',
+    orientation: 'Mixed across pre-divide, continental, analytic, and bridge traditions',
+    lineage: 'Cross-historical philosophical lineages'
+  },
+  religious_mythic_interpretation: {
+    tradition: 'Religious, mythic, and sacred traditions',
+    orientation: 'Outside the later analytic/continental divide',
+    lineage: 'Ancient and living ritual, textual, and mythic inheritances'
+  },
+  social_spatial_research: {
+    tradition: 'Social science, spatial inquiry, and research method',
+    orientation: 'Methodological rather than analytic/continental',
+    lineage: 'Geographical, sociological, and empirical inquiry traditions'
+  },
+  narrative_media_frame: {
+    tradition: 'Language, narrative, media, and interaction studies',
+    orientation: 'Mixed humanities and social theory',
+    lineage: 'Semiotic, linguistic, media, and interpretive traditions'
+  },
+  psychoanalytic_clinical: {
+    tradition: 'Psychoanalytic, developmental, and clinical traditions',
+    orientation: 'Mixed clinical and theoretical lineages',
+    lineage: 'Freudian, post-Freudian, developmental, and therapeutic traditions'
+  },
+  family_care_guidance: {
+    tradition: 'Education, development, and family guidance',
+    orientation: 'Applied developmental and sociocultural traditions',
+    lineage: 'Pedagogical, developmental, and kinship guidance traditions'
+  },
+  archeo_genealogical_deconstruction: {
+    tradition: 'Historical materialist, genealogical, and deconstructive theory',
+    orientation: 'Mostly continental critical theory',
+    lineage: 'Marx -> Nietzsche -> psychoanalytic and post-structural critique'
+  },
+  gender_sexuality_queer: {
+    tradition: 'Feminist, queer, gender, and sexuality studies',
+    orientation: 'Mostly continental and interdisciplinary critical theory',
+    lineage: 'Feminist, queer, trans, and sexuality studies lineages'
+  },
+  race_coloniality_embodiment: {
+    tradition: 'Critical race, decolonial, and embodiment studies',
+    orientation: 'Interdisciplinary critical traditions',
+    lineage: 'Anticolonial, decolonial, abolitionist, and embodiment critique'
+  },
+  systems_ecology_food: {
+    tradition: 'Ecology, systems, science studies, and food futures',
+    orientation: 'Interdisciplinary systems and ecological traditions',
+    lineage: 'Ecology, cybernetics, STS, resilience, and environmental humanities'
+  },
+  strategy_method_organisation: {
+    tradition: 'Organisation, planning, method, and implementation',
+    orientation: 'Applied strategy and research traditions',
+    lineage: 'Management, design, law, engineering, and movement strategy'
+  }
+};
+
+const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
+  indigenous_australian_philosophy_accumulated: {
+    tradition: 'Australian Indigenous philosophies and sovereign knowledge traditions',
+    orientation: 'Outside the later analytic/continental divide',
+    chronology: 'Ancient and ongoing',
+    lineage: 'Country, kinship, law, story, and custodial continuities'
+  },
+  buddhist_psychology_perspective: {
+    tradition: 'Buddhist philosophy and psychology',
+    orientation: 'Outside the later analytic/continental divide',
+    chronology: 'Ancient and ongoing',
+    lineage: 'Buddhist philosophical and contemplative traditions'
+  },
+  platonic_perspective: {
+    tradition: 'Classical Greek philosophy',
+    orientation: 'Pre-divide',
+    chronology: 'Classical antiquity',
+    lineage: 'Socratic -> Platonic'
+  },
+  aristotle_argonic_teachings: {
+    tradition: 'Classical Greek philosophy',
+    orientation: 'Pre-divide',
+    chronology: 'Classical antiquity',
+    lineage: 'Platonic Academy -> Aristotle -> rhetoric, ethics, logic'
+  },
+  cynics_perspective: {
+    tradition: 'Hellenistic philosophy',
+    orientation: 'Pre-divide',
+    chronology: 'Classical and Hellenistic antiquity',
+    lineage: 'Socratic and Cynic lineages'
+  },
+  stoicism_perspective: {
+    tradition: 'Hellenistic philosophy',
+    orientation: 'Pre-divide',
+    chronology: 'Hellenistic and Roman antiquity',
+    lineage: 'Cynic and Stoic ethical lineages'
+  },
+  descartes_cogito_subject: {
+    tradition: 'Early modern rationalism',
+    orientation: 'Pre-divide',
+    chronology: '17th century',
+    lineage: 'Rationalist philosophy -> modern subjectivity debates'
+  },
+  spinoza_theologic_ethico_perspective: {
+    tradition: 'Early modern rationalism and immanence',
+    orientation: 'Pre-divide',
+    chronology: '17th century',
+    lineage: 'Rationalism -> immanence -> later materialist and affect theory'
+  },
+  leibniz_monadology_perspective: {
+    tradition: 'Early modern rationalism and metaphysics',
+    orientation: 'Pre-divide',
+    chronology: '17th to early 18th century',
+    lineage: 'Rationalist metaphysics -> idealist and systems lineages'
+  },
+  lockean_personal_identity: {
+    tradition: 'Early modern empiricism and political philosophy',
+    orientation: 'Pre-divide',
+    chronology: '17th century',
+    lineage: 'Empiricism -> personal identity debates'
+  },
+  humean_bundle_self: {
+    tradition: 'Empiricism and skepticism',
+    orientation: 'Pre-divide',
+    chronology: '18th century',
+    lineage: 'British empiricism -> skepticism -> later analytic debates'
+  },
+  moral_naturalism_perspective: {
+    tradition: 'Ethics and metaethics',
+    orientation: 'Mostly analytic',
+    chronology: 'Modern and contemporary',
+    lineage: 'Aristotle and naturalist ethics -> contemporary metaethics'
+  },
+  kantian_transcendental_subject: {
+    tradition: 'German idealism and transcendental philosophy',
+    orientation: 'Pre-divide',
+    chronology: '18th century',
+    lineage: 'Kant -> idealism, phenomenology, and analytic moral philosophy'
+  },
+  hegelian_recognition_subject: {
+    tradition: 'German idealism',
+    orientation: 'Pre-divide to continental lineage',
+    chronology: '19th century',
+    lineage: 'Kant -> Hegel -> Marx, existentialism, recognition theory'
+  },
+  marxian_analysis: {
+    tradition: 'Marxism and historical materialism',
+    orientation: 'Pre-divide to continental critical lineage',
+    chronology: '19th century',
+    lineage: 'Hegel -> Marx and Engels -> critical theory, cultural materialism, ideology critique'
+  },
+  nietzschean_perspective: {
+    tradition: 'Genealogical philosophy and critique of values',
+    orientation: 'Pre-divide to continental lineage',
+    chronology: '19th century',
+    lineage: 'Nietzsche -> Freud, Foucault, Deleuze, genealogy'
+  },
+  husserlian_phenomenology: {
+    tradition: 'Phenomenology',
+    orientation: 'Pre-divide to continental lineage',
+    chronology: 'Late 19th to early 20th century',
+    lineage: 'Brentano -> Husserl -> Heidegger, Sartre, de Beauvoir, Merleau-Ponty, Zahavi, Gallagher'
+  },
+  phenomenology_perspective: {
+    tradition: 'Phenomenology',
+    orientation: 'Mostly continental',
+    chronology: '20th century onward',
+    lineage: 'Husserl -> existential, hermeneutic, embodied, and postphenomenological currents'
+  },
+  heideggerian_dasein_analysis: {
+    tradition: 'Phenomenology and existential ontology',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Husserl -> Heidegger -> existentialism, hermeneutics, deconstruction'
+  },
+  hermeneutics_perspective: {
+    tradition: 'Hermeneutics',
+    orientation: 'Mostly continental',
+    chronology: '19th and 20th century onward',
+    lineage: 'Schleiermacher and Dilthey -> Heidegger -> Gadamer and Ricoeur'
+  },
+  existential_perspective: {
+    tradition: 'Existentialism and existential phenomenology',
+    orientation: 'Continental',
+    chronology: '19th and 20th century',
+    lineage: 'Kierkegaard and Nietzsche -> Heidegger -> Sartre, de Beauvoir, Merleau-Ponty'
+  },
+  sartrean_subjectivity: {
+    tradition: 'Existentialism and existential phenomenology',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Husserl and Heidegger -> Sartre -> postwar existentialism'
+  },
+  de_beauvoir_situated_subject: {
+    tradition: 'Existentialism, feminist philosophy, and situated freedom',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Hegel and existential phenomenology -> de Beauvoir -> feminist existential lineages'
+  },
+  merleau_ponty_embodied_subject: {
+    tradition: 'Phenomenology and existential phenomenology',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Husserl -> Merleau-Ponty -> embodiment, perception, postphenomenology'
+  },
+  levinasian_ethics: {
+    tradition: 'Phenomenology and ethics',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Husserl and Heidegger -> Levinas -> ethics of alterity'
+  },
+  whitehead_process_philosophy: {
+    tradition: 'Process philosophy',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '20th century',
+    lineage: 'Mathematics and metaphysics -> Whitehead -> process thought, theology, ecology'
+  },
+  process_philosophical_analysis: {
+    tradition: 'Process philosophy',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '20th century onward',
+    lineage: 'Whitehead -> process philosophy, process theology, ecological and relational thought'
+  },
+  pf_strawson_personhood: {
+    tradition: 'Ordinary language philosophy and analytic metaphysics',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Analytic philosophy -> personhood and reactive attitudes debates'
+  },
+  harry_frankfurt_volitional_self: {
+    tradition: 'Analytic action theory and moral psychology',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Analytic philosophy of action -> autonomy and second-order desire debates'
+  },
+  sydney_shoemaker_self_knowledge: {
+    tradition: 'Analytic philosophy of mind',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Analytic philosophy of language and mind -> self-knowledge debates'
+  },
+  bernard_williams_personal_identity: {
+    tradition: 'Analytic ethics and philosophy of mind',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Analytic personal identity debates with historical depth'
+  },
+  paul_ricoeur_narrative_identity: {
+    tradition: 'Hermeneutics and phenomenology',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Hermeneutics and phenomenology -> Ricoeur -> narrative identity'
+  },
+  derek_parfit_reductionist_identity: {
+    tradition: 'Analytic ethics and personal identity',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Analytic reductionist identity debates'
+  },
+  habermasian_communicative_subject: {
+    tradition: 'Critical theory and communicative action',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Frankfurt School -> Habermas -> discourse ethics and deliberation'
+  },
+  charles_taylor_sources_self: {
+    tradition: 'Political philosophy and hermeneutic moral philosophy',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '20th and 21st century',
+    lineage: 'Hegelian and hermeneutic currents -> Taylor'
+  },
+  macintyre_narrative_self: {
+    tradition: 'Virtue ethics and tradition-constituted reasoning',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '20th and 21st century',
+    lineage: 'Aristotle and Marx -> MacIntyre -> practices and narrative unity'
+  },
+  jean_luc_nancy_being_with: {
+    tradition: 'Post-Heideggerian continental philosophy',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Heidegger and deconstruction -> Nancy'
+  },
+  judith_butler_performativity: {
+    tradition: 'Gender theory, post-structuralism, and feminist philosophy',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Hegel, Foucault, psychoanalysis -> Butler'
+  },
+  catriona_mackenzie_relational_autonomy: {
+    tradition: 'Feminist ethics and relational autonomy',
+    orientation: 'Mostly analytic with interdisciplinary feminist lineages',
+    chronology: '21st century',
+    lineage: 'Feminist ethics and autonomy debates -> relational autonomy'
+  },
+  christine_korsgaard_self_constitution: {
+    tradition: 'Kantian ethics and analytic moral philosophy',
+    orientation: 'Analytic',
+    chronology: '20th and 21st century',
+    lineage: 'Kant -> analytic moral philosophy -> constitutive agency'
+  },
+  marya_schechtman_narrative_self: {
+    tradition: 'Analytic personal identity and narrative theory',
+    orientation: 'Analytic',
+    chronology: '20th and 21st century',
+    lineage: 'Analytic identity debates -> narrative self'
+  },
+  linda_alcoff_visible_identities: {
+    tradition: 'Feminist philosophy, race theory, and phenomenology',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Phenomenology, feminism, and race theory -> Alcoff'
+  },
+  anthony_appiah_identity_ethics: {
+    tradition: 'Ethics, social philosophy, and cosmopolitanism',
+    orientation: 'Analytic and bridge traditions',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Analytic ethics and social identity debates -> Appiah'
+  },
+  adriana_cavarero_relational_uniqueness: {
+    tradition: 'Continental feminist philosophy',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Arendtian and feminist lineages -> Cavarero'
+  },
+  dan_zahavi_minimal_self: {
+    tradition: 'Phenomenology and philosophy of mind',
+    orientation: 'Continental with analytic dialogue',
+    chronology: '21st century',
+    lineage: 'Husserl -> Zahavi -> self-awareness debates'
+  },
+  shaun_gallagher_embodied_self: {
+    tradition: 'Phenomenology, cognitive science, and philosophy of mind',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '21st century',
+    lineage: 'Husserl and Merleau-Ponty -> enactivism and embodied cognition'
+  },
+  gallagher_pattern_theory_self: {
+    tradition: 'Phenomenology, enactivism, and interdisciplinary self theory',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '21st century',
+    lineage: 'Phenomenology, cognitive science, narrative theory -> Gallagher'
+  },
+  rosi_braidotti_nomadic_subjectivity: {
+    tradition: 'Continental feminist and posthuman philosophy',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Deleuze, feminism, and posthuman thought -> Braidotti'
+  },
+  topological_analysis: {
+    tradition: 'Topology-inflected continental and spatial theory',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Contemporary',
+    lineage: 'Phenomenology, Deleuze, spatial and relational theory'
+  },
+  kristevan_abjection_semiotic: {
+    tradition: 'Psychoanalysis, semiotics, and post-structuralism',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Freud, Lacan, semiotics, and feminism -> Kristeva'
+  },
+  freudian_psychoanalysis: {
+    tradition: 'Psychoanalysis',
+    orientation: 'Pre-divide to mixed modern reception',
+    chronology: 'Late 19th and early 20th century',
+    lineage: 'Freud -> psychoanalytic traditions'
+  },
+  jungian_perspective: {
+    tradition: 'Analytical psychology',
+    orientation: 'Outside the analytic/continental divide in a strict sense',
+    chronology: '20th century',
+    lineage: 'Freud -> Jungian depth psychology'
+  },
+  lacanian_perspective: {
+    tradition: 'Psychoanalysis and structuralism',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Freud -> Lacan -> post-structural and Žižekian lineages'
+  },
+  critical_theory_perspective: {
+    tradition: 'Critical theory',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Marx -> Frankfurt School -> critique of modernity'
+  },
+  simondonian_analysis: {
+    tradition: 'Continental philosophy of technics and individuation',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Postwar French philosophy -> Simondon -> Deleuze and technics studies'
+  },
+  foucaultian_analysis: {
+    tradition: 'Genealogy and post-structuralism',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Nietzsche -> Foucault -> genealogy, discourse, governmentality'
+  },
+  derridian_analysis: {
+    tradition: 'Deconstruction',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Phenomenology and structuralism -> Derrida -> deconstruction'
+  },
+  schizoanalytic_insights: {
+    tradition: 'Deleuzian and Guattarian schizoanalysis',
+    orientation: 'Continental',
+    chronology: 'Late 20th century',
+    lineage: 'Nietzsche, Marx, Freud -> Deleuze and Guattari'
+  },
+  zizekian_analysis: {
+    tradition: 'Lacanian Hegelian ideology critique',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Hegel, Marx, Lacan -> Žižek'
+  },
+  posthumanism_perspective: {
+    tradition: 'Posthumanism',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Nietzsche, feminism, STS, and ecological thought'
+  },
+  quantum_theory_analysis: {
+    tradition: 'Physics and philosophy of science',
+    orientation: 'Outside the analytic/continental divide in a strict sense',
+    chronology: '20th century onward',
+    lineage: 'Modern physics -> philosophy of science and material-discursive interpretation'
+  },
+  gregory_bateson_ecology_mind: {
+    tradition: 'Cybernetics, systems theory, and ecology of mind',
+    orientation: 'Bridge across philosophy, anthropology, and systems thought',
+    chronology: '20th century',
+    lineage: 'Cybernetics and anthropology -> Bateson -> systems ecology'
+  },
+  latourian_analysis: {
+    tradition: 'Science and technology studies',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'STS -> actor-network theory -> Latour'
+  },
+  karen_barad_agential_realism: {
+    tradition: 'Feminist science studies and new materialism',
+    orientation: 'Continental and interdisciplinary',
+    chronology: '21st century',
+    lineage: 'Bohr, feminist theory, STS -> Barad'
+  },
+  rousseau_political_thought: {
+    tradition: 'Modern political philosophy and education',
+    orientation: 'Pre-divide',
+    chronology: '18th century',
+    lineage: 'Republican and social contract traditions -> Rousseau -> democracy and education'
+  },
+  aesthetics_untranslatables: {
+    tradition: 'Aesthetics and philosophical lexicon',
+    orientation: 'Pre-divide to contemporary contested field',
+    chronology: 'Ancient Greek roots, 18th century disciplinary crystallization, and contemporary translation debates',
+    lineage: 'Aisthesis -> Baumgarten and Kant -> aesthetics, art theory, Ranciere, Sontag, and debates on the sensible and the untranslatable'
+  },
+  kierkegaard_existential_faith: {
+    tradition: 'Existential Christianity and philosophy',
+    orientation: 'Pre-divide to continental lineage',
+    chronology: '19th century',
+    lineage: 'Christian existential thought -> Kierkegaard -> existentialism'
+  },
+  schopenhauer_will_representation: {
+    tradition: 'Post-Kantian philosophy',
+    orientation: 'Pre-divide',
+    chronology: '19th century',
+    lineage: 'Kant -> Schopenhauer -> Nietzsche and pessimism debates'
+  },
+  collingwood_historical_imagination: {
+    tradition: 'Philosophy of history and idealism',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '20th century',
+    lineage: 'British idealism and historical method -> Collingwood'
+  },
+  logics_analysis: {
+    tradition: 'Logic',
+    orientation: 'Pre-divide to analytic reception',
+    chronology: 'Ancient to contemporary',
+    lineage: 'Aristotle -> symbolic logic -> analytic method'
+  },
+  epistemology_analysis: {
+    tradition: 'Epistemology',
+    orientation: 'Mixed across pre-divide, analytic, and continental traditions',
+    chronology: 'Ancient to contemporary',
+    lineage: 'Plato and Aristotle -> empiricism and rationalism -> contemporary epistemology'
+  },
+  feminist_philosophy: {
+    tradition: 'Feminist philosophy',
+    orientation: 'Mixed across analytic and continental feminist traditions',
+    chronology: '20th and 21st century',
+    lineage: 'de Beauvoir, Irigaray, hooks, Butler, Mackenzie, Grosz, Haraway, and feminist epistemology'
+  },
+  philosophy_of_language_analysis: {
+    tradition: 'Philosophy of language',
+    orientation: 'Mostly analytic with broader linguistic and hermeneutic dialogue',
+    chronology: '20th century onward',
+    lineage: 'Frege, Wittgenstein, ordinary language philosophy, speech-act theory'
+  },
+  wittgenstein_language_games: {
+    tradition: 'Ordinary language philosophy and analytic philosophy',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Analytic philosophy -> Wittgenstein -> ordinary language and rule-following debates'
+  },
+  naturalism_analysis: {
+    tradition: 'Naturalism',
+    orientation: 'Mostly analytic with broader philosophical uptake',
+    chronology: '19th century onward',
+    lineage: 'Scientific naturalism and immanent explanation traditions'
+  },
+  philosophy_of_science_analysis: {
+    tradition: 'Philosophy of science',
+    orientation: 'Mostly analytic with interdisciplinary dialogue',
+    chronology: '20th century onward',
+    lineage: 'Philosophy of science, scientific realism debates, and methodology'
+  },
+  philosophy_of_physics_analysis: {
+    tradition: 'Philosophy of physics',
+    orientation: 'Mostly analytic with scientific dialogue',
+    chronology: '20th century onward',
+    lineage: 'Modern physics -> philosophy of time, causation, and laws'
+  },
+  feyerabend_epistemological_anarchism: {
+    tradition: 'Philosophy of science',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '20th century',
+    lineage: 'Philosophy of science -> Feyerabend -> methodological pluralism'
+  },
+  michel_serres_relations: {
+    tradition: 'Continental philosophy of relation and science',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'French philosophy of science and relation -> Serres'
+  },
+  jacques_ranciere_politics_aesthetics: {
+    tradition: 'Continental political aesthetics',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Post-Althusserian thought -> Rancière -> dissensus and aesthetics'
+  },
+  horkheimer_critical_theory: {
+    tradition: 'Frankfurt School critical theory',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Marx -> Horkheimer -> critical theory and critique of instrumental reason'
+  },
+  post_structuralism_analysis: {
+    tradition: 'Post-structuralism',
+    orientation: 'Continental',
+    chronology: 'Late 20th century',
+    lineage: 'Structuralism and phenomenology -> Foucault, Derrida, Deleuze, Kristeva, Butler, Spivak'
+  },
+  spivak_subaltern_analysis: {
+    tradition: 'Postcolonial theory and deconstruction',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Marxism, deconstruction, feminism -> Spivak'
+  },
+  standpoint_theory: {
+    tradition: 'Feminist epistemology',
+    orientation: 'Mixed analytic, continental, and interdisciplinary feminist traditions',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Feminist epistemology -> standpoint theory -> situated knowledge debates'
+  },
+  bell_hooks_love_pedagogy: {
+    tradition: 'Black feminist thought and critical pedagogy',
+    orientation: 'Interdisciplinary critical tradition',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Black feminism and Freirean pedagogy -> bell hooks'
+  },
+  elizabeth_grosz_corporeal_feminism: {
+    tradition: 'Continental feminist philosophy',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Deleuze, Bergson, feminism -> Grosz'
+  },
+  donna_haraway_situated_knowledges: {
+    tradition: 'Feminist science studies and technoscience',
+    orientation: 'Interdisciplinary critical tradition',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Feminist epistemology, STS, posthuman thought -> Haraway'
+  },
+  science_technology_studies: {
+    tradition: 'Science and Technology Studies',
+    orientation: 'Interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'History and sociology of science and technology -> STS -> Latour, Haraway, Barad'
+  },
+  isabelle_stengers_cosmopolitics: {
+    tradition: 'Continental philosophy of science and cosmopolitics',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Philosophy of science, Whitehead, STS -> Stengers'
+  },
+  socio_technical_transitions_mlp: {
+    tradition: 'Socio-technical transitions research',
+    orientation: 'Interdisciplinary systems and innovation studies',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Innovation studies, sociology of technology, sustainability transitions -> Multi-Level Perspective'
+  },
+  metascience_analysis: {
+    tradition: 'Metascience and research evaluation',
+    orientation: 'Interdisciplinary methodological tradition',
+    chronology: '21st century',
+    lineage: 'Philosophy of science, statistics, research methodology -> metascience'
+  },
+  andre_baier_tins_d_analysis: {
+    tradition: 'Critical sustainability education and democracy education',
+    orientation: 'Applied interdisciplinary pedagogy',
+    chronology: '21st century',
+    lineage: 'Engineering responsibility, sustainability education, democratic pedagogy -> André Baier and TINS_D'
+  }
+};
+
+function getPerspectiveMetadata(key: string, perspective: PerspectiveDefinition): PerspectiveMetadata {
+  return {
+    ...(GROUP_DEFAULT_METADATA[perspective.group] || {}),
+    ...(PERSPECTIVE_METADATA[key] || {})
+  };
+}
+
+function buildPerspectiveHistoryLabel(key: string, perspective: PerspectiveDefinition): string {
+  const metadata = getPerspectiveMetadata(key, perspective);
+  const parts = [
+    metadata.tradition ? `Tradition: ${metadata.tradition}` : '',
+    metadata.orientation ? `Placement: ${metadata.orientation}` : '',
+    metadata.chronology ? `Chronology: ${metadata.chronology}` : '',
+    metadata.lineage ? `Lineage: ${metadata.lineage}` : ''
+  ].filter(Boolean);
+
+  return parts.join(' | ');
+}
+
+function buildPerspectivePromptDescriptor(key: string, perspective: PerspectiveDefinition): string {
+  const groupTitle = PERSPECTIVE_GROUPS[perspective.group]?.title || perspective.group;
+  const historyLabel = buildPerspectiveHistoryLabel(key, perspective);
+  return `${key}: ${perspective.title} [${groupTitle}] - ${perspective.description}${historyLabel ? ` | ${historyLabel}` : ''}`;
+}
 
 const PRE_HIERARCHY_PERSPECTIVE_KEYS = [
   'lacanian_perspective',
@@ -545,6 +1356,21 @@ const ZPD_LEVELS: Record<string, { label: string; prompt: string }> = {
   }
 };
 
+const OUTPUT_LANGUAGES: Record<string, OutputLanguageOption> = {
+  english: {
+    label: 'English',
+    prompt: 'Write all user-facing generated prose in English.'
+  },
+  french: {
+    label: 'French',
+    prompt: 'Write all user-facing generated prose in French. Keep proper names, exact perspective keys, required JSON keys, and original work titles when translating them would be misleading.'
+  },
+  german: {
+    label: 'German',
+    prompt: 'Write all user-facing generated prose in German. Keep proper names, exact perspective keys, required JSON keys, and original work titles when translating them would be misleading.'
+  }
+};
+
 interface BigFiveScores { openness: number; conscientiousness: number; extraversion: number; agreeableness: number; neuroticism: number; }
 interface PersonalityProfile { big_five_scores: BigFiveScores; assessment_date: string; dominant_traits: string[]; psychological_type: string; growth_areas: string[]; }
 interface Milestone { title: string; completed: boolean; completion_date?: string; }
@@ -619,6 +1445,7 @@ interface DeleometerSettings {
   sendFullJournalToChat: boolean;
   selectedPerspectives: string[];
   zpdLevel: string;
+  outputLanguage: string;
   personalityProfile: PersonalityProfile | null;
   authorMemorySummary: string;
 }
@@ -628,7 +1455,7 @@ const DEFAULT_SETTINGS: DeleometerSettings = {
   milestonesFolder: 'Deleometer/Milestones', chatsFolder: 'Deleometer/Chats', fullCalendarFolder: 'Deleometer', autoSyncGoalsToFullCalendar: true,
   redactSensitiveDataBeforeAI: true, enableAuthorMemory: true, includeAuthorMemoryInAI: true,
   includePersonalityProfileInAI: true, sendFullJournalToChat: false,
-  selectedPerspectives: getChronologicalPerspectiveKeys(), zpdLevel: 'tertiary_year_2',
+  selectedPerspectives: getChronologicalPerspectiveKeys(), zpdLevel: 'tertiary_year_2', outputLanguage: 'english',
   personalityProfile: null,
   authorMemorySummary: ''
 };
@@ -1082,6 +1909,14 @@ export default class DeleometerPlugin extends Plugin {
     return `Reader zone of proximal development: ${level.label}. ${level.prompt}`;
   }
 
+  getOutputLanguagePrompt(): string {
+    const language = OUTPUT_LANGUAGES[this.settings.outputLanguage] || OUTPUT_LANGUAGES.english;
+    return [
+      `Output language: ${language.label}. ${language.prompt}`,
+      'Keep required JSON property names, enum values, exact perspective keys, file paths, and Markdown link targets exactly as requested by the app.'
+    ].join(' ');
+  }
+
   getLocalDateContext(): string {
     const now = new Date();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'local timezone';
@@ -1104,7 +1939,7 @@ export default class DeleometerPlugin extends Plugin {
     if (!this.openai) throw new Error('OpenAI not initialized');
     const group = PERSPECTIVE_GROUPS[groupKey];
     const perspectiveList = perspectives
-      .map(({ key, perspective }) => `- ${key}: ${perspective.title} - ${perspective.description}`)
+      .map(({ key, perspective }) => `- ${buildPerspectivePromptDescriptor(key, perspective)}`)
       .join('\n');
 
     const response = await this.openai.chat.completions.create({
@@ -1133,6 +1968,7 @@ export default class DeleometerPlugin extends Plugin {
             `- include interpretation, implication, likely outcome if the pattern continues, and a precise next step.\n` +
             `- empower the author, but also offer a fair critique where the frame warrants it.\n` +
             `- when a phrase like "pathway", "practice", "boundary", or "agency" appears, explain what it means materially and practically.\n` +
+            `- use the supplied tradition, placement, chronology, and lineage markers as situating cues. They are guides to philosophical history, not rigid ownership claims.\n` +
             `- for Aristotle, include Rhetoric where relevant: ethos, pathos, logos, audience, persuasion, demonstration, causes, practical judgment, material conditions, and action.\n` +
             `- for Plato, avoid broad Platonism; show the specific dialectical movement, image, desire, education, appearance, or form being used.\n` +
             `- for self and subjectivity philosophers, distinguish self, person, subject, identity, agency, embodiment, autonomy, continuity, recognition, and responsibility. Teach the philosopher's method through the journal entry rather than turning every frame into ordinary psychology.\n` +
@@ -1145,6 +1981,7 @@ export default class DeleometerPlugin extends Plugin {
             `- for organisational transformation, connect culture, structure, leadership, resistance, capability, implementation, and sustained change to specific patterns in the entry.\n` +
             `- for Gregory Bateson, interpret communication, feedback loops, learning levels, double binds, relational patterns, and ecology of mind as systems that shape the entry's situation.\n` +
             `- for music songwriting, interpret the entry as potential song material: voice, rhythm, image, emotional arc, refrain, lyric tension, possible structure, and what a listener could feel.\n` +
+            `- for Aesthetics, treat the term as contested rather than fixed. Explain whether the frame is operating through sensation (aisthesis), beauty, art, taste, judgment, or the distribution of the sensible, and why that sense fits this entry.\n` +
             `- for quantum theory and Barad, avoid fake scientific certainty. Use quantum concepts carefully as analytic models for measurement, relation, indeterminacy, apparatus, entanglement, and mattering.\n` +
             `- for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.\n` +
             `- for cartography and geography, interpret place, scale, orientation, borders, movement, landscape, and omission. Explain how maps and spatial thinking make some relations visible while hiding others.\n` +
@@ -1155,6 +1992,7 @@ export default class DeleometerPlugin extends Plugin {
             `${personalityContext}\n\n` +
             `${authorMemoryContext}\n\n` +
             `${readerContext}\n\n` +
+            `${this.getOutputLanguagePrompt()}\n\n` +
             `Perspective group: ${groupKey}: ${group?.title || groupKey} - ${group?.description || ''}\n\n` +
             `Requested perspectives in this group:\n${perspectiveList}\n\n` +
             `Journal entry:\n${content}`
@@ -1210,10 +2048,7 @@ export default class DeleometerPlugin extends Plugin {
   ): Promise<{ perspectives: Record<string, string>; furtherReadings: Record<string, string[]> }> {
     if (!this.openai) throw new Error('OpenAI not initialized');
     const perspectiveList = perspectives
-      .map(({ key, perspective }) => {
-        const groupTitle = PERSPECTIVE_GROUPS[perspective.group]?.title || perspective.group;
-        return `- ${key}: ${perspective.title} [${groupTitle}] - ${perspective.description}`;
-      })
+      .map(({ key, perspective }) => `- ${buildPerspectivePromptDescriptor(key, perspective)}`)
       .join('\n');
 
     const response = await this.openai.chat.completions.create({
@@ -1244,6 +2079,7 @@ export default class DeleometerPlugin extends Plugin {
             `- for Aristotle, include Rhetoric where relevant: ethos, pathos, logos, audience, persuasion, demonstration, causes, practical judgment, material conditions, and action.\n` +
             `- for Plato, avoid broad Platonism; show the specific dialectical movement, image, desire, education, appearance, or form being used.\n` +
             `- for self and subjectivity philosophers, distinguish self, person, subject, identity, agency, embodiment, autonomy, continuity, recognition, and responsibility. Teach the philosopher's method through the journal entry rather than turning every frame into ordinary psychology.\n` +
+            `- use the supplied tradition, placement, chronology, and lineage markers as situating cues. They are guides to philosophical history, not rigid ownership claims.\n` +
             `- for Gallagher's Pattern Theory of Self, map the entry across embodied, experiential, affective, intersubjective, narrative, extended, ecological, and normative dimensions without reducing the self to one single essence.\n` +
             `- for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.\n` +
             `- for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.\n` +
@@ -1253,6 +2089,7 @@ export default class DeleometerPlugin extends Plugin {
             `- for organisational transformation, connect culture, structure, leadership, resistance, capability, implementation, and sustained change to specific patterns in the entry.\n` +
             `- for Gregory Bateson, interpret communication, feedback loops, learning levels, double binds, relational patterns, and ecology of mind as systems that shape the entry's situation.\n` +
             `- for music songwriting, interpret the entry as potential song material: voice, rhythm, image, emotional arc, refrain, lyric tension, possible structure, and what a listener could feel.\n` +
+            `- for Aesthetics, treat the term as contested rather than fixed. Explain whether the frame is operating through sensation (aisthesis), beauty, art, taste, judgment, or the distribution of the sensible, and why that sense fits this entry.\n` +
             `- for quantum theory and Barad, avoid fake scientific certainty. Use quantum concepts carefully as analytic models for measurement, relation, indeterminacy, apparatus, entanglement, and mattering.\n` +
             `- for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.\n` +
             `- for cartography and geography, interpret place, scale, orientation, borders, movement, landscape, and omission. Explain how maps and spatial thinking make some relations visible while hiding others.\n` +
@@ -1263,6 +2100,7 @@ export default class DeleometerPlugin extends Plugin {
             `${personalityContext}\n\n` +
             `${authorMemoryContext}\n\n` +
             `${readerContext}\n\n` +
+            `${this.getOutputLanguagePrompt()}\n\n` +
             `Requested perspectives in strict chronological order:\n${perspectiveList}\n\n` +
             `Journal entry:\n${content}`
         }
@@ -1337,7 +2175,7 @@ export default class DeleometerPlugin extends Plugin {
           content:
             `Synthesize this lineage group after the individual analyses have already been explicated.\n\n` +
             `Write 260-420 words. Chronology is the primary order of the whole analysis; this synthesis should use the group as a secondary lineage marker. Show how the perspectives in this group speak to one another, what they collectively reveal about the journal entry, where they disagree, what they make visible, what they miss, and what practical next movement follows.\n\n` +
-            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n` +
+            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${this.getOutputLanguagePrompt()}\n\n` +
             `Group: ${groupKey}: ${group?.title || groupKey} - ${group?.description || ''}\n\n` +
             `Individual analysis excerpts from this group:\n${analysisList}\n\n` +
             `Journal entry:\n${content.slice(0, 6000)}`
@@ -1373,8 +2211,10 @@ export default class DeleometerPlugin extends Plugin {
             `Return JSON with keys analysis and further_readings.\n` +
             `- analysis must be 220-360 words, teach the frame, explain key terms, interpret the entry, show implications, predict likely outcomes, and give a precise next step.\n` +
             `- further_readings must be an array of 3-5 strings naming author/work and why it helps.\n\n` +
+            `If the frame is Aesthetics, treat the term as contested rather than fixed. Explain whether the interpretation turns on sensation, beauty, art, taste, judgment, or the sensible, and why.\n\n` +
             `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n` +
-            `Perspective: ${key}: ${perspective.title} - ${perspective.description}\n\n` +
+            `${this.getOutputLanguagePrompt()}\n\n` +
+            `Perspective: ${buildPerspectivePromptDescriptor(key, perspective)}\n\n` +
             `Journal entry:\n${content}`
         }
       ]
@@ -1425,6 +2265,7 @@ export default class DeleometerPlugin extends Plugin {
             `- author_memory_summary: under 220 words, updating enduring patterns, strengths, values, risks, supports, and recurring concerns.\n` +
             `- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(', ')}. targetDate must be YYYY-MM-DD and must be today or later in the user's timezone. When suggesting a form of activity, include concrete real-life examples of that form, such as types of groups, everyday actions, practices, scenes, public activities, mutual aid settings, study circles, creative routines, community organisations, or other realistic examples relevant to the journal entry. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.\n\n` +
             `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${dateContext}\n\n` +
+            `${this.getOutputLanguagePrompt()}\n\n` +
             `Group syntheses:\n${groupList}\n\n` +
             `Individual analysis excerpts:\n${perspectiveSummaries}\n\n` +
             `Journal entry:\n${content}`
@@ -1482,7 +2323,7 @@ export default class DeleometerPlugin extends Plugin {
     const authorContext = this.buildAuthorContext();
     const systemMessage: ChatCompletionMessageParam = {
       role: 'system',
-      content: `You are an empathetic analytical companion specializing in ${persp?.title || 'reflective analysis'}. ${persp?.description || ''}\n\n${this.getReaderContextPrompt()}\n\nYou help users explore emotions, thoughts, experiences, contexts, and practical possibilities through this perspective. Be warm, insightful, and supportive. Ask thoughtful follow-up questions. Keep responses conversational and under 150 words unless more detail is needed.${authorContext ? `\n\nContext about the journal author:\n${authorContext}` : ''}`
+      content: `You are an empathetic analytical companion specializing in ${persp?.title || 'reflective analysis'}. ${persp?.description || ''}\n\n${this.getReaderContextPrompt()}\n\n${this.getOutputLanguagePrompt()}\n\nYou help users explore emotions, thoughts, experiences, contexts, and practical possibilities through this perspective. Be warm, insightful, and supportive. Ask thoughtful follow-up questions. Keep responses conversational and under 150 words unless more detail is needed.${authorContext ? `\n\nContext about the journal author:\n${authorContext}` : ''}`
     };
     const conversation: ChatCompletionMessageParam[] = messages.map((message) => ({
       role: message.role,
@@ -1544,6 +2385,7 @@ export default class DeleometerPlugin extends Plugin {
             `- include one concrete angle or scene to write from\n` +
             `- include one optional twist or follow-up question in the same paragraph\n` +
             `- do not mention goals or milestones mechanically\n\n` +
+            `${this.getOutputLanguagePrompt()}\n\n` +
             `Author context:\n${authorContext}\n\n` +
             `Active goals:\n${preparedGoalContext}\n\n` +
             `Recent journal titles:\n${preparedJournalContext}`
@@ -3340,6 +4182,9 @@ ${event.kind === 'goal_due'
     if (!ZPD_LEVELS[this.settings.zpdLevel]) {
       this.settings.zpdLevel = DEFAULT_SETTINGS.zpdLevel;
     }
+    if (!OUTPUT_LANGUAGES[this.settings.outputLanguage]) {
+      this.settings.outputLanguage = DEFAULT_SETTINGS.outputLanguage;
+    }
     this.settings.redactSensitiveDataBeforeAI = typeof this.settings.redactSensitiveDataBeforeAI === 'boolean'
       ? this.settings.redactSensitiveDataBeforeAI
       : DEFAULT_SETTINGS.redactSensitiveDataBeforeAI;
@@ -3411,10 +4256,18 @@ ${event.kind === 'goal_due'
       return;
     }
     const preSemioticLinguisticPerspectiveKeys = perspectiveKeys
-      .filter((key) => !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key) && !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key) && !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
+      .filter((key) => !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key) && !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key) && !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key) && !PHILOSOPHY_LINEAGE_PERSPECTIVE_KEYS.includes(key));
     const hadEveryPreSemioticLinguisticPerspective = preSemioticLinguisticPerspectiveKeys
       .every((key) => selectedPerspectives.includes(key));
     if (hadEveryPreSemioticLinguisticPerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const prePhilosophyLineagePerspectiveKeys = perspectiveKeys
+      .filter((key) => !PHILOSOPHY_LINEAGE_PERSPECTIVE_KEYS.includes(key) && !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key) && !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key) && !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPrePhilosophyLineagePerspective = prePhilosophyLineagePerspectiveKeys
+      .every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPrePhilosophyLineagePerspective) {
       this.settings.selectedPerspectives = perspectiveKeys;
       return;
     }
@@ -3733,6 +4586,7 @@ class AIChatView extends ItemView {
   chatStartTime: Date = new Date();
   journalContext: string = '';
   sourceFilePath: string = '';
+  initialAnalysis: string = '';
 
   constructor(leaf: WorkspaceLeaf, plugin: DeleometerPlugin) {
     super(leaf);
@@ -3755,6 +4609,7 @@ class AIChatView extends ItemView {
     this.chatStartTime = new Date();
     this.journalContext = '';
     this.sourceFilePath = '';
+    this.initialAnalysis = '';
 
     // Check for pending context from journal analysis
     const context = this.plugin.pendingChatContext;
@@ -3763,6 +4618,7 @@ class AIChatView extends ItemView {
       this.journalContext = context.journalContent;
       this.chatTitle = `Journal analysis - ${PERSPECTIVES[context.perspective]?.title}`;
       this.sourceFilePath = context.sourceFilePath || '';
+      this.initialAnalysis = context.initialAnalysis || '';
       this.plugin.pendingChatContext = null; // Clear it
     } else {
       this.chatTitle = `Chat - ${new Date().toLocaleDateString()}`;
@@ -3894,7 +4750,20 @@ class AIChatView extends ItemView {
         new Notice('This chat is not linked to a journal analysis note. Use export if you want a separate note.');
         return;
       }
-      await this.plugin.saveChatBackToSourceNote(this.sourceFilePath, this.currentPerspective, this.chatMessages, this.chatStartTime);
+      const messagesToSave = this.chatMessages.filter((message, index) => {
+        if (index === 0 && message.role === 'user' && message.content.startsWith('Here is a journal entry I wrote:')) {
+          return false;
+        }
+        if (this.initialAnalysis && message.role === 'assistant' && message.content === this.initialAnalysis) {
+          return false;
+        }
+        return true;
+      });
+      if (messagesToSave.length === 0) {
+        new Notice('No new chat messages to save beyond the existing analysis');
+        return;
+      }
+      await this.plugin.saveChatBackToSourceNote(this.sourceFilePath, this.currentPerspective, messagesToSave, this.chatStartTime);
       new Notice('Chat saved back to the source analysis section');
     } catch (error) {
       new Notice('Error saving chat');
@@ -3917,14 +4786,32 @@ class AIChatView extends ItemView {
     content += `**Perspective:** ${perspTitle}\n`;
     content += `**Date:** ${this.chatStartTime.toLocaleString()}\n`;
     content += `**Exported:** ${new Date().toLocaleString()}\n\n`;
+    if (this.sourceFilePath) {
+      content += `**Source Note:** [[${this.plugin.getWikiLinkTarget(this.sourceFilePath)}|${this.plugin.getFileDisplayName(this.sourceFilePath)}]]\n\n`;
+    }
 
     if (this.journalContext) {
       content += `## 📝 Original Journal Entry\n\n`;
       content += `${this.journalContext}\n\n`;
     }
 
+    if (this.initialAnalysis) {
+      content += `## 🔍 Linked Analysis\n\n`;
+      content += `${this.initialAnalysis}\n\n`;
+    }
+
+    const exportedConversation = this.chatMessages.filter((message, index) => {
+      if (index === 0 && message.role === 'user' && message.content.startsWith('Here is a journal entry I wrote:')) {
+        return false;
+      }
+      if (this.initialAnalysis && message.role === 'assistant' && message.content === this.initialAnalysis) {
+        return false;
+      }
+      return true;
+    });
+
     content += `---\n\n## 💬 Conversation\n\n`;
-    for (const msg of this.chatMessages) {
+    for (const msg of exportedConversation) {
       if (msg.role === 'user') {
         content += `### You\n\n${msg.content}\n\n`;
       } else {
@@ -3956,6 +4843,7 @@ class AIChatView extends ItemView {
     this.chatTitle = `Chat - ${new Date().toLocaleDateString()}`;
     this.currentPerspective = 'lacanian_perspective';
     this.sourceFilePath = '';
+    this.initialAnalysis = '';
     void this.onOpen(); // Re-render
     new Notice('Started a new chat');
   }
@@ -4728,7 +5616,7 @@ class AnalysisResultModal extends Modal {
     }
 
     const results = contentEl.createDiv({ cls: 'analysis-results' });
-    for (const groupKey of Object.keys(PERSPECTIVE_GROUPS)) {
+    for (const groupKey of getChronologicalGroupKeys()) {
       const groupEntries = Object.entries(this.analysis.perspectives)
         .filter(([perspKey]) => PERSPECTIVES[perspKey]?.group === groupKey);
       if (groupEntries.length === 0) continue;
@@ -5032,8 +5920,26 @@ class DeleometerSettingTab extends PluginSettingTab {
           });
       });
 
+    new Setting(containerEl)
+      .setName('Analysis output language')
+      .setDesc('Sets the language for generated analyses, syntheses, goals, chat replies, and journaling prompts.')
+      .addDropdown((dropdown) => {
+        for (const [key, language] of Object.entries(OUTPUT_LANGUAGES)) {
+          dropdown.addOption(key, language.label);
+        }
+        dropdown
+          .setValue(this.plugin.settings.outputLanguage)
+          .onChange(async (value) => {
+            this.plugin.settings.outputLanguage = OUTPUT_LANGUAGES[value] ? value : 'english';
+            await this.plugin.saveSettings();
+          });
+      });
+
     new Setting(containerEl).setName('Analysis perspectives').setHeading();
-    containerEl.createEl('p', { text: 'Select which perspectives to use for journal analysis:', cls: 'setting-item-description' });
+    containerEl.createEl('p', {
+      text: 'Select which perspectives to use for journal analysis. The order follows strict chronology inside each group. Tradition, placement, chronology, and lineage labels are guiding maps to intellectual history, not exclusive ownership claims.',
+      cls: 'setting-item-description'
+    });
 
     new Setting(containerEl)
       .setName('Enable all perspectives')
@@ -5046,7 +5952,8 @@ class DeleometerSettingTab extends PluginSettingTab {
           this.display();
         }));
 
-    for (const [groupKey, group] of Object.entries(PERSPECTIVE_GROUPS)) {
+    for (const groupKey of getChronologicalGroupKeys()) {
+      const group = PERSPECTIVE_GROUPS[groupKey];
       new Setting(containerEl)
         .setName(group.title)
         .setDesc(group.description)
@@ -5076,8 +5983,12 @@ class DeleometerSettingTab extends PluginSettingTab {
             this.display();
           }));
 
-      for (const [key, persp] of Object.entries(PERSPECTIVES).filter(([, perspective]) => perspective.group === groupKey)) {
-        new Setting(containerEl)
+      const orderedGroupPerspectives = getChronologicalPerspectiveKeys()
+        .filter((key) => PERSPECTIVES[key]?.group === groupKey)
+        .map((key) => [key, PERSPECTIVES[key]] as const);
+
+      for (const [key, persp] of orderedGroupPerspectives) {
+        const setting = new Setting(containerEl)
           .setName(persp.title)
           .setDesc(persp.description)
           .addToggle(toggle => toggle
@@ -5092,6 +6003,11 @@ class DeleometerSettingTab extends PluginSettingTab {
               }
               await this.plugin.saveSettings();
             }));
+
+        const historyLabel = buildPerspectiveHistoryLabel(key, persp);
+        if (historyLabel) {
+          setting.descEl.createDiv({ text: historyLabel, cls: 'setting-item-description' });
+        }
       }
     }
   }

@@ -110,7 +110,7 @@ After enabling the plugin:
 
 Analyses can be extensive. If every frame is enabled, an appended note may produce around 15,000 words, roughly a 70-minute read. Settings let you enable or disable whole analysis groups, or choose individual analyses inside each group, so you can tune the output to the time and attention you have. Generated analyses follow a strict historical chronology first; group labels come second, as lineage markers for settings and group synthesis.
 
-The analysis reader level can also be changed in settings. The available levels range from Grade 5 primary through professor-level analysis. This changes how much the AI explains specialist terms and how far it tries to guide the reader beyond their current zone of proximal development.
+The analysis reader level can also be changed in settings. The available levels range from Grade 5 primary through professor-level analysis. This changes how much the AI explains specialist terms and how far it tries to guide the reader beyond their current zone of proximal development. The output language can also be changed in settings for generated analyses, syntheses, goals, chat replies, and journaling prompts. Current language options are English, French, and German.
 
 ## Screenshots
 
@@ -209,6 +209,22 @@ Before publishing widely, you will probably want to:
 - Buy Me a Coffee: [buymeacoffee.com/theobsidiandeleometer](https://buymeacoffee.com/theobsidiandeleometer)
 - GitHub Sponsors: [github.com/sponsors/MichelleGDyason](https://github.com/sponsors/MichelleGDyason)
 
+## BRAT Beta Feedback
+
+If you are testing a BRAT prerelease, please open a GitHub issue and include the exact beta version, what you expected, what happened instead, and the steps that led there.
+
+- Open a beta feedback issue:
+  [github.com/MichelleGDyason/The_Obsidian_Deleometer_v2/issues/new/choose](https://github.com/MichelleGDyason/The_Obsidian_Deleometer_v2/issues/new/choose)
+- Mention whether the behavior happened in:
+  - a linked source note
+  - a newly exported note
+  - goal drafting
+  - milestone syncing or consolidation
+  - calendar syncing
+  - AI chat
+
+Even a short note saying "BRAT beta X works for me on platform Y" is useful, because it helps show whether anyone besides the maintainer is actively testing.
+
 You may also want to add:
 
 - GitHub Issues link
@@ -221,7 +237,7 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 135 individual analysis frames. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
+The Deleometer currently includes 197 individual analysis frames. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
 
 ### Philosophy as First Discipline
 
@@ -241,6 +257,7 @@ The Deleometer currently includes 135 individual analysis frames. Generated anal
 - Gottfried Wilhelm Leibniz's Monadology
 - John Locke's Personal Identity
 - David Hume's Bundle Theory of Self
+- Aesthetics
 - Moral Naturalism
 - Immanuel Kant's Transcendental Subject
 - G.W.F. Hegel's Recognition and Subjectivity
