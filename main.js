@@ -6506,6 +6506,7 @@ var PERSPECTIVES = {
   jacques_ranciere_politics_aesthetics: { title: "Jacques Ranci\xE8re's Politics and Aesthetics", description: "The distribution of the sensible, dissensus, equality, politics, aesthetics, voice, partition, and who gets to appear and be heard", group: PHILOSOPHY_GROUP_KEY },
   topological_analysis: { title: "Topological Analysis", description: "Relations, surfaces, thresholds, folds, nearness, boundaries, and spatial transformations of meaning", group: PHILOSOPHY_GROUP_KEY },
   ancient_religious_interpretation: { title: "Ancient Religious Interpretation", description: "Ritual, sacrifice, omen, sacred order, taboo, ancestor, cosmology, and ancient religious imagination", group: "religious_mythic_interpretation" },
+  ancient_egyptian_interpretation: { title: "Ancient Egyptian Interpretation", description: "Ma'at, ka, ba, divine kingship, the afterlife, ritual order, cosmic balance, sacred writing, temple worlds, and the moral-spiritual weight of action", group: "religious_mythic_interpretation" },
   first_testament_hebrew_interpretation: { title: "First Testament / Hebrew Interpretation", description: "Covenant, law, prophecy, lament, wisdom, exile, justice, creation, and faithful argument with God", group: "religious_mythic_interpretation" },
   greek_gods_interpretation: { title: "Greek Gods Interpretation", description: "Olympian powers, mythic archetypes, fate, hubris, patronage, conflict, desire, and heroic consequence", group: "religious_mythic_interpretation" },
   roman_gods_interpretation: { title: "Roman Gods Interpretation", description: "Civic religion, household gods, pietas, omen, duty, empire, ritual order, and public virtue", group: "religious_mythic_interpretation" },
@@ -6658,6 +6659,7 @@ var PERSPECTIVE_HEADING_ALIASES = {
   husserlian_phenomenology: ["Husserl's Phenomenology", "Edmund Husserl", "Husserl"],
   whitehead_process_philosophy: ["Whitehead's Process Philosophy", "Alfred North Whitehead", "Whitehead"],
   aesthetics_untranslatables: ["Aesthetics", "Aesthetics and the Untranslatable", "Dictionary of Untranslatables Aesthetics"],
+  ancient_egyptian_interpretation: ["Ancient Egyptian Interpretation", "Ancient Egyptian", "Ancient Egyption", "Ancient Egyptian Religion"],
   vitalism_analysis: ["Vitalism"],
   organicism_analysis: ["Organicism"],
   spivak_subaltern_analysis: ["Gayatry Chacravorty Spivak", "Gayatri Chakravorty Spivak", "Spivak's Subaltern Analysis"],
@@ -6672,6 +6674,7 @@ var PERSPECTIVE_HEADING_ALIASES = {
 var PERSPECTIVE_CHRONOLOGY = [
   "indigenous_australian_philosophy_accumulated",
   "ancient_religious_interpretation",
+  "ancient_egyptian_interpretation",
   "first_testament_hebrew_interpretation",
   "greek_gods_interpretation",
   "roman_gods_interpretation",
