@@ -237,7 +237,7 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 200 individual analysis frames. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
+The Deleometer currently includes 202 individual analysis frames. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
 
 ### Philosophy as First Discipline
 
@@ -346,6 +346,7 @@ The Deleometer currently includes 200 individual analysis frames. Generated anal
 ### Family, Care, and Guidance Theories
 
 - Montessori Method
+- Steiner Education
 - Jean Piaget's Developmental Theory
 - Lev Vygotsky's Sociocultural Theory
 - Asian / Japanese Parental Guidance Practices
@@ -379,6 +380,7 @@ The Deleometer currently includes 200 individual analysis frames. Generated anal
 - Critical Race Studies
 - Frantz Fanonian Analysis
 - Decolonial Studies
+- Crip Studies
 - Fat Studies
 - Mad Studies
 

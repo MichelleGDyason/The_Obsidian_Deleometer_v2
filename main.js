@@ -6557,6 +6557,7 @@ var PERSPECTIVES = {
   cbt_perspective: { title: "Cognitive Behavioral", description: "Thoughts, behaviors, and patterns", group: "psychoanalytic_clinical" },
   positive_psychology_perspective: { title: "Positive Psychology", description: "Strengths, flourishing, and well-being", group: "psychoanalytic_clinical" },
   montessori_method: { title: "Montessori Method", description: "Prepared environment, self-directed activity, sensitive periods, observation, independence, practical life, embodied learning, and respect for the child", group: "family_care_guidance" },
+  steiner_education: { title: "Steiner Education", description: "Waldorf pedagogy, imagination, rhythm, developmental stages, artistic learning, practical activity, holistic education, and teaching the child as body, soul, and spirit", group: "family_care_guidance" },
   piaget_developmental_theory: { title: "Jean Piaget's Developmental Theory", description: "Schemas, assimilation, accommodation, stages of cognitive development, constructivism, play, reasoning, and how children build knowledge", group: "family_care_guidance" },
   vygotsky_sociocultural_theory: { title: "Lev Vygotsky's Sociocultural Theory", description: "Zone of proximal development, scaffolding, language, social learning, cultural tools, mediation, collaboration, and guided development", group: "family_care_guidance" },
   primary_pedagogy: { title: "Teaching in Primary School", description: "Foundational learning, play, scaffolding, safety, routine, literacy, numeracy, care, explanation, and teaching for early developmental stages", group: "family_care_guidance" },
@@ -6596,6 +6597,7 @@ var PERSPECTIVES = {
   critical_race_studies: { title: "Critical Race Studies", description: "Racial formation, structural racism, intersectionality, law, culture, and lived experience", group: "race_coloniality_embodiment" },
   fanonian_analysis: { title: "Frantz Fanonian Analysis", description: "Colonial violence, racialization, alienation, recognition, embodiment, national consciousness, liberation, and the psychic life of colonial power", group: "race_coloniality_embodiment" },
   decolonial_studies: { title: "Decolonial Studies", description: "Coloniality, land, knowledge, sovereignty, extraction, repair, and pluriversal futures", group: "race_coloniality_embodiment" },
+  crip_studies: { title: "Crip Studies", description: "Crip politics, disability culture, anti-ableism, interdependence, access, embodiment, norm critique, refusal of compulsory capacity, and reimagining flourishing beyond able-bodied standards", group: "race_coloniality_embodiment" },
   fat_studies: { title: "Fat Studies", description: "Anti-fat bias, embodiment, health norms, stigma, access, and fat liberation", group: "race_coloniality_embodiment" },
   mad_studies: { title: "Mad Studies", description: "Psychiatric power, mad knowledge, distress, survival, and alternatives to pathologization", group: "race_coloniality_embodiment" },
   ecology_perspective: { title: "Ecology", description: "Organisms, habitats, interdependence, niches, energy flows, disturbance, adaptation, and relations between living systems and environments", group: "systems_ecology_food" },
@@ -6660,6 +6662,8 @@ var PERSPECTIVE_HEADING_ALIASES = {
   whitehead_process_philosophy: ["Whitehead's Process Philosophy", "Alfred North Whitehead", "Whitehead"],
   aesthetics_untranslatables: ["Aesthetics", "Aesthetics and the Untranslatable", "Dictionary of Untranslatables Aesthetics"],
   ancient_egyptian_interpretation: ["Ancient Egyptian Interpretation", "Ancient Egyptian", "Ancient Egyption", "Ancient Egyptian Religion"],
+  crip_studies: ["Crip", "Crip Studies", "Crip Theory"],
+  steiner_education: ["Steiner Education", "Waldorf Education", "Rudolf Steiner Education"],
   vitalism_analysis: ["Vitalism"],
   organicism_analysis: ["Organicism"],
   spivak_subaltern_analysis: ["Gayatry Chacravorty Spivak", "Gayatri Chakravorty Spivak", "Spivak's Subaltern Analysis"],
@@ -6752,6 +6756,7 @@ var PERSPECTIVE_CHRONOLOGY = [
   "sociology_analysis",
   "social_research_methods",
   "montessori_method",
+  "steiner_education",
   "piaget_developmental_theory",
   "vygotsky_sociocultural_theory",
   "primary_pedagogy",
@@ -6825,6 +6830,7 @@ var PERSPECTIVE_CHRONOLOGY = [
   "fanonian_analysis",
   "critical_race_studies",
   "decolonial_studies",
+  "crip_studies",
   "fat_studies",
   "mad_studies",
   "ecology_perspective",
@@ -6972,6 +6978,7 @@ var MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS = [
 var DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS = [
   "maslow_hierarchy_needs",
   "montessori_method",
+  "steiner_education",
   "piaget_developmental_theory",
   "vygotsky_sociocultural_theory"
 ];
@@ -7775,12 +7782,21 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
           try {
             const url = new URL(link.href);
             const perspective = url.searchParams.get("perspective") || "";
+            const group = url.searchParams.get("group") || "";
             const source = url.searchParams.get("source") || "";
-            if (!PERSPECTIVES[perspective] || !this.getVaultMarkdownFile(source)) {
+            if (!this.getVaultMarkdownFile(source)) {
               new import_obsidian.Notice("Invalid or unsafe chat link context");
               return;
             }
-            await this.openChatFromSourceNote(source, perspective);
+            if (perspective && PERSPECTIVES[perspective]) {
+              await this.openChatFromSourceNote(source, perspective);
+              return;
+            }
+            if (group && PERSPECTIVE_GROUPS[group]) {
+              await this.openGroupChatFromSourceNote(source, group);
+              return;
+            }
+            new import_obsidian.Notice("Invalid or unsafe chat link context");
           } catch (error) {
             new import_obsidian.Notice("Could not open chat from note link");
             console.error(error);
@@ -8488,20 +8504,22 @@ ${content}`
       return { title, description, category, targetDate, milestones, sourcePerspectives };
     }).filter((goal) => !!goal);
   }
-  async getSinglePerspectiveResponse(messages, perspective) {
-    var _a2, _b;
+  async getSinglePerspectiveResponse(messages, perspective, contextOverride) {
+    var _a2, _b, _c, _d;
     if (!this.openai) throw new Error("OpenAI not initialized");
     const persp = PERSPECTIVES[perspective];
     const authorContext = this.buildAuthorContext();
+    const specializationTitle = ((_a2 = contextOverride == null ? void 0 : contextOverride.title) == null ? void 0 : _a2.trim()) || (persp == null ? void 0 : persp.title) || "reflective analysis";
+    const specializationDescription = ((_b = contextOverride == null ? void 0 : contextOverride.description) == null ? void 0 : _b.trim()) || (persp == null ? void 0 : persp.description) || "";
     const systemMessage = {
       role: "system",
-      content: `You are an empathetic analytical companion specializing in ${(persp == null ? void 0 : persp.title) || "reflective analysis"}. ${(persp == null ? void 0 : persp.description) || ""}
+      content: `You are an empathetic analytical companion specializing in ${specializationTitle}. ${specializationDescription}
 
 ${this.getReaderContextPrompt()}
 
 ${this.getOutputLanguagePrompt()}
 
-You help users explore emotions, thoughts, experiences, contexts, and practical possibilities through this perspective. Be warm, insightful, and supportive. Ask thoughtful follow-up questions. Keep responses conversational and under 150 words unless more detail is needed.${authorContext ? `
+You help users explore emotions, thoughts, experiences, contexts, and practical possibilities through this perspective or synthesis. Be warm, insightful, and supportive. Ask thoughtful follow-up questions. Keep responses conversational and under 150 words unless more detail is needed.${authorContext ? `
 
 Context about the journal author:
 ${authorContext}` : ""}`
@@ -8511,7 +8529,7 @@ ${authorContext}` : ""}`
       content: this.prepareTextForAI(message.content)
     }));
     const response = await this.openai.chat.completions.create({ model: "gpt-4o-mini", messages: [systemMessage, ...conversation] });
-    return ((_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content) || "I apologize, I could not generate a response.";
+    return ((_d = (_c = response.choices[0]) == null ? void 0 : _c.message) == null ? void 0 : _d.content) || "I apologize, I could not generate a response.";
   }
   async getRandomJournalPrompt() {
     var _a2, _b, _c;
@@ -8569,6 +8587,7 @@ ${preparedJournalContext}`
     return ((_c = (_b = (_a2 = response.choices[0]) == null ? void 0 : _a2.message) == null ? void 0 : _b.content) == null ? void 0 : _c.trim()) || "Write about a moment today that quietly echoed one of your deeper goals, and follow that thread until it reveals what you most need right now.";
   }
   async openChatFromSourceNote(sourceFilePath, perspectiveKey) {
+    var _a2, _b;
     if (!PERSPECTIVES[perspectiveKey]) {
       throw new Error("Unknown analysis perspective");
     }
@@ -8583,10 +8602,47 @@ ${preparedJournalContext}`
       throw new Error("Perspective analysis not found in source note");
     }
     this.pendingChatContext = {
+      chatKind: "perspective",
       perspective: perspectiveKey,
       journalContent: this.getJournalContentBeforeAnalysis(content),
       initialAnalysis,
-      sourceFilePath
+      sourceFilePath,
+      sourceTitle: ((_a2 = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _a2.title) || perspectiveKey,
+      sourceDescription: ((_b = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _b.description) || ""
+    };
+    await this.activateAIChatView();
+  }
+  getDefaultPerspectiveForGroup(groupKey) {
+    const firstPerspective = getChronologicalPerspectiveKeys().find((key) => {
+      var _a2;
+      return ((_a2 = PERSPECTIVES[key]) == null ? void 0 : _a2.group) === groupKey;
+    });
+    return firstPerspective || "lacanian_perspective";
+  }
+  async openGroupChatFromSourceNote(sourceFilePath, groupKey) {
+    if (!PERSPECTIVE_GROUPS[groupKey]) {
+      throw new Error("Unknown group synthesis");
+    }
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) {
+      throw new Error("Source note not found");
+    }
+    const content = await this.app.vault.read(abstractFile);
+    const bounds = this.findGroupSynthesisSectionBounds(content, groupKey);
+    if (!bounds) {
+      throw new Error("Group synthesis not found in source note");
+    }
+    const initialAnalysis = content.slice(bounds.start, bounds.end).replace(/^###\s+.+$/m, "").replace(/\*\*Continue Group Chat:\*\*.*(?:\n|$)/g, "").replace(/\*\*Continue Chat:\*\*.*(?:\n|$)/g, "").replace(/#### Latest AI Chat[\s\S]*$/m, "").trim();
+    const group = PERSPECTIVE_GROUPS[groupKey];
+    this.pendingChatContext = {
+      chatKind: "group_synthesis",
+      perspective: this.getDefaultPerspectiveForGroup(groupKey),
+      journalContent: this.getJournalContentBeforeAnalysis(content),
+      initialAnalysis,
+      sourceFilePath,
+      sourceGroupKey: groupKey,
+      sourceTitle: `${group.title} synthesis`,
+      sourceDescription: `${group.description}. This chat begins from the synthesis across the perspectives in this lineage group.`
     };
     await this.activateAIChatView();
   }
@@ -8697,9 +8753,42 @@ ${preparedJournalContext}`
     }
     return null;
   }
+  findGroupSynthesisSectionBounds(content, groupKey) {
+    const group = PERSPECTIVE_GROUPS[groupKey];
+    if (!group) return null;
+    const groupSynthesesMatch = /^##\s+Group Syntheses\s*$/m.exec(content);
+    if (!groupSynthesesMatch || typeof groupSynthesesMatch.index !== "number") return null;
+    const sectionStart = groupSynthesesMatch.index;
+    const afterStart = content.slice(sectionStart);
+    const nextSectionMatch = /^##\s+(?!Group Syntheses).+$/m.exec(afterStart.slice(groupSynthesesMatch[0].length));
+    const sectionEnd = nextSectionMatch ? sectionStart + groupSynthesesMatch[0].length + nextSectionMatch.index : content.length;
+    const sectionContent = content.slice(sectionStart, sectionEnd);
+    const headingMatches = [];
+    const headingRegex = /^###\s+(.+)$/gm;
+    let match;
+    while ((match = headingRegex.exec(sectionContent)) !== null) {
+      headingMatches.push({
+        heading: match[1].trim(),
+        index: match.index,
+        fullMatch: match[0]
+      });
+    }
+    for (let index = 0; index < headingMatches.length; index += 1) {
+      const currentHeading = headingMatches[index];
+      if (this.normalizeHeadingText(currentHeading.heading) !== this.normalizeHeadingText(group.title)) continue;
+      const start = sectionStart + currentHeading.index;
+      const end = index + 1 < headingMatches.length ? sectionStart + headingMatches[index + 1].index : sectionEnd;
+      return { start, end };
+    }
+    return null;
+  }
   buildPerspectiveChatLink(sourceFilePath, perspectiveKey) {
     const encodedPath = encodeURIComponent(sourceFilePath);
     return `**Continue Chat:** [Open AI Chat](deleometer://chat?perspective=${perspectiveKey}&source=${encodedPath})`;
+  }
+  buildGroupSynthesisChatLink(sourceFilePath, groupKey) {
+    const encodedPath = encodeURIComponent(sourceFilePath);
+    return `**Continue Group Chat:** [Open AI Chat](deleometer://chat?group=${groupKey}&source=${encodedPath})`;
   }
   extractAnalysisPayloadFromNote(content) {
     const perspectives = {};
@@ -9833,8 +9922,8 @@ ${event.kind === "goal_due" ? `This marks the target date for ${goalLink}.` : `R
       new import_obsidian.Notice(`Synced ${synced} goal${synced === 1 ? "" : "s"} to calendar`);
     }
   }
-  buildChatFileBaseName(sourceFilePath, perspectiveKey, dateStamp) {
-    const perspective = this.sanitizeFileNamePart(this.getPerspectiveHeadingTitle(perspectiveKey));
+  buildChatFileBaseName(sourceFilePath, perspectiveKey, dateStamp, baseLabel) {
+    const perspective = this.sanitizeFileNamePart(baseLabel || this.getPerspectiveHeadingTitle(perspectiveKey));
     const safeDate = this.sanitizeFileNamePart(dateStamp || (/* @__PURE__ */ new Date()).toISOString().split("T")[0]);
     if (!sourceFilePath) {
       return `${safeDate}-${perspective}-Chat`;
@@ -9844,6 +9933,16 @@ ${event.kind === "goal_due" ? `This marks the target date for ${goalLink}.` : `R
   async ensurePerspectiveChatLinks(sourceFile, analysis) {
     for (const perspectiveKey of Object.keys(analysis.perspectives)) {
       await this.upsertPerspectiveSectionLine(sourceFile.path, perspectiveKey, "**Continue Chat:**", this.buildPerspectiveChatLink(sourceFile.path, perspectiveKey));
+    }
+  }
+  async ensureGroupSynthesisChatLinks(sourceFile, analysis) {
+    for (const groupKey of Object.keys(analysis.groupSyntheses)) {
+      await this.upsertGroupSynthesisSectionLine(
+        sourceFile.path,
+        groupKey,
+        "**Continue Group Chat:**",
+        this.buildGroupSynthesisChatLink(sourceFile.path, groupKey)
+      );
     }
   }
   buildGoalDraftLink(sourceFilePath) {
@@ -9912,21 +10011,40 @@ ${fullLine}
       `${currentContent.slice(0, bounds.start)}${updatedSection}${currentContent.slice(bounds.end)}`
     );
   }
-  async saveChatBackToSourceNote(sourceFilePath, perspectiveKey, chatMessages, chatStartTime) {
-    if (!PERSPECTIVES[perspectiveKey]) return false;
+  async upsertGroupSynthesisSectionLine(sourceFilePath, groupKey, linePrefix, fullLine) {
+    if (!PERSPECTIVE_GROUPS[groupKey]) return;
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) return;
+    const currentContent = await this.app.vault.read(abstractFile);
+    const bounds = this.findGroupSynthesisSectionBounds(currentContent, groupKey);
+    if (!bounds) return;
+    const section = currentContent.slice(bounds.start, bounds.end);
+    const escapedPrefix = linePrefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const lineRegex = new RegExp(`${escapedPrefix}.*(?:\\n|$)`);
+    const updatedSection = lineRegex.test(section) ? section.replace(lineRegex, `${fullLine}
+`) : `${section.trimEnd()}
+${fullLine}
+`;
+    await this.app.vault.modify(
+      abstractFile,
+      `${currentContent.slice(0, bounds.start)}${updatedSection}${currentContent.slice(bounds.end)}`
+    );
+  }
+  async saveChatBackToSourceNote(sourceFilePath, chatMessages, chatStartTime, options = {}) {
+    var _a2;
     const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
     if (!abstractFile) return false;
     const currentContent = await this.app.vault.read(abstractFile);
-    const bounds = this.findPerspectiveSectionBounds(currentContent, perspectiveKey);
+    const bounds = options.groupKey ? this.findGroupSynthesisSectionBounds(currentContent, options.groupKey) : options.perspectiveKey ? this.findPerspectiveSectionBounds(currentContent, options.perspectiveKey) : null;
     if (!bounds) return false;
-    const perspectiveTitle = this.getPerspectiveHeadingTitle(perspectiveKey);
+    const speakerTitle = options.speakerTitle || (options.groupKey ? `${((_a2 = PERSPECTIVE_GROUPS[options.groupKey]) == null ? void 0 : _a2.title) || options.groupKey} synthesis` : "") || (options.perspectiveKey ? this.getPerspectiveHeadingTitle(options.perspectiveKey) : "AI");
     const messagesToPersist = chatMessages.filter((message, index) => {
       if (index === 0 && message.role === "user" && message.content.startsWith("Here is a journal entry I wrote:")) {
         return false;
       }
       return true;
     });
-    const transcript = messagesToPersist.map((message) => `${message.role === "user" ? "**You:**" : `**${perspectiveTitle}:**`}
+    const transcript = messagesToPersist.map((message) => `${message.role === "user" ? "**You:**" : `**${speakerTitle}:**`}
 
 ${message.content}`).join("\n\n---\n\n");
     const chatBlock = `#### Latest AI Chat (${chatStartTime.toLocaleString()})
@@ -9954,6 +10072,7 @@ ${chatBlock}
       await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${this.buildAnalysisMarkdown(analysis, sourceFile.path)}`);
     }
     await this.ensurePerspectiveChatLinks(sourceFile, analysis);
+    await this.ensureGroupSynthesisChatLinks(sourceFile, analysis);
   }
   async writeAnalysisStatusToFile(sourceFile, status) {
     const currentContent = await this.app.vault.read(sourceFile);
@@ -10481,7 +10600,13 @@ var AIChatView = class extends import_obsidian.ItemView {
     super(leaf);
     this.chatMessages = [];
     this.currentPerspective = "lacanian_perspective";
+    this.sourceChatKind = "perspective";
     this.sourcePerspectiveKey = "";
+    this.sourceGroupKey = "";
+    this.sourceTitle = "";
+    this.sourceDescription = "";
+    this.liveContextTitle = "";
+    this.liveContextDescription = "";
     this.chatTitle = "";
     this.chatStartTime = /* @__PURE__ */ new Date();
     this.journalContext = "";
@@ -10508,13 +10633,25 @@ var AIChatView = class extends import_obsidian.ItemView {
     this.journalContext = "";
     this.sourceFilePath = "";
     this.initialAnalysis = "";
+    this.sourceChatKind = "perspective";
     this.sourcePerspectiveKey = "";
+    this.sourceGroupKey = "";
+    this.sourceTitle = "";
+    this.sourceDescription = "";
+    this.liveContextTitle = "";
+    this.liveContextDescription = "";
     const context = this.plugin.pendingChatContext;
     if (context) {
+      this.sourceChatKind = context.chatKind || "perspective";
       this.currentPerspective = context.perspective;
-      this.sourcePerspectiveKey = context.perspective;
+      this.sourcePerspectiveKey = this.sourceChatKind === "perspective" ? context.perspective : "";
+      this.sourceGroupKey = context.sourceGroupKey || "";
       this.journalContext = context.journalContent;
-      this.chatTitle = `Journal analysis - ${(_a2 = PERSPECTIVES[context.perspective]) == null ? void 0 : _a2.title}`;
+      this.sourceTitle = context.sourceTitle || ((_a2 = PERSPECTIVES[context.perspective]) == null ? void 0 : _a2.title) || context.perspective;
+      this.sourceDescription = context.sourceDescription || ((_b = PERSPECTIVES[context.perspective]) == null ? void 0 : _b.description) || "";
+      this.liveContextTitle = this.sourceTitle;
+      this.liveContextDescription = this.sourceDescription;
+      this.chatTitle = `Journal analysis - ${this.sourceTitle}`;
       this.sourceFilePath = context.sourceFilePath || "";
       this.initialAnalysis = context.initialAnalysis || "";
       this.plugin.pendingChatContext = null;
@@ -10536,7 +10673,7 @@ var AIChatView = class extends import_obsidian.ItemView {
     const newChatBtn = actionBtns.createEl("button", { text: "New chat", cls: "btn-secondary btn-small" });
     newChatBtn.onclick = () => this.startNewChat();
     if (context) {
-      header.createEl("p", { text: `Continuing analysis with ${(_b = PERSPECTIVES[this.currentPerspective]) == null ? void 0 : _b.title}`, cls: "chat-subtitle context-active" });
+      header.createEl("p", { text: `Continuing analysis with ${this.sourceTitle}`, cls: "chat-subtitle context-active" });
     } else {
       header.createEl("p", { text: "Explore your emotions with AI guidance", cls: "chat-subtitle" });
     }
@@ -10549,6 +10686,8 @@ var AIChatView = class extends import_obsidian.ItemView {
     }
     select.onchange = () => {
       this.currentPerspective = select.value;
+      this.liveContextTitle = "";
+      this.liveContextDescription = "";
       this.addMessage("assistant", `I'll now respond from a ${PERSPECTIVES[this.currentPerspective].title} perspective. How can I help you?`);
     };
     const levelSelector = container.createDiv({ cls: "perspective-selector-container" });
@@ -10622,7 +10761,11 @@ ${journalContextForAI}` });
     const loadingDiv = this.messagesContainer.createDiv({ cls: "chat-message assistant loading" });
     loadingDiv.createEl("p", { text: "Thinking..." });
     try {
-      const response = await this.plugin.getSinglePerspectiveResponse(this.chatMessages, this.currentPerspective);
+      const response = await this.plugin.getSinglePerspectiveResponse(
+        this.chatMessages,
+        this.currentPerspective,
+        this.liveContextTitle || this.liveContextDescription ? { title: this.liveContextTitle, description: this.liveContextDescription } : void 0
+      );
       loadingDiv.remove();
       this.addMessage("assistant", response);
       this.chatMessages.push({ role: "assistant", content: response });
@@ -10643,8 +10786,8 @@ ${journalContextForAI}` });
         new import_obsidian.Notice("This chat is not linked to a journal analysis note. Use export if you want a separate note.");
         return;
       }
-      if (!this.sourcePerspectiveKey) {
-        new import_obsidian.Notice("This chat is missing its source analysis lens. Re-open it from the lens link in the analysis note.");
+      if (!this.sourcePerspectiveKey && !this.sourceGroupKey) {
+        new import_obsidian.Notice("This chat is missing its source analysis link. Re-open it from the analysis note and try again.");
         return;
       }
       const messagesToSave = this.chatMessages.filter((message, index) => {
@@ -10660,9 +10803,18 @@ ${journalContextForAI}` });
         new import_obsidian.Notice("No new chat messages to save beyond the existing analysis");
         return;
       }
-      const saved = await this.plugin.saveChatBackToSourceNote(this.sourceFilePath, this.sourcePerspectiveKey, messagesToSave, this.chatStartTime);
+      const saved = await this.plugin.saveChatBackToSourceNote(
+        this.sourceFilePath,
+        messagesToSave,
+        this.chatStartTime,
+        {
+          perspectiveKey: this.sourcePerspectiveKey || void 0,
+          groupKey: this.sourceGroupKey || void 0,
+          speakerTitle: this.sourceTitle || void 0
+        }
+      );
       if (!saved) {
-        new import_obsidian.Notice("Could not find the source analysis lens section in the note. Re-open the chat from the lens link and try again.");
+        new import_obsidian.Notice("Could not find the source analysis section in the note. Re-open the chat from the note link and try again.");
         return;
       }
       new import_obsidian.Notice("Chat saved back to the source analysis section");
@@ -10680,11 +10832,21 @@ ${journalContextForAI}` });
     await this.plugin.ensureFolder(this.plugin.settings.chatsFolder);
     const timestamp = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
     const sourcePerspectiveKey = this.sourcePerspectiveKey || this.currentPerspective;
-    const perspTitle = ((_a2 = PERSPECTIVES[sourcePerspectiveKey]) == null ? void 0 : _a2.title) || ((_b = PERSPECTIVES[this.currentPerspective]) == null ? void 0 : _b.title) || "Unknown";
-    const chatBaseName = this.plugin.buildChatFileBaseName(this.sourceFilePath, sourcePerspectiveKey, timestamp);
+    const exportTitle = this.sourceTitle || ((_a2 = PERSPECTIVES[sourcePerspectiveKey]) == null ? void 0 : _a2.title) || ((_b = PERSPECTIVES[this.currentPerspective]) == null ? void 0 : _b.title) || "Unknown";
+    const fileLabelKey = this.sourcePerspectiveKey || this.currentPerspective;
+    const chatBaseName = this.plugin.buildChatFileBaseName(this.sourceFilePath, fileLabelKey, timestamp, exportTitle);
     const fileName = this.plugin.getUniqueMarkdownPath(this.plugin.settings.chatsFolder, chatBaseName);
     let initialAnalysis = this.initialAnalysis;
-    if (!initialAnalysis && this.sourceFilePath && sourcePerspectiveKey) {
+    if (!initialAnalysis && this.sourceFilePath && this.sourceGroupKey) {
+      const sourceFile = this.plugin.getVaultMarkdownFile(this.sourceFilePath);
+      if (sourceFile) {
+        const sourceContent = await this.app.vault.read(sourceFile);
+        const bounds = this.plugin.findGroupSynthesisSectionBounds(sourceContent, this.sourceGroupKey);
+        if (bounds) {
+          initialAnalysis = sourceContent.slice(bounds.start, bounds.end).replace(/^###\s+.+$/m, "").replace(/\*\*Continue Group Chat:\*\*.*(?:\n|$)/g, "").replace(/#### Latest AI Chat[\s\S]*$/m, "").trim();
+        }
+      }
+    } else if (!initialAnalysis && this.sourceFilePath && sourcePerspectiveKey) {
       const sourceFile = this.plugin.getVaultMarkdownFile(this.sourceFilePath);
       if (sourceFile) {
         const sourceContent = await this.app.vault.read(sourceFile);
@@ -10692,10 +10854,10 @@ ${journalContextForAI}` });
         initialAnalysis = sourceAnalysis.perspectives[sourcePerspectiveKey] || "";
       }
     }
-    let content = `# \u{1F4AC} ${perspTitle} Chat - ${timestamp}
+    let content = `# \u{1F4AC} ${exportTitle} Chat - ${timestamp}
 
 `;
-    content += `**Perspective:** ${perspTitle}
+    content += `**Source Analysis:** ${exportTitle}
 `;
     content += `**Date:** ${this.chatStartTime.toLocaleString()}
 `;
@@ -10706,7 +10868,11 @@ ${journalContextForAI}` });
       content += `**Source Note:** [[${this.plugin.getWikiLinkTarget(this.sourceFilePath)}|${this.plugin.getFileDisplayName(this.sourceFilePath)}]]
 
 `;
-      if (sourcePerspectiveKey) {
+      if (this.sourceGroupKey && PERSPECTIVE_GROUPS[this.sourceGroupKey]) {
+        content += `**Source Group Synthesis:** [[${this.plugin.getWikiLinkTarget(this.sourceFilePath)}#${PERSPECTIVE_GROUPS[this.sourceGroupKey].title}|${PERSPECTIVE_GROUPS[this.sourceGroupKey].title}]]
+
+`;
+      } else if (sourcePerspectiveKey) {
         content += `**Source Analysis Lens:** ${this.plugin.buildPerspectiveSourceNoteLink(this.sourceFilePath, sourcePerspectiveKey)}
 
 `;
@@ -10750,7 +10916,7 @@ ${msg.content}
 
 `;
       } else {
-        content += `### ${perspTitle}
+        content += `### ${exportTitle}
 
 ${msg.content}
 
@@ -10792,7 +10958,13 @@ ${msg.content}
     this.journalContext = "";
     this.chatTitle = `Chat - ${(/* @__PURE__ */ new Date()).toLocaleDateString()}`;
     this.currentPerspective = "lacanian_perspective";
+    this.sourceChatKind = "perspective";
     this.sourcePerspectiveKey = "";
+    this.sourceGroupKey = "";
+    this.sourceTitle = "";
+    this.sourceDescription = "";
+    this.liveContextTitle = "";
+    this.liveContextDescription = "";
     this.sourceFilePath = "";
     this.initialAnalysis = "";
     void this.onOpen();
@@ -11548,8 +11720,14 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
       synthesisSection.createEl("h3", { text: "Group syntheses" });
       for (const [groupKey, content] of Object.entries(this.analysis.groupSyntheses)) {
         const group = PERSPECTIVE_GROUPS[groupKey];
-        synthesisSection.createEl("h4", { text: (group == null ? void 0 : group.title) || groupKey });
-        synthesisSection.createEl("p", { text: content });
+        const synthesisCard = synthesisSection.createDiv({ cls: "perspective-card" });
+        const header = synthesisCard.createDiv({ cls: "perspective-header" });
+        header.createEl("h4", { text: (group == null ? void 0 : group.title) || groupKey });
+        const chatBtn = header.createEl("button", { text: "Chat with this synthesis", cls: "chat-with-btn" });
+        chatBtn.onclick = () => {
+          void this.openChatWithGroupSynthesis(groupKey, content);
+        };
+        synthesisCard.createEl("p", { text: content });
       }
     }
     if (this.analysis.philosophicalReaccumulation) {
@@ -11588,19 +11766,42 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
     closeBtn.onclick = () => this.close();
   }
   async openChatWithPerspective(perspectiveKey, initialAnalysis) {
-    var _a2, _b;
+    var _a2, _b, _c, _d;
     if (this.sourceFile) {
       await this.plugin.appendAnalysisToFile(this.sourceFile, this.analysis);
     }
     this.close();
     this.plugin.pendingChatContext = {
+      chatKind: "perspective",
       perspective: perspectiveKey,
       journalContent: this.originalContent,
       initialAnalysis,
-      sourceFilePath: ((_a2 = this.sourceFile) == null ? void 0 : _a2.path) || ""
+      sourceFilePath: ((_a2 = this.sourceFile) == null ? void 0 : _a2.path) || "",
+      sourceTitle: ((_b = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _b.title) || perspectiveKey,
+      sourceDescription: ((_c = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _c.description) || ""
     };
     await this.plugin.activateAIChatView();
-    new import_obsidian.Notice(`Opening chat with ${((_b = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _b.title) || perspectiveKey} perspective`);
+    new import_obsidian.Notice(`Opening chat with ${((_d = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _d.title) || perspectiveKey} perspective`);
+  }
+  async openChatWithGroupSynthesis(groupKey, initialAnalysis) {
+    var _a2;
+    if (this.sourceFile) {
+      await this.plugin.appendAnalysisToFile(this.sourceFile, this.analysis);
+    }
+    this.close();
+    const group = PERSPECTIVE_GROUPS[groupKey];
+    this.plugin.pendingChatContext = {
+      chatKind: "group_synthesis",
+      perspective: this.plugin.getDefaultPerspectiveForGroup(groupKey),
+      journalContent: this.originalContent,
+      initialAnalysis,
+      sourceFilePath: ((_a2 = this.sourceFile) == null ? void 0 : _a2.path) || "",
+      sourceGroupKey: groupKey,
+      sourceTitle: `${(group == null ? void 0 : group.title) || groupKey} synthesis`,
+      sourceDescription: `${(group == null ? void 0 : group.description) || ""}. This chat begins from the synthesis across the perspectives in this group.`
+    };
+    await this.plugin.activateAIChatView();
+    new import_obsidian.Notice(`Opening chat with ${(group == null ? void 0 : group.title) || groupKey} synthesis`);
   }
   async appendAnalysisToNote() {
     if (!this.sourceFile) return;
