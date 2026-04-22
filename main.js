@@ -6478,6 +6478,7 @@ var PERSPECTIVES = {
   organicism_analysis: { title: "Organicism", description: "Wholes, parts, development, interdependence, living systems, pattern, organization, and understanding entities through their relations within an organismic whole", group: PHILOSOPHY_GROUP_KEY },
   philosophy_of_language_analysis: { title: "Philosophy of Language", description: "Meaning, reference, naming, use, speech acts, interpretation, translation, rule-following, and how language shapes thought and worldhood", group: PHILOSOPHY_GROUP_KEY },
   wittgenstein_language_games: { title: "Ludwig Wittgenstein's Language Games", description: "Use, rule-following, forms of life, language games, family resemblance, ordinary language, and the limits of what can be said clearly", group: PHILOSOPHY_GROUP_KEY },
+  jl_austin_speech_acts: { title: "J. L. Austin's Speech Act Philosophy", description: "Speech acts, performatives, ordinary language, felicity conditions, doing things with words, uptake, force, and how utterances act within shared situations", group: PHILOSOPHY_GROUP_KEY },
   pf_strawson_personhood: { title: "P. F. Strawson's Personhood", description: "Persons, reactive attitudes, responsibility, ordinary language, embodiment, mutual recognition, and the social grammar of accountability", group: PHILOSOPHY_GROUP_KEY },
   harry_frankfurt_volitional_self: { title: "Harry Frankfurt's Volitional Self", description: "Second-order desires, wholeheartedness, identification, free will, care, ambivalence, and what a person wants to want", group: PHILOSOPHY_GROUP_KEY },
   sydney_shoemaker_self_knowledge: { title: "Sydney Shoemaker's Self-Knowledge", description: "Self-reference, immunity to error, first-person authority, embodiment, memory, and how one knows oneself as oneself", group: PHILOSOPHY_GROUP_KEY },
@@ -6654,6 +6655,7 @@ var PERSPECTIVE_HEADING_ALIASES = {
   descartes_cogito_subject: ["Rene Descartes' Cogito and Subject"],
   bernard_williams_personal_identity: ["Barnard Williams' Personal Identity", "Barnard Williams Personal Identity"],
   pf_strawson_personhood: ["P.F. Strawson's Personhood", "PF Strawson's Personhood"],
+  jl_austin_speech_acts: ["J.L. Austin", "JL Austin", "J. L. Austin", "J. L. Austin's Speech Act Philosophy", "Austin's Speech Act Theory"],
   leibniz_monadology_perspective: ["Leibniz's Monadology", "Leibniz"],
   levinasian_ethics: ["Levinas' Ethics of the Other", "Levinasian Ethics"],
   habermasian_communicative_subject: ["Habermas' Communicative Subject", "Habermasian Communicative Subject"],
@@ -6756,6 +6758,7 @@ var PERSPECTIVE_CHRONOLOGY = [
   "critical_theory_perspective",
   "horkheimer_critical_theory",
   "wittgenstein_language_games",
+  "jl_austin_speech_acts",
   "philosophy_of_language_analysis",
   "pf_strawson_personhood",
   "social_theories_of_deviance",
@@ -7524,6 +7527,12 @@ var PERSPECTIVE_METADATA = {
     chronology: "20th century",
     lineage: "Analytic philosophy -> Wittgenstein -> ordinary language and rule-following debates"
   },
+  jl_austin_speech_acts: {
+    tradition: "Ordinary language philosophy and speech act theory",
+    orientation: "Analytic",
+    chronology: "20th century",
+    lineage: "Ordinary language philosophy -> Austin -> speech act theory, pragmatics, and social philosophy of language"
+  },
   naturalism_analysis: {
     tradition: "Naturalism",
     orientation: "Mostly analytic with broader philosophical uptake",
@@ -7860,7 +7869,9 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     });
   }
   async ensureFolder(path) {
-    const parts = path.split("/");
+    const normalizedPath = path.split("/").map((part) => part.trim()).filter(Boolean).join("/");
+    if (!normalizedPath) return;
+    const parts = normalizedPath.split("/");
     let currentPath = "";
     for (const part of parts) {
       currentPath = currentPath ? `${currentPath}/${part}` : part;
@@ -7960,7 +7971,9 @@ ${this.settings.authorMemorySummary.trim()}`);
     }
     const content = editor.getValue();
     const sourceFile = this.app.workspace.getActiveFile();
+    const estimateText = this.getAnalysisEstimateText(content);
     new import_obsidian.Notice("Analyzing emotions with multiple perspectives...");
+    new import_obsidian.Notice(estimateText, 8e3);
     try {
       const analysis = await this.getMultiPerspectiveAnalysis(content, (message) => {
         new import_obsidian.Notice(message);
@@ -9202,6 +9215,48 @@ ${preparedJournalContext}`
     const wikiTarget = this.getWikiLinkTarget(path);
     const parts = wikiTarget.split("/");
     return parts[parts.length - 1] || wikiTarget;
+  }
+  normalizeFolderSetting(path, fallback) {
+    const normalized = (path || "").split("/").map((part) => part.trim()).filter(Boolean).join("/");
+    return normalized || fallback;
+  }
+  estimateAnalysisDurationSeconds(content) {
+    const selectedPerspectiveCount = getChronologicalPerspectiveKeys().filter((key) => this.settings.selectedPerspectives.includes(key)).length;
+    const selectedGroupCount = new Set(
+      getChronologicalPerspectiveKeys().filter((key) => this.settings.selectedPerspectives.includes(key)).map((key) => {
+        var _a2;
+        return (_a2 = PERSPECTIVES[key]) == null ? void 0 : _a2.group;
+      }).filter(Boolean)
+    ).size;
+    const chronologicalBatches = Math.ceil(selectedPerspectiveCount / 4);
+    const furtherReadingBatches = Math.ceil(selectedPerspectiveCount / 8);
+    let seconds = 20 + selectedPerspectiveCount * 4 + chronologicalBatches * 10 + furtherReadingBatches * 6 + selectedGroupCount * 9 + 25;
+    if (content.length > 12e3) {
+      seconds += 35;
+    }
+    if (this.settings.generateInspirationalSong) {
+      seconds += 18;
+    }
+    return Math.max(45, seconds);
+  }
+  formatDurationLabel(totalSeconds) {
+    const rounded = Math.max(1, Math.ceil(totalSeconds / 15) * 15);
+    if (rounded < 90) {
+      return `about ${rounded} seconds`;
+    }
+    const minutes = Math.floor(rounded / 60);
+    const seconds = rounded % 60;
+    if (seconds === 0) {
+      return `about ${minutes} minute${minutes === 1 ? "" : "s"}`;
+    }
+    return `about ${minutes} minute${minutes === 1 ? "" : "s"} ${seconds} seconds`;
+  }
+  getAnalysisEstimateText(content) {
+    const baselineSeconds = this.estimateAnalysisDurationSeconds(content);
+    const lower = Math.max(30, Math.round(baselineSeconds * 0.8));
+    const upper = Math.max(lower + 15, Math.round(baselineSeconds * 1.35));
+    const selectedPerspectiveCount = getChronologicalPerspectiveKeys().filter((key) => this.settings.selectedPerspectives.includes(key)).length;
+    return `Estimated analysis time: ${this.formatDurationLabel(lower)} to ${this.formatDurationLabel(upper)} for ${selectedPerspectiveCount} enabled analyses.`;
   }
   getSongFolderPath(sourceFilePath) {
     const baseName = this.sanitizeFileNamePart(this.getFileDisplayName(sourceFilePath) || "journal");
@@ -10707,6 +10762,12 @@ ${goal.description}
   async loadSettings() {
     const savedData = await this.loadData();
     this.settings = Object.assign({}, DEFAULT_SETTINGS, savedData != null ? savedData : {});
+    this.settings.journalFolder = this.normalizeFolderSetting(this.settings.journalFolder, DEFAULT_SETTINGS.journalFolder);
+    this.settings.goalsFolder = this.normalizeFolderSetting(this.settings.goalsFolder, DEFAULT_SETTINGS.goalsFolder);
+    this.settings.milestonesFolder = this.normalizeFolderSetting(this.settings.milestonesFolder, DEFAULT_SETTINGS.milestonesFolder);
+    this.settings.songsFolder = this.normalizeFolderSetting(this.settings.songsFolder, DEFAULT_SETTINGS.songsFolder);
+    this.settings.chatsFolder = this.normalizeFolderSetting(this.settings.chatsFolder, DEFAULT_SETTINGS.chatsFolder);
+    this.settings.fullCalendarFolder = this.normalizeFolderSetting(this.settings.fullCalendarFolder, DEFAULT_SETTINGS.fullCalendarFolder);
     if (!ZPD_LEVELS[this.settings.zpdLevel]) {
       this.settings.zpdLevel = DEFAULT_SETTINGS.zpdLevel;
     }
@@ -10719,8 +10780,6 @@ ${goal.description}
     this.settings.includePersonalityProfileInAI = typeof this.settings.includePersonalityProfileInAI === "boolean" ? this.settings.includePersonalityProfileInAI : DEFAULT_SETTINGS.includePersonalityProfileInAI;
     this.settings.sendFullJournalToChat = typeof this.settings.sendFullJournalToChat === "boolean" ? this.settings.sendFullJournalToChat : DEFAULT_SETTINGS.sendFullJournalToChat;
     this.settings.generateInspirationalSong = typeof this.settings.generateInspirationalSong === "boolean" ? this.settings.generateInspirationalSong : DEFAULT_SETTINGS.generateInspirationalSong;
-    this.settings.milestonesFolder = typeof this.settings.milestonesFolder === "string" && this.settings.milestonesFolder.trim() ? this.settings.milestonesFolder : DEFAULT_SETTINGS.milestonesFolder;
-    this.settings.songsFolder = typeof this.settings.songsFolder === "string" && this.settings.songsFolder.trim() ? this.settings.songsFolder : DEFAULT_SETTINGS.songsFolder;
     const perspectiveKeys = getChronologicalPerspectiveKeys();
     if (!Array.isArray(this.settings.selectedPerspectives) || this.settings.selectedPerspectives.length === 0) {
       this.settings.selectedPerspectives = perspectiveKeys;
@@ -11613,9 +11672,11 @@ ${this.content}
           new import_obsidian.Notice("Please set your API key in settings to analyze");
           return;
         }
+        const estimateText = this.plugin.getAnalysisEstimateText(this.content);
         new import_obsidian.Notice("Analyzing with multiple perspectives...");
+        new import_obsidian.Notice(estimateText, 8e3);
         try {
-          await this.plugin.writeAnalysisStatusToFile(file, "Analysis started. Longer entries can take several minutes.");
+          await this.plugin.writeAnalysisStatusToFile(file, `Analysis started. ${estimateText}`);
           const savedContent = await this.app.vault.read(file);
           const journalContent = this.plugin.stripFrontmatter(savedContent);
           const analysis = await this.plugin.getMultiPerspectiveAnalysis(journalContent, async (message) => {
@@ -11650,6 +11711,7 @@ var GoalModal = class extends import_obsidian.Modal {
     this.category = "personal_growth";
     this.targetDate = "";
     this.milestones = [];
+    this.isSaving = false;
     this.plugin = plugin;
   }
   onOpen() {
@@ -11717,17 +11779,20 @@ var GoalModal = class extends import_obsidian.Modal {
     });
   }
   async saveGoal() {
+    if (this.isSaving) return;
     if (!this.goalTitle.trim() || !this.description.trim()) {
       new import_obsidian.Notice("Please fill in title and description");
       return;
     }
-    await this.plugin.ensureFolder(this.plugin.settings.goalsFolder);
-    const date = /* @__PURE__ */ new Date();
-    const fileName = this.plugin.getUniqueMarkdownPath(
-      this.plugin.settings.goalsFolder,
-      this.plugin.sanitizeFileNamePart(this.goalTitle)
-    );
-    const template = `---
+    this.isSaving = true;
+    try {
+      await this.plugin.ensureFolder(this.plugin.settings.goalsFolder);
+      const date = /* @__PURE__ */ new Date();
+      const fileName = this.plugin.getUniqueMarkdownPath(
+        this.plugin.settings.goalsFolder,
+        this.plugin.sanitizeFileNamePart(this.goalTitle)
+      );
+      const template = `---
 type: goal
 title: "${this.plugin.escapeYamlInlineString(this.goalTitle)}"
 description: "${this.plugin.escapeYamlInlineString(this.description)}"
@@ -11754,16 +11819,22 @@ ${this.milestones.map((m) => `- [ ] ${m.title}`).join("\n")}
 ## Progress Notes
 
 `;
-    const file = await this.app.vault.create(fileName, template);
-    await this.plugin.syncGoalMilestonesToFolder(file, true);
-    const savedGoal = await this.plugin.getGoalFileData(file);
-    if (savedGoal) {
-      await this.app.vault.modify(file, this.plugin.buildStandardGoalNote(savedGoal));
+      const file = await this.app.vault.create(fileName, template);
+      await this.plugin.syncGoalMilestonesToFolder(file, true);
+      const savedGoal = await this.plugin.getGoalFileData(file);
+      if (savedGoal) {
+        await this.app.vault.modify(file, this.plugin.buildStandardGoalNote(savedGoal));
+      }
+      await this.plugin.syncGoalFileToFullCalendar(file);
+      await this.plugin.openFileInSplit(file);
+      new import_obsidian.Notice("Goal created!");
+      this.close();
+    } catch (error) {
+      new import_obsidian.Notice("Could not create goal");
+      console.error(error);
+    } finally {
+      this.isSaving = false;
     }
-    await this.plugin.syncGoalFileToFullCalendar(file);
-    await this.plugin.openFileInSplit(file);
-    new import_obsidian.Notice("Goal created!");
-    this.close();
   }
   onClose() {
     this.contentEl.empty();
@@ -11772,6 +11843,7 @@ ${this.milestones.map((m) => `- [ ] ${m.title}`).join("\n")}
 var GoalDraftsModal = class extends import_obsidian.Modal {
   constructor(app, plugin, drafts, sourceAnalysisPath = "") {
     super(app);
+    this.isSaving = false;
     this.plugin = plugin;
     this.sourceAnalysisPath = sourceAnalysisPath;
     this.drafts = drafts.map((draft) => ({
@@ -11855,11 +11927,13 @@ var GoalDraftsModal = class extends import_obsidian.Modal {
     };
   }
   async saveGoals() {
+    if (this.isSaving) return;
     const validDrafts = this.drafts.filter((draft) => draft.title.trim() && draft.description.trim());
     if (validDrafts.length === 0) {
       new import_obsidian.Notice("No valid goal drafts to save");
       return;
     }
+    this.isSaving = true;
     try {
       let lastFile = null;
       for (const draft of validDrafts) {
@@ -11873,6 +11947,8 @@ var GoalDraftsModal = class extends import_obsidian.Modal {
     } catch (error) {
       new import_obsidian.Notice("Could not save goal drafts");
       console.error(error);
+    } finally {
+      this.isSaving = false;
     }
   }
   onClose() {
@@ -12378,15 +12454,15 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       this.display();
     }));
     new import_obsidian.Setting(containerEl).setName("Journal folder").setDesc("Folder for journal entries").addText((text) => text.setValue(this.plugin.settings.journalFolder).onChange(async (value) => {
-      this.plugin.settings.journalFolder = value;
+      this.plugin.settings.journalFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.journalFolder);
       await this.plugin.saveSettings();
     }));
     new import_obsidian.Setting(containerEl).setName("Goals folder").setDesc("Folder for goals").addText((text) => text.setValue(this.plugin.settings.goalsFolder).onChange(async (value) => {
-      this.plugin.settings.goalsFolder = value;
+      this.plugin.settings.goalsFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.goalsFolder);
       await this.plugin.saveSettings();
     }));
     new import_obsidian.Setting(containerEl).setName("Milestones folder").setDesc("Folder for generated milestone notes. These notes can be reviewed and consolidated separately from goals.").addText((text) => text.setValue(this.plugin.settings.milestonesFolder).onChange(async (value) => {
-      this.plugin.settings.milestonesFolder = value;
+      this.plugin.settings.milestonesFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.milestonesFolder);
       await this.plugin.saveSettings();
     })).addButton((button) => button.setButtonText("Sync now").onClick(async () => {
       await this.plugin.syncAllGoalMilestonesToFolder(true);
@@ -12394,12 +12470,12 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       await this.plugin.openMilestoneConsolidationModal();
     }));
     new import_obsidian.Setting(containerEl).setName("Songs folder").setDesc("Folder for generated inspirational song audio files.").addText((text) => text.setValue(this.plugin.settings.songsFolder).onChange(async (value) => {
-      this.plugin.settings.songsFolder = value;
+      this.plugin.settings.songsFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.songsFolder);
       await this.plugin.saveSettings();
     }));
     new import_obsidian.Setting(containerEl).setName("Calendar integration").setHeading();
     new import_obsidian.Setting(containerEl).setName("Calendar folder").setDesc("Folder watched by your calendar plugin local calendar source. Deleometer will create dated event notes here.").addText((text) => text.setValue(this.plugin.settings.fullCalendarFolder).onChange(async (value) => {
-      this.plugin.settings.fullCalendarFolder = value;
+      this.plugin.settings.fullCalendarFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.fullCalendarFolder);
       await this.plugin.saveSettings();
     }));
     new import_obsidian.Setting(containerEl).setName("Auto-sync goals to calendar").setDesc("Create or update calendar event notes whenever a goal is created or saved from analysis.").addToggle((toggle) => toggle.setValue(this.plugin.settings.autoSyncGoalsToFullCalendar).onChange(async (value) => {
