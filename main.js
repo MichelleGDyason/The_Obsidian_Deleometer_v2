@@ -6405,8 +6405,8 @@ var PERSPECTIVE_GROUPS = {
     description: "Language, signs, story, mediation, public presentation, framing, nonfiction practice, and interaction order"
   },
   psychoanalytic_clinical: {
-    title: "Psychoanalytic and Clinical Psychologies",
-    description: "Desire, attachment, symptom, personality, cognition, embodiment, and therapeutic interpretation"
+    title: "Psychology, Psychiatry, Psychoanalysis, and Clinical Approaches",
+    description: "Psychological processes, psychiatric diagnosis, psychoanalytic conflict, attachment, personality, cognition, embodiment, and therapeutic interpretation"
   },
   family_care_guidance: {
     title: "Family, Care, and Guidance Theories",
@@ -6436,6 +6436,7 @@ var PERSPECTIVE_GROUPS = {
 var PERSPECTIVES = {
   indigenous_australian_philosophy_accumulated: { title: "Australian Indigenous Philosophy Accumulated", description: "Country, kinship, custodianship, relational law, story, ceremony, ecological obligation, sovereignty, survival, and living First Nations knowledge", group: PHILOSOPHY_GROUP_KEY },
   buddhist_psychology_perspective: { title: "Buddhist Psychology", description: "Mindfulness, suffering, and liberation", group: PHILOSOPHY_GROUP_KEY },
+  confucianism_analysis: { title: "Confucianism", description: "Ritual, relation, cultivation, family obligation, humane conduct, study, governance, virtue, and ethical self-formation through patterned life", group: PHILOSOPHY_GROUP_KEY },
   platonic_perspective: { title: "Platonic Philosophy", description: "Forms, dialectic, eros, education, justice, and ascent toward truth", group: PHILOSOPHY_GROUP_KEY },
   aristotle_argonic_teachings: { title: "Aristotle's Argonic Teachings", description: "Rhetoric, demonstration, causes, material conditions, practical judgment, virtue, persuasion, and action", group: PHILOSOPHY_GROUP_KEY },
   cynics_perspective: { title: "Cynics' Philosophy", description: "Plain living, shameless truth-telling, social convention, need, freedom, and embodied critique", group: PHILOSOPHY_GROUP_KEY },
@@ -6446,6 +6447,7 @@ var PERSPECTIVES = {
   ethical_analysis: { title: "Ethical Analysis", description: "Obligation, virtue, care, harm, responsibility, and practical judgment", group: PHILOSOPHY_GROUP_KEY },
   moral_philosophy_analysis: { title: "Moral Philosophy", description: "Right action, the good life, virtue, duty, consequence, character, judgment, value conflict, and how one ought to live with others", group: PHILOSOPHY_GROUP_KEY },
   philosophy_of_mind_perspective: { title: "Philosophy of Mind", description: "Consciousness, intention, emotion, agency, selfhood, and mental causation", group: PHILOSOPHY_GROUP_KEY },
+  francis_bacon_empiricism: { title: "Francis Bacon's Experimental Method", description: "Induction, observation, experiment, idols of the mind, practical inquiry, disciplined method, and knowledge built through organized investigation", group: PHILOSOPHY_GROUP_KEY },
   descartes_cogito_subject: { title: "Ren\xE9 Descartes' Cogito and Subject", description: "Doubt, certainty, mind-body distinction, thinking substance, inwardness, rational selfhood, and the cogito as a ground of knowledge", group: PHILOSOPHY_GROUP_KEY },
   spinoza_theologic_ethico_perspective: { title: "Spinoza's Theologic-Ethico Philosophy", description: "Immanence, affect, necessity, freedom, substance, and ethical life", group: PHILOSOPHY_GROUP_KEY },
   leibniz_monadology_perspective: { title: "Gottfried Wilhelm Leibniz's Monadology", description: "Monads, pre-established harmony, sufficient reason, possible worlds, perception, appetite, relation, and rational order", group: PHILOSOPHY_GROUP_KEY },
@@ -6454,11 +6456,16 @@ var PERSPECTIVES = {
   rousseau_political_thought: { title: "Jean-Jacques Rousseau's Political Thought", description: "General will, inequality, freedom, education, civic life, corruption, dependence, moral sentiment, and the making of political community", group: PHILOSOPHY_GROUP_KEY },
   aesthetics_untranslatables: { title: "Aesthetics", description: "Aisthesis, sensation, taste, beauty, art, the sensible, judgment, translation, and the contested history of what aesthetics is taken to mean", group: PHILOSOPHY_GROUP_KEY },
   moral_naturalism_perspective: { title: "Moral Naturalism", description: "Moral facts, natural properties, human flourishing, reasons, science, normativity, value, and ethical life without supernatural grounding", group: PHILOSOPHY_GROUP_KEY },
+  metaethics_analysis: { title: "Metaethics", description: "Moral truth, realism, anti-realism, reasons, value language, objectivity, motivation, and what it means for an ethical claim to count as true or justified", group: PHILOSOPHY_GROUP_KEY },
   kantian_transcendental_subject: { title: "Immanuel Kant's Transcendental Subject", description: "Apperception, categories, autonomy, moral law, conditions of experience, and the self that organizes knowledge", group: PHILOSOPHY_GROUP_KEY },
   hegelian_recognition_subject: { title: "G.W.F. Hegel's Recognition and Subjectivity", description: "Recognition, self-consciousness, lordship and bondage, dialectic, social freedom, history, and becoming a subject through others", group: PHILOSOPHY_GROUP_KEY },
+  schelling_nature_philosophy: { title: "F. W. J. Schelling's Nature Philosophy", description: "Nature as living productivity, freedom, development, polarity, organism, spirit in nature, and the restless dynamism of becoming", group: PHILOSOPHY_GROUP_KEY },
   kierkegaard_existential_faith: { title: "S\xF8ren Kierkegaard's Existential Faith", description: "Anxiety, despair, subjectivity, inwardness, choice, faith, repetition, the leap, and becoming a self before God and others", group: PHILOSOPHY_GROUP_KEY },
   schopenhauer_will_representation: { title: "Arthur Schopenhauer's Will and Representation", description: "Will, suffering, desire, representation, compassion, pessimism, ascetic interruption, and the restless structure of experience", group: PHILOSOPHY_GROUP_KEY },
+  ralph_waldo_emerson_environmental_thought: { title: "Ralph Waldo Emerson's Environmental Thought", description: "Nature, self-reliance, perception, moral imagination, correspondence, wildness, spiritual ecology, and learning from the more-than-human world", group: PHILOSOPHY_GROUP_KEY },
   nietzschean_perspective: { title: "Nietzschean Philosophy", description: "Will to power, values, and self-overcoming", group: PHILOSOPHY_GROUP_KEY },
+  bergson_duration_creativity: { title: "Henri Bergson's Duration and Creativity", description: "Duration, intuition, elan vital, memory, novelty, movement, living time, and thought that follows process rather than static abstraction", group: PHILOSOPHY_GROUP_KEY },
+  william_james_pragmatism: { title: "William James' Pragmatism", description: "Practical consequences, experience, pluralism, stream of consciousness, habit, truth as what works in life, and ideas tested in lived practice", group: PHILOSOPHY_GROUP_KEY },
   collingwood_historical_imagination: { title: "R. G. Collingwood's Historical Imagination", description: "Re-enactment of thought, historical consciousness, question-and-answer logic, evidence, context, and understanding action from within its problem-space", group: PHILOSOPHY_GROUP_KEY },
   logics_analysis: { title: "Logics Analysis", description: "Inference, validity, contradiction, entailment, formal structure, argument patterns, and what follows from what", group: PHILOSOPHY_GROUP_KEY },
   set_theory_analysis: { title: "Set Theory", description: "Sets, membership, subset, union, infinity, cardinality, formal relation, abstraction, structure, and how multiplicities can be rigorously organized", group: PHILOSOPHY_GROUP_KEY },
@@ -6494,6 +6501,7 @@ var PERSPECTIVES = {
   habermasian_communicative_subject: { title: "J\xFCrgen Habermas' Communicative Subject", description: "Communicative action, discourse ethics, public reason, validity claims, lifeworld, recognition, and subjectivity formed through dialogue", group: PHILOSOPHY_GROUP_KEY },
   discourse_ethics_analysis: { title: "Discourse Ethics", description: "Reason-giving, reciprocity, validity claims, fair dialogue, mutual justification, accountability, and testing norms through inclusive communication", group: PHILOSOPHY_GROUP_KEY },
   hannah_arendt_action_plurality: { title: "Hannah Arendt's Action and Plurality", description: "Action, natality, public space, appearance, plurality, judgment, worldliness, responsibility, and how political life begins when people speak and act together", group: PHILOSOPHY_GROUP_KEY },
+  amartya_sen_capability_approach: { title: "Amartya Sen's Capability Approach", description: "Capabilities, freedom, justice, public reasoning, wellbeing, development, deprivation, agency, and what people are substantively able to do and be", group: PHILOSOPHY_GROUP_KEY },
   charles_taylor_sources_self: { title: "Charles Taylor's Sources of the Self", description: "Moral horizons, strong evaluation, authenticity, recognition, modern identity, and the goods that orient selfhood", group: PHILOSOPHY_GROUP_KEY },
   macintyre_narrative_self: { title: "Alasdair MacIntyre's Narrative Self", description: "Virtue, tradition, practices, narrative unity, intelligibility, moral agency, and a life understood as an unfolding story", group: PHILOSOPHY_GROUP_KEY },
   edith_cowan_civic_reform: { title: "Edith Cowan's Civic Reform", description: "Education, welfare reform, parliamentary action, women\u2019s civic leadership, social justice, practical institution-building, and public responsibility anchored in lived community needs", group: PHILOSOPHY_GROUP_KEY },
@@ -6514,6 +6522,7 @@ var PERSPECTIVES = {
   philosophy_of_science_analysis: { title: "Philosophy of Science", description: "Explanation, theory choice, evidence, experiment, models, realism, falsifiability, underdetermination, and the making of scientific knowledge", group: PHILOSOPHY_GROUP_KEY },
   philosophy_of_physics_analysis: { title: "Philosophy of Physics", description: "Space, time, matter, causation, laws, fields, measurement, scale, and how physical theory frames reality", group: PHILOSOPHY_GROUP_KEY },
   feyerabend_epistemological_anarchism: { title: "Paul Feyerabend's Epistemological Anarchism", description: "Methodological pluralism, epistemic dissent, against rigid method, scientific change, heterodoxy, and the politics of knowledge-making", group: PHILOSOPHY_GROUP_KEY },
+  french_philosophy_of_science_relation: { title: "French Philosophy of Science and Relation", description: "Historical epistemology, milieu, normativity, relation, concept-formation, science as practice, and French thought linking knowledge, life, and mediation", group: PHILOSOPHY_GROUP_KEY },
   michel_serres_relations: { title: "Michel Serres' Relations and Parasites", description: "Noise, parasitism, relation, passage, communication, mediation, contamination, and how systems are transformed by interference", group: PHILOSOPHY_GROUP_KEY },
   continental_political_aesthetics: { title: "Continental Political Aesthetics", description: "Appearance, sensibility, dissensus, spectacle, form, collective feeling, public worlds, and how politics is shaped through what can be seen, felt, and said", group: PHILOSOPHY_GROUP_KEY },
   jacques_ranciere_politics_aesthetics: { title: "Jacques Ranci\xE8re's Politics and Aesthetics", description: "The distribution of the sensible, dissensus, equality, politics, aesthetics, voice, partition, and who gets to appear and be heard", group: PHILOSOPHY_GROUP_KEY },
@@ -6524,11 +6533,16 @@ var PERSPECTIVES = {
   greek_gods_interpretation: { title: "Greek Gods Interpretation", description: "Olympian powers, mythic archetypes, fate, hubris, patronage, conflict, desire, and heroic consequence", group: "religious_mythic_interpretation" },
   roman_gods_interpretation: { title: "Roman Gods Interpretation", description: "Civic religion, household gods, pietas, omen, duty, empire, ritual order, and public virtue", group: "religious_mythic_interpretation" },
   druidic_interpretation: { title: "Druidic Interpretation", description: "Oral wisdom, trees, land memory, bardic speech, seasonal rites, kinship, sovereignty, and ecological divination", group: "religious_mythic_interpretation" },
+  celtic_religion_interpretation: { title: "Celtic Religion Interpretation", description: "Sacred groves, seasonal rites, sovereignty, kinship, land spirits, oral myth, threshold worlds, and ritual relation to place and ancestry", group: "religious_mythic_interpretation" },
   second_testament_christian_interpretation: { title: "Second Testament / Christian Interpretation", description: "Gospel, parable, grace, discipleship, incarnation, forgiveness, community, resurrection, and ethical transformation", group: "religious_mythic_interpretation" },
   muslim_interpretation: { title: "Muslim Interpretation", description: "Tawhid, submission, mercy, intention, justice, prayer, ummah, prophetic example, and disciplined remembrance", group: "religious_mythic_interpretation" },
   pagan_interpretation: { title: "Pagan Interpretation", description: "Seasonal cycles, polytheism, land, animacy, ritual practice, reciprocity, craft, and embodied sacred life", group: "religious_mythic_interpretation" },
+  herbalism_analysis: { title: "Herbalism", description: "Plant knowledge, remedy, seasonal relation, bodily care, material healing practice, traditional preparation, ecological attention, and medicinal learning from the living world", group: "religious_mythic_interpretation" },
+  witchcraft_analysis: { title: "Witchcraft", description: "Spell, intention, threshold, craft, power, ritual practice, protection, taboo, domestic magic, and contested knowledge outside official authority", group: "religious_mythic_interpretation" },
   cartographic_analysis: { title: "Cartographic Analysis", description: "Maps, scale, projection, legend, boundary-making, orientation, territory, omission, routes, and how mapping turns experience into spatial knowledge", group: "social_spatial_research" },
   geography_analysis: { title: "Geography", description: "Place, space, landscape, region, mobility, environment, human geography, physical geography, uneven development, and relations between people and land", group: "social_spatial_research" },
+  anthropology_analysis: { title: "Anthropology", description: "Culture, kinship, ritual, exchange, symbolism, fieldwork, everyday practice, comparison, social meaning, and how worlds are made through lived relation", group: "social_spatial_research" },
+  archaeology_analysis: { title: "Archaeology", description: "Material remains, stratigraphy, sites, artefacts, ruins, temporal layers, historical reconstruction, and how the past is read through objects and traces", group: "social_spatial_research" },
   sociology_analysis: { title: "Sociology", description: "Social structure, institutions, norms, class, status, roles, groups, interaction, social change, power, and the patterning of everyday life", group: "social_spatial_research" },
   social_theories_of_deviance: { title: "Social Theories of Deviance", description: "Norm violation, labeling, stigma, moral panic, social control, subculture, anomie, criminalization, and how societies define and manage deviance", group: "social_spatial_research" },
   discourse_analysis: { title: "Discourse Analysis", description: "Speech, text, framing, repetition, genre, institutional language, positioning, rhetoric, and how discourse shapes what can be thought and said", group: "social_spatial_research" },
@@ -6538,15 +6552,19 @@ var PERSPECTIVES = {
   critique_of_human_rights: { title: "Critique of Human Rights", description: "Rights discourse, universality, exclusion, state power, humanitarianism, enforcement gaps, abstraction, and the politics of legal moral claims", group: "social_spatial_research" },
   social_policy_analysis: { title: "Social Policy", description: "Welfare, care, public provision, inequality, redistribution, institutions, safety nets, governance, and policy impacts on everyday life", group: "social_spatial_research" },
   healthy_in_all_policies: { title: "Health in All Policies for Healthy Communities", description: "Public health across sectors, prevention, equity, housing, transport, food, community wellbeing, interdepartmental policy, and healthy environments", group: "social_spatial_research" },
+  public_policy_analytics: { title: "Public Policy Analytics", description: "Policy design, implementation, evaluation, metrics, trade-offs, institutional effect, equity, governance, and how public decisions can be assessed in practice", group: "social_spatial_research" },
   social_research_methods: { title: "Social Research Methods", description: "Research questions, interviews, observation, surveys, sampling, ethics, coding, reflexivity, validity, positionality, and evidence-building in social inquiry", group: "social_spatial_research" },
   bourdieu_analysis: { title: "Pierre Bourdieu's Field, Habitus, and Capital", description: "Habitus, field, capital, distinction, practice, social reproduction, symbolic violence, taste, classed dispositions, and the struggle over legitimacy in social space", group: "social_spatial_research" },
   linguistic_analysis: { title: "Linguistic Analysis", description: "Words, grammar, naming, register, metaphor, speech acts, code-switching, silence, and how language organizes experience", group: "narrative_media_frame" },
   semiotic_analysis: { title: "Semiotic Analysis", description: "Signs, symbols, signifier and signified, codes, icons, indexes, myths, and how meaning is made and circulated", group: "narrative_media_frame" },
+  structuralism_analysis: { title: "Structuralism", description: "Underlying systems, rules, binaries, code, structure, relation, difference, and how meaning emerges from patterned positions rather than isolated elements", group: "narrative_media_frame" },
   argumentation_construction_analysis: { title: "Argumentation Construction and Analysis", description: "Claims, warrants, evidence, assumptions, validity, rhetoric, counterargument, inference, and how arguments are built and tested", group: "narrative_media_frame" },
+  textual_analysis: { title: "Textual Analysis", description: "Close reading, diction, syntax, tone, repetition, structure, omission, emphasis, and how a text\u2019s meaning is made through its verbal details", group: "narrative_media_frame" },
   narrative_psychology_perspective: { title: "Narrative Psychology", description: "Life stories and meaning-making", group: "narrative_media_frame" },
   creative_nonfiction_perspective: { title: "Creative Non-Fiction", description: "Scene, voice, witness, memory, essaying, and truthful narrative craft", group: "narrative_media_frame" },
   music_songwriting_analysis: { title: "Music Songwriting Analysis", description: "Melody, lyric, rhythm, refrain, hook, voice, affect, arrangement, genre, performance, and how songs turn feeling into form", group: "narrative_media_frame" },
   idiotextual_analysis: { title: "Idiotextual Analysis", description: "The singular texture of a text: idiosyncratic voice, private idiom, recurring phrases, and self-made meanings", group: "narrative_media_frame" },
+  intertextuality_analysis: { title: "Intertextuality", description: "Echo, citation, allusion, rewriting, memory of prior texts, genre inheritance, cultural reference, and how a text speaks through other texts", group: "narrative_media_frame" },
   frame_analysis: { title: "Frame Analysis", description: "Interpretive frames, salience, boundaries, alignment, and meaning organization", group: "narrative_media_frame" },
   goffman_frame_analysis: { title: "Erving Goffman's Frame Analysis", description: "Interaction order, presentation of self, keyed events, footing, and everyday frames", group: "narrative_media_frame" },
   media_studies: { title: "Media Studies", description: "Platforms, mediation, publics, representation, attention, circulation, and media power", group: "narrative_media_frame" },
@@ -6560,6 +6578,9 @@ var PERSPECTIVES = {
   lacanian_perspective: { title: "Lacanian Psychoanalysis", description: "Analysis through desire, the Other, and symbolic order", group: "psychoanalytic_clinical" },
   kristevan_abjection_semiotic: { title: "Julia Kristeva's Abjection and Semiotic", description: "Psychoanalysis and philosophy through abjection, the semiotic and symbolic, maternal body, borders of self, revolt, intertextuality, foreignness, and subject formation through language and affect", group: "psychoanalytic_clinical" },
   psychiatry_perspective: { title: "Psychiatric Assessment", description: "Clinical patterns and mental health", group: "psychoanalytic_clinical" },
+  psychology_analysis: { title: "Psychology", description: "Cognition, affect, behaviour, development, motivation, memory, relation, experiment, and how minds and actions are studied across contexts", group: "psychoanalytic_clinical" },
+  anti_psychiatry_analysis: { title: "Anti-Psychiatry", description: "Institutional power, diagnosis critique, coercion, survival, social context, madness, resistance, deinstitutionalization, and questioning psychiatric authority", group: "psychoanalytic_clinical" },
+  general_practice_diagnosis: { title: "General Practice Medical Diagnosis", description: "Primary care, symptoms, differential diagnosis, triage, prevention, continuity of care, practical uncertainty, and health judgment in everyday medicine", group: "psychoanalytic_clinical" },
   attachment_theory_perspective: { title: "Attachment Theory", description: "Attachment styles and relational patterns", group: "psychoanalytic_clinical" },
   gestalt_perspective: { title: "Gestalt Therapy", description: "Awareness, wholeness, and present experience", group: "psychoanalytic_clinical" },
   transpersonal_perspective: { title: "Transpersonal Psychology", description: "Spiritual dimensions and peak experiences", group: "psychoanalytic_clinical" },
@@ -6571,10 +6592,12 @@ var PERSPECTIVES = {
   },
   cbt_perspective: { title: "Cognitive Behavioral", description: "Thoughts, behaviors, and patterns", group: "psychoanalytic_clinical" },
   positive_psychology_perspective: { title: "Positive Psychology", description: "Strengths, flourishing, and well-being", group: "psychoanalytic_clinical" },
+  emotional_intelligence_analysis: { title: "Emotional Intelligence", description: "Emotion perception, regulation, communication, empathy, reflective skill, conflict navigation, and how feeling can become a practical social intelligence", group: "psychoanalytic_clinical" },
   montessori_method: { title: "Montessori Method", description: "Prepared environment, self-directed activity, sensitive periods, observation, independence, practical life, embodied learning, and respect for the child", group: "family_care_guidance" },
   steiner_education: { title: "Steiner Education", description: "Waldorf pedagogy, imagination, rhythm, developmental stages, artistic learning, practical activity, holistic education, and teaching the child as body, soul, and spirit", group: "family_care_guidance" },
   piaget_developmental_theory: { title: "Jean Piaget's Developmental Theory", description: "Schemas, assimilation, accommodation, stages of cognitive development, constructivism, play, reasoning, and how children build knowledge", group: "family_care_guidance" },
   vygotsky_sociocultural_theory: { title: "Lev Vygotsky's Sociocultural Theory", description: "Zone of proximal development, scaffolding, language, social learning, cultural tools, mediation, collaboration, and guided development", group: "family_care_guidance" },
+  freirean_pedagogy: { title: "Freirean Pedagogy", description: "Dialogue, conscientization, oppression, praxis, problem-posing education, liberation, critical literacy, and learning that turns reflection into action", group: "family_care_guidance" },
   primary_pedagogy: { title: "Teaching in Primary School", description: "Foundational learning, play, scaffolding, safety, routine, literacy, numeracy, care, explanation, and teaching for early developmental stages", group: "family_care_guidance" },
   secondary_pedagogy: { title: "Teaching in Secondary School", description: "Adolescence, identity formation, discipline, motivation, curriculum, peer culture, assessment, transition, and guided independence", group: "family_care_guidance" },
   tertiary_pedagogy: { title: "Teaching in Tertiary Education", description: "Advanced study, disciplinary method, critical thinking, self-direction, research literacy, academic formation, transition, and adult learning", group: "family_care_guidance" },
@@ -6589,8 +6612,11 @@ var PERSPECTIVES = {
   critical_theory_perspective: { title: "Critical Theory", description: "Social critique and emancipation", group: "archeo_genealogical_deconstruction" },
   frankfurt_school_analysis: { title: "Frankfurt School Critical Theory", description: "Culture industry, domination, ideology, authoritarianism, instrumental reason, negative critique, emancipation, and diagnosing modern social pathologies", group: "archeo_genealogical_deconstruction" },
   horkheimer_critical_theory: { title: "Max Horkheimer's Critical Theory", description: "Instrumental reason, domination, emancipation, ideology, capitalism, culture, authoritarian tendencies, and critique aimed at social transformation", group: "archeo_genealogical_deconstruction" },
+  adorno_negative_dialectics: { title: "Theodor W. Adorno's Negative Dialectics", description: "Nonidentity, contradiction, damaged life, culture industry, immanent critique, suffering, and thought that resists premature reconciliation", group: "archeo_genealogical_deconstruction" },
+  althusser_ideology_analysis: { title: "Louis Althusser's Ideology and Apparatuses", description: "Ideology, interpellation, apparatuses, reproduction, structure, overdetermination, social formation, and how subjects are produced by institutions", group: "archeo_genealogical_deconstruction" },
   simondonian_analysis: { title: "Simondonian Analysis", description: "Individuation, preindividual fields, technics, relation, and collective becoming", group: "archeo_genealogical_deconstruction" },
   foucaultian_analysis: { title: "Foucaultian Analysis", description: "Power, discourse, discipline, subject formation, and historical conditions of truth", group: "archeo_genealogical_deconstruction" },
+  foucauldian_discourse_analysis: { title: "Foucauldian Discourse Analysis", description: "Statement, archive, discourse formation, power-knowledge, normalization, subject position, exclusion, and tracing how language organizes what can be said and lived", group: "archeo_genealogical_deconstruction" },
   derridian_analysis: { title: "Derridian Analysis", description: "Deconstruction, differance, trace, supplement, undecidability, and textual instability", group: "archeo_genealogical_deconstruction" },
   schizoanalytic_insights: { title: "Deleuzian Schizoanalysis", description: "Rhizomatic thinking, lines of flight, and becoming", group: "archeo_genealogical_deconstruction" },
   zizekian_analysis: { title: "\u017Di\u017Eekian Analysis", description: "Ideology, fantasy, contradiction, enjoyment, subjectivity, and the Real", group: "archeo_genealogical_deconstruction" },
@@ -6598,6 +6624,9 @@ var PERSPECTIVES = {
   posthumanism_perspective: { title: "Posthumanism", description: "Beyond human-centered thinking", group: "archeo_genealogical_deconstruction" },
   feminist_perspective: { title: "Feminist Psychology", description: "Gender, power, and social context", group: "gender_sexuality_queer" },
   irigarayian_perspective: { title: "Irigarayian Feminine", description: "Philosophy and psychoanalysis of sexual difference, feminine subjectivity, language, embodiment, desire, mimicry, and the critique of phallocentric order", group: "gender_sexuality_queer" },
+  womens_studies: { title: "Women's Studies", description: "Women\u2019s lives, institutions, labour, history, representation, oppression, resistance, and interdisciplinary study grounded in gendered experience", group: "gender_sexuality_queer" },
+  feminist_epistemology: { title: "Feminist Epistemology", description: "Situated knowledge, standpoint, bias critique, epistemic authority, social location, objectivity, and how power shapes what counts as knowledge", group: "gender_sexuality_queer" },
+  feminist_methodologies: { title: "Feminist Methodologies", description: "Reflexivity, situated method, ethics of relation, participatory inquiry, embodiment, accountability, and research practice shaped by feminist critique", group: "gender_sexuality_queer" },
   standpoint_theory: { title: "Standpoint Theory", description: "Situated social location, epistemic privilege from the margins, structural position, reflexivity, power, experience, and standpoint as a method of knowledge", group: "gender_sexuality_queer" },
   radical_feminism: { title: "Radical Feminism", description: "Patriarchy, sex-class, violence, reproductive politics, structural domination, consciousness-raising, and transformative critique of male power", group: "gender_sexuality_queer" },
   ecofeminism: { title: "Ecofeminism", description: "Gendered domination, ecology, care, extraction, embodiment, environmental justice, relational ethics, and the linked critique of patriarchy and ecological destruction", group: "gender_sexuality_queer" },
@@ -6612,12 +6641,18 @@ var PERSPECTIVES = {
   donna_haraway_situated_knowledges: { title: "Donna Haraway's Situated Knowledges", description: "Situated knowledge, partial perspective, cyborgs, technoscience, kin-making, response-ability, species entanglement, and accountable positioning", group: "gender_sexuality_queer" },
   critical_race_studies: { title: "Critical Race Studies", description: "Racial formation, structural racism, intersectionality, law, culture, and lived experience", group: "race_coloniality_embodiment" },
   fanonian_analysis: { title: "Frantz Fanonian Analysis", description: "Colonial violence, racialization, alienation, recognition, embodiment, national consciousness, liberation, and the psychic life of colonial power", group: "race_coloniality_embodiment" },
+  anti_colonial_studies: { title: "Anti-Colonial Studies", description: "Empire, resistance, liberation struggle, political education, national self-determination, solidarity, and strategies for refusing colonial domination", group: "race_coloniality_embodiment" },
+  postcolonial_studies: { title: "Postcolonial Studies", description: "Empire afterlives, representation, hybridity, colonial discourse, subjection, worlding, translation, and the uneven cultural effects of colonial history", group: "race_coloniality_embodiment" },
   decolonial_studies: { title: "Decolonial Studies", description: "Coloniality, land, knowledge, sovereignty, extraction, repair, and pluriversal futures", group: "race_coloniality_embodiment" },
+  pluriversal_politics: { title: "Pluriversal Politics", description: "Many worlds, epistemic plurality, coexistence without reduction to one universal model, autonomy, relation, and political forms adequate to heterogenous ways of life", group: "race_coloniality_embodiment" },
+  edouard_glissant_relation_poetics: { title: "Edouard Glissant's Poetics of Relation", description: "Relation, opacity, creolization, archipelagic thought, worlding, memory, colonial fracture, and forms of being that resist transparent capture", group: "race_coloniality_embodiment" },
+  moten_harney_undercommons: { title: "Moten and Harney Undercommons", description: "Fugitive planning, study, black social life, institution refusal, debt, logistics, collectivity, and survival through insurgent relation", group: "race_coloniality_embodiment" },
   crip_studies: { title: "Crip Studies", description: "Crip politics, disability culture, anti-ableism, interdependence, access, embodiment, norm critique, refusal of compulsory capacity, and reimagining flourishing beyond able-bodied standards", group: "race_coloniality_embodiment" },
   fat_studies: { title: "Fat Studies", description: "Anti-fat bias, embodiment, health norms, stigma, access, and fat liberation", group: "race_coloniality_embodiment" },
   mad_studies: { title: "Mad Studies", description: "Psychiatric power, mad knowledge, distress, survival, and alternatives to pathologization", group: "race_coloniality_embodiment" },
   ecology_perspective: { title: "Ecology", description: "Organisms, habitats, interdependence, niches, energy flows, disturbance, adaptation, and relations between living systems and environments", group: "systems_ecology_food" },
   traditional_ecological_knowledges: { title: "Traditional Ecological Knowledges", description: "Long-term ecological observation, seasonal knowledge, custodianship, species relation, practice-based environmental learning, place memory, reciprocity, and intergenerational survival knowledge", group: "systems_ecology_food" },
+  james_lovelock_gaia: { title: "James Lovelock's Gaia Theory", description: "Earth systems, planetary feedback, atmosphere, regulation, biosphere, living planet metaphors, instability, and thinking life and environment as mutually shaping", group: "systems_ecology_food" },
   quantum_theory_analysis: { title: "Quantum Theory Analysis", description: "Observation, indeterminacy, probability, entanglement, measurement, fields, scale, uncertainty, and the limits of classical causality", group: "systems_ecology_food" },
   chaos_theory_analysis: { title: "Chaos Theory", description: "Nonlinearity, sensitivity to initial conditions, strange attractors, turbulence, emergence, unpredictability, pattern, and dynamic systems near instability", group: "systems_ecology_food" },
   gregory_bateson_ecology_mind: { title: "Gregory Bateson's Ecology of Mind", description: "Cybernetics, feedback, pattern, communication, double bind, learning levels, mind-in-system, relational ecology, and the pattern that connects", group: "systems_ecology_food" },
@@ -6629,6 +6664,7 @@ var PERSPECTIVES = {
   resilience_analysis: { title: "Resilience", description: "Adaptive capacity, recovery, redundancy, stress response, and durable support systems", group: "systems_ecology_food" },
   social_ecological_systems_theory: { title: "Social-Ecological Systems Theory", description: "Linked human and ecological systems, feedback loops, thresholds, adaptive governance, resilience, institutions, and environmental change", group: "systems_ecology_food" },
   critical_food_systems_analysis: { title: "Critical Food Systems Analysis", description: "Food justice, supply chains, agriculture, labor, ecology, access, and power", group: "systems_ecology_food" },
+  food_sovereignty_analysis: { title: "Food Sovereignty", description: "Land, seed, peasant knowledge, local control, agroecology, self-determination, food justice, and the politics of who governs nourishment", group: "systems_ecology_food" },
   feminist_food_studies: { title: "Feminist Food Studies", description: "Care, labor, eating, embodiment, domesticity, agriculture, consumption, food justice, gendered power, and the politics of nourishment", group: "systems_ecology_food" },
   biomimicry_perspective: { title: "Biomimicry", description: "Learning from living systems, adaptation, form, function, and regenerative design", group: "systems_ecology_food" },
   environmental_humanities: { title: "Environmental Humanities", description: "Culture, ecology, ethics, story, extinction, more-than-human worlds, environmental justice, and how human meaning is entangled with damaged environments", group: "systems_ecology_food" },
@@ -6640,13 +6676,18 @@ var PERSPECTIVES = {
   reciprocity_mutual_aid: { title: "Reciprocity, Mutual Aid, and Sharing Economies", description: "Reciprocity, commons, mutual aid, solidarity, gifting, sharing economies, survival networks, redistribution, and practical forms of collective support", group: "systems_ecology_food" },
   jasper_hoffmeyer_biosemiotics: { title: "Jesper Hoffmeyer's Biosemiotics", description: "Sign processes in living systems, code duality, semiosis, communication, organism-environment relation, meaning in life processes, and ecological signification", group: "systems_ecology_food" },
   mechanical_engineering_analysis: { title: "Mechanical Engineering Analysis", description: "Forces, loads, constraints, materials, mechanisms, tolerances, failure modes, energy transfer, friction, maintenance, and practical design", group: "strategy_method_organisation" },
+  electronics_analysis: { title: "Electronics", description: "Circuits, signals, components, feedback, power, noise, failure points, sensing, control, and how systems behave through electrical relation", group: "strategy_method_organisation" },
   computer_science_analysis: { title: "Computer Science", description: "Algorithms, abstraction, data structures, computation, complexity, logic, interfaces, systems, debugging, and how procedures shape outcomes", group: "strategy_method_organisation" },
   data_science_analysis: { title: "Data Science", description: "Data collection, cleaning, patterning, modeling, prediction, bias, metrics, visualization, uncertainty, and what gets counted as signal", group: "strategy_method_organisation" },
   metascience_analysis: { title: "Metascience", description: "Research quality, reproducibility, incentives, publication bias, methods review, evidence standards, scientific institutions, and the study of how science works", group: "strategy_method_organisation" },
+  interdisciplinary_studies: { title: "Interdisciplinary Studies", description: "Crossing fields, translation, method blending, concept transfer, boundary work, synthesis, epistemic tension, and how problems exceed one discipline", group: "strategy_method_organisation" },
   australian_legal_discourse: { title: "Australian Legal Discourse", description: "Common law, statute, precedent, jurisdiction, rights, obligations, evidence, administrative language, settler legality, and institutional reasoning in Australia", group: "strategy_method_organisation" },
+  architectural_theories: { title: "Architectural Theories", description: "Space, form, dwelling, structure, circulation, atmosphere, programme, materiality, design intention, and how built environments shape life", group: "strategy_method_organisation" },
   swot_analysis: { title: "SWOT Analysis", description: "Strengths, weaknesses, opportunities, threats, and strategic positioning", group: "strategy_method_organisation" },
   grounded_theory: { title: "Grounded Theory", description: "Open coding, constant comparison, memos, categories, theoretical sampling, emergence, saturation, and theory built from lived data", group: "strategy_method_organisation" },
   autoethnography: { title: "Autoethnography", description: "Personal experience as cultural evidence, reflexive voice, situated memory, vulnerability, ethics, embodiment, and social interpretation", group: "strategy_method_organisation" },
+  conflict_management: { title: "Conflict Management", description: "Escalation, negotiation, mediation, interests, positions, repair, communication breakdown, power asymmetry, and practical strategies for working through conflict", group: "strategy_method_organisation" },
+  group_work_theories: { title: "Group Work Theories", description: "Roles, coordination, trust, task division, collective process, facilitation, conflict, cohesion, and how groups succeed or fail together", group: "strategy_method_organisation" },
   feasibility_analysis: { title: "Feasibility Analysis", description: "Practical viability, resources, constraints, dependencies, costs, and implementation readiness", group: "strategy_method_organisation" },
   risk_analysis: { title: "Risk Analysis", description: "Likelihood, impact, uncertainty, exposure, prevention, mitigation, and contingency", group: "strategy_method_organisation" },
   transitional_theory: { title: "Transitional Theory", description: "Liminal movement, phased change, rites of passage, continuity, and transformation", group: "strategy_method_organisation" },
@@ -6656,6 +6697,7 @@ var PERSPECTIVES = {
   social_movement_theories: { title: "Theories Growing a Social Movement", description: "Collective action, mobilization, framing, resources, leadership, and movement ecology", group: "strategy_method_organisation" },
   andre_baier_tins_d_analysis: { title: "Andr\xE9 Baier's TINS_D Analysis", description: "Democracy education, sustainability, socio-technical responsibility, engineering ethics, participatory formation, critical reflection, and collective capability-building for ecological futures", group: "strategy_method_organisation" },
   tacktical_methodological_analysis: { title: "Tacktical Methodological Analysis", description: "Louisa Bufardeci's tactical method, situated procedure, constraints, mapping, and action", group: "strategy_method_organisation" },
+  study_frameworks: { title: "Study Frameworks", description: "Scaffolding, revision cycles, note systems, concept mapping, spaced repetition, synthesis, workload design, and structured ways of learning from complex material", group: "strategy_method_organisation" },
   transformative_futures: { title: "Imagining Transformative Futures", description: "Speculation, prefiguration, scenario imagination, world-building, and emancipatory possibility", group: "strategy_method_organisation" }
 };
 var PERSPECTIVE_HEADING_ALIASES = {
@@ -6663,9 +6705,17 @@ var PERSPECTIVE_HEADING_ALIASES = {
   lgbtq_studies_perspective: ["LGBTQ+ Studies"],
   feasibility_analysis: ["Feasability Analysis"],
   tacktical_methodological_analysis: ["Tactical Methodological Analysis"],
+  confucianism_analysis: ["Confucianism", "Confusionism"],
+  francis_bacon_empiricism: ["Francis Bacon", "Francis Bacon's Experimental Method"],
+  metaethics_analysis: ["Metaethics"],
+  schelling_nature_philosophy: ["Schelling", "F.W.J. Schelling", "Schelling's Nature Philosophy"],
+  ralph_waldo_emerson_environmental_thought: ["Ralph Waldo Emerson", "Ralph Waldo Emerson's Environmental Thought"],
+  bergson_duration_creativity: ["Bergson", "Henri Bergson's Duration and Creativity"],
+  william_james_pragmatism: ["William James", "William James' Pragmatism"],
   maslow_hierarchy_needs: ["Marlow's Hierarchy of Needs", "Maslow's Hierarchy of Human Needs"],
   descartes_cogito_subject: ["Rene Descartes' Cogito and Subject"],
   hannah_arendt_action_plurality: ["Arendt", "Hannah Arendt's Action and Plurality", "Hannah Arendt's Political Action"],
+  amartya_sen_capability_approach: ["Amartya Sen", "Amartya Sen's Capability Approach"],
   edith_cowan_civic_reform: ["Edith Cowen", "Edith Cowan's Civic Reform"],
   diane_ding_dyason_practical_ethics: ["Diane Ding Dyason", `Diane "Ding" Dyason`, `Diane "Ding" Dyason's Practical Ethics`],
   bernard_williams_personal_identity: ["Barnard Williams' Personal Identity", "Barnard Williams Personal Identity"],
@@ -6688,23 +6738,57 @@ var PERSPECTIVE_HEADING_ALIASES = {
   husserlian_phenomenology: ["Husserl's Phenomenology", "Edmund Husserl", "Husserl"],
   whitehead_process_philosophy: ["Whitehead's Process Philosophy", "Alfred North Whitehead", "Whitehead"],
   aesthetics_untranslatables: ["Aesthetics", "Aesthetics and the Untranslatable", "Dictionary of Untranslatables Aesthetics"],
+  celtic_religion_interpretation: ["Celtic Religion", "Celtic Religion Interpretation"],
+  herbalism_analysis: ["Herbalism"],
+  witchcraft_analysis: ["Witch Craft", "Witchcraft"],
   ancient_egyptian_interpretation: ["Ancient Egyptian Interpretation", "Ancient Egyptian", "Ancient Egyption", "Ancient Egyptian Religion"],
+  anthropology_analysis: ["Anthropology"],
+  archaeology_analysis: ["Archeology", "Archaeology"],
+  public_policy_analytics: ["Public Policy Analytics"],
+  structuralism_analysis: ["Structuralism"],
+  textual_analysis: ["Textual Analysis"],
+  intertextuality_analysis: ["Intertextuality"],
+  psychology_analysis: ["Psychology"],
+  anti_psychiatry_analysis: ["Anti-Psychiatry", "Anti-Psychiiatry", "Antipsychiatry"],
+  general_practice_diagnosis: ["General Practice Medical Doctor Practice and Diagnosis", "General Practice Medical Diagnosis", "GP Diagnosis"],
+  emotional_intelligence_analysis: ["Emotional Intelligence"],
   crip_studies: ["Crip", "Crip Studies", "Crip Theory"],
   steiner_education: ["Steiner Education", "Waldorf Education", "Rudolf Steiner Education"],
+  freirean_pedagogy: ["Freirean Pedagogy", "Paulo Freire"],
   vitalism_analysis: ["Vitalism"],
   organicism_analysis: ["Organicism"],
+  adorno_negative_dialectics: ["Adorno", "Adorno's Negative Dialectics", "Negative Dialectics"],
+  althusser_ideology_analysis: ["Althusser", "Althusser's Ideology and Apparatuses"],
+  foucauldian_discourse_analysis: ["Foucauldian Discourse Analysis", "Foucaultian Discourse Analysis"],
+  womens_studies: ["Women's Studies", "Womens Studies"],
+  feminist_epistemology: ["Feminist Epistemology"],
+  feminist_methodologies: ["Feminist Methodologies"],
+  anti_colonial_studies: ["Anti-Colonial Studies", "Anticolonial Studies"],
+  postcolonial_studies: ["Postcolonial", "Postcolonial Studies"],
+  pluriversal_politics: ["Pluriversal Politics"],
+  edouard_glissant_relation_poetics: ["Edouard Glissant", "Glissant's Poetics of Relation"],
+  moten_harney_undercommons: ["Moten and Harney", "Moten & Harney", "Undercommons"],
+  james_lovelock_gaia: ["James Lovelock", "Lovelock's Gaia Theory", "Gaia Theory"],
   spivak_subaltern_analysis: ["Gayatry Chacravorty Spivak", "Gayatri Chakravorty Spivak", "Spivak's Subaltern Analysis"],
   jasper_hoffmeyer_biosemiotics: ["Jasper Hoffmeyer", "Jesper Hoffmeyer", "Hoffmeyer's Biosemiotics"],
   andre_baier_tins_d_analysis: ["Andr\xE9 Baier's TINS_D Analysis", "Andre Baier's TINS_D Analysis", "TINS_D Analysis"],
   donna_haraway_situated_knowledges: ["Donna Haraway's Situated Knowledges", "Donna Haraway", "Situated Knowledges"],
   socio_technical_transitions_mlp: ["Multi-Level Perspective", "Socio-Technical Transitions", "Socio-technical Transitions and the Multi-Level Perspective"],
+  food_sovereignty_analysis: ["Food Sovereignty", "Food Soverienty"],
   poetics_analysis: ["Poetry", "Poetics"],
   isabelle_stengers_cosmopolitics: ["Isobella Stengers", "Isabelle Stengers", "Stengers' Cosmopolitics"],
   metascience_analysis: ["MetaScience", "Metascience"],
+  french_philosophy_of_science_relation: ["French Philosophy of Science and Relation"],
   bourdieu_analysis: ["Bourdieu", "Pierre Bourdieu", "Bourdieusian Analysis", "Pierre Bourdieu's Theory of Practice"],
   baudrillard_analysis: ["Baudrillard", "Jean Baudrillard", "Baudrillardian Analysis", "Simulacra and Hyperreality"],
   continental_political_aesthetics: ["Continental Political Aesthetics"],
   frankfurt_school_analysis: ["Frankfurt School", "Frankfurt School Critical Theory", "Frankfurt School Analysis"],
+  interdisciplinary_studies: ["Interdisciplinary", "Interdisciplinary Studies"],
+  architectural_theories: ["Architectural Theories", "Architecture Theory"],
+  electronics_analysis: ["Electronics"],
+  conflict_management: ["Conflict Management"],
+  group_work_theories: ["Group Work Theories"],
+  study_frameworks: ["Study Frameworks"],
   set_theory_analysis: ["Set Theory", "Cantorian Set Theory", "Georg Cantor's Set Theory"]
 };
 var PERSPECTIVE_CHRONOLOGY = [
@@ -6715,13 +6799,19 @@ var PERSPECTIVE_CHRONOLOGY = [
   "greek_gods_interpretation",
   "roman_gods_interpretation",
   "druidic_interpretation",
+  "celtic_religion_interpretation",
   "buddhist_psychology_perspective",
+  "confucianism_analysis",
   "second_testament_christian_interpretation",
   "muslim_interpretation",
   "pagan_interpretation",
+  "herbalism_analysis",
+  "witchcraft_analysis",
   "bible_teachings_perspective",
   "cartographic_analysis",
   "geography_analysis",
+  "anthropology_analysis",
+  "archaeology_analysis",
   "platonic_perspective",
   "aristotle_argonic_teachings",
   "cynics_perspective",
@@ -6731,6 +6821,7 @@ var PERSPECTIVE_CHRONOLOGY = [
   "ethical_analysis",
   "moral_philosophy_analysis",
   "philosophy_of_mind_perspective",
+  "francis_bacon_empiricism",
   "descartes_cogito_subject",
   "spinoza_theologic_ethico_perspective",
   "leibniz_monadology_perspective",
@@ -6740,8 +6831,10 @@ var PERSPECTIVE_CHRONOLOGY = [
   "aesthetics_untranslatables",
   "kantian_transcendental_subject",
   "hegelian_recognition_subject",
+  "schelling_nature_philosophy",
   "kierkegaard_existential_faith",
   "schopenhauer_will_representation",
+  "ralph_waldo_emerson_environmental_thought",
   "marxian_analysis",
   "political_thought",
   "theories_of_world_politics",
@@ -6750,6 +6843,10 @@ var PERSPECTIVE_CHRONOLOGY = [
   "healthy_in_all_policies",
   "social_policy_analysis",
   "nietzschean_perspective",
+  "bergson_duration_creativity",
+  "william_james_pragmatism",
+  "psychiatry_perspective",
+  "psychology_analysis",
   "collingwood_historical_imagination",
   "freudian_psychoanalysis",
   "jungian_perspective",
@@ -6758,7 +6855,9 @@ var PERSPECTIVE_CHRONOLOGY = [
   "epistemology_analysis",
   "linguistic_analysis",
   "semiotic_analysis",
+  "structuralism_analysis",
   "argumentation_construction_analysis",
+  "textual_analysis",
   "husserlian_phenomenology",
   "phenomenology_perspective",
   "heideggerian_dasein_analysis",
@@ -6782,25 +6881,35 @@ var PERSPECTIVE_CHRONOLOGY = [
   "standpoint_theory",
   "radical_feminism",
   "ecofeminism",
+  "womens_studies",
+  "feminist_epistemology",
+  "feminist_methodologies",
   "lacanian_perspective",
   "kristevan_abjection_semiotic",
+  "intertextuality_analysis",
   "critical_theory_perspective",
   "frankfurt_school_analysis",
   "horkheimer_critical_theory",
+  "adorno_negative_dialectics",
+  "althusser_ideology_analysis",
   "hannah_arendt_action_plurality",
   "wittgenstein_language_games",
   "jl_austin_speech_acts",
   "analytic_moral_philosophy",
+  "metaethics_analysis",
   "philosophy_of_language_analysis",
   "pf_strawson_personhood",
   "social_theories_of_deviance",
   "discourse_analysis",
+  "foucauldian_discourse_analysis",
   "sociology_analysis",
+  "public_policy_analytics",
   "social_research_methods",
   "montessori_method",
   "steiner_education",
   "piaget_developmental_theory",
   "vygotsky_sociocultural_theory",
+  "freirean_pedagogy",
   "primary_pedagogy",
   "secondary_pedagogy",
   "tertiary_pedagogy",
@@ -6814,6 +6923,7 @@ var PERSPECTIVE_CHRONOLOGY = [
   "derek_parfit_reductionist_identity",
   "habermasian_communicative_subject",
   "discourse_ethics_analysis",
+  "amartya_sen_capability_approach",
   "charles_taylor_sources_self",
   "macintyre_narrative_self",
   "edith_cowan_civic_reform",
@@ -6857,14 +6967,16 @@ var PERSPECTIVE_CHRONOLOGY = [
   "art_theory_analysis",
   "susan_sontag_interpretation",
   "tessa_laird_cinemal",
-  "psychiatry_perspective",
   "attachment_theory_perspective",
+  "anti_psychiatry_analysis",
+  "general_practice_diagnosis",
   "gestalt_perspective",
   "transpersonal_perspective",
   "maslow_hierarchy_needs",
   MYERS_BRIGGS_PERSPECTIVE_KEY,
   "cbt_perspective",
   "positive_psychology_perspective",
+  "emotional_intelligence_analysis",
   "asian_japanese_parental_guidance",
   "african_zimbabwean_parental_guidance",
   "western_parental_guidance",
@@ -6875,9 +6987,14 @@ var PERSPECTIVE_CHRONOLOGY = [
   "queer_theory_perspective",
   "trans_studies",
   "identity_politics_analysis",
+  "anti_colonial_studies",
   "fanonian_analysis",
   "critical_race_studies",
+  "postcolonial_studies",
   "decolonial_studies",
+  "pluriversal_politics",
+  "edouard_glissant_relation_poetics",
+  "moten_harney_undercommons",
   "crip_studies",
   "fat_studies",
   "mad_studies",
@@ -6886,6 +7003,7 @@ var PERSPECTIVE_CHRONOLOGY = [
   "quantum_theory_analysis",
   "chaos_theory_analysis",
   "gregory_bateson_ecology_mind",
+  "james_lovelock_gaia",
   "science_technology_studies",
   "latourian_analysis",
   "karen_barad_agential_realism",
@@ -6896,10 +7014,12 @@ var PERSPECTIVE_CHRONOLOGY = [
   "philosophy_of_science_analysis",
   "philosophy_of_physics_analysis",
   "feyerabend_epistemological_anarchism",
+  "french_philosophy_of_science_relation",
   "michel_serres_relations",
   "resilience_analysis",
   "social_ecological_systems_theory",
   "critical_food_systems_analysis",
+  "food_sovereignty_analysis",
   "feminist_food_studies",
   "biomimicry_perspective",
   "environmental_humanities",
@@ -6911,13 +7031,18 @@ var PERSPECTIVE_CHRONOLOGY = [
   "reciprocity_mutual_aid",
   "jasper_hoffmeyer_biosemiotics",
   "mechanical_engineering_analysis",
+  "electronics_analysis",
   "computer_science_analysis",
   "data_science_analysis",
   "metascience_analysis",
+  "interdisciplinary_studies",
   "australian_legal_discourse",
+  "architectural_theories",
   "swot_analysis",
   "grounded_theory",
   "autoethnography",
+  "conflict_management",
+  "group_work_theories",
   "feasibility_analysis",
   "risk_analysis",
   "transitional_theory",
@@ -6927,6 +7052,7 @@ var PERSPECTIVE_CHRONOLOGY = [
   "social_movement_theories",
   "andre_baier_tins_d_analysis",
   "tacktical_methodological_analysis",
+  "study_frameworks",
   "transformative_futures"
 ];
 function getChronologicalPerspectiveKeys() {
@@ -7048,9 +7174,9 @@ var GROUP_DEFAULT_METADATA = {
     lineage: "Geographical, sociological, and empirical inquiry traditions"
   },
   narrative_media_frame: {
-    tradition: "Language, narrative, media, and interaction studies",
+    tradition: "Language, poetics, narrative, media, and interaction studies",
     orientation: "Mixed humanities and social theory",
-    lineage: "Semiotic, linguistic, media, and interpretive traditions"
+    lineage: "Rhetoric and poetics, philology, semiotics, structuralism, narrative theory, media studies, and interaction analysis"
   },
   psychoanalytic_clinical: {
     tradition: "Psychological, psychiatric, psychoanalytic, developmental, and clinical traditions",
@@ -7068,9 +7194,9 @@ var GROUP_DEFAULT_METADATA = {
     lineage: "Marx -> Nietzsche -> psychoanalytic and post-structural critique"
   },
   gender_sexuality_queer: {
-    tradition: "Feminist, queer, gender, and sexuality studies",
+    tradition: "Women\u2019s studies, feminist, queer, gender, and sexuality studies",
     orientation: "Mostly continental and interdisciplinary critical theory",
-    lineage: "Feminist, queer, trans, and sexuality studies lineages"
+    lineage: "Women\u2019s studies, feminist theory, lesbian and gay studies, queer theory, trans studies, and sexuality studies lineages"
   },
   race_coloniality_embodiment: {
     tradition: "Critical race, decolonial, and embodiment studies",
@@ -7100,6 +7226,12 @@ var PERSPECTIVE_METADATA = {
     orientation: "Outside the later analytic/continental divide",
     chronology: "Ancient and ongoing",
     lineage: "Buddhist philosophical and contemplative traditions"
+  },
+  confucianism_analysis: {
+    tradition: "Confucian philosophy",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "Ancient and ongoing",
+    lineage: "Classical Chinese thought -> Confucius, Mencius, Xunzi, and later Neo-Confucian traditions"
   },
   platonic_perspective: {
     tradition: "Classical Greek philosophy",
@@ -7161,11 +7293,23 @@ var PERSPECTIVE_METADATA = {
     chronology: "Ancient to contemporary",
     lineage: "Greek ethics -> religious moral reflection -> modern moral theory -> contemporary normative debate"
   },
+  francis_bacon_empiricism: {
+    tradition: "Early modern empiricism and scientific method",
+    orientation: "Pre-divide",
+    chronology: "16th and 17th century",
+    lineage: "Renaissance natural philosophy -> Bacon -> experimental method and scientific inquiry"
+  },
   moral_naturalism_perspective: {
     tradition: "Ethics and metaethics",
     orientation: "Mostly analytic",
     chronology: "Modern and contemporary",
     lineage: "Aristotle and naturalist ethics -> contemporary metaethics"
+  },
+  metaethics_analysis: {
+    tradition: "Metaethics",
+    orientation: "Mostly analytic with some bridge traditions",
+    chronology: "20th and 21st century",
+    lineage: "Hume, Moore, Stevenson, Hare, Blackburn, Korsgaard, Scanlon, and contemporary debates about moral truth and reasons"
   },
   kantian_transcendental_subject: {
     tradition: "German idealism and transcendental philosophy",
@@ -7179,6 +7323,12 @@ var PERSPECTIVE_METADATA = {
     chronology: "19th century",
     lineage: "Kant -> Hegel -> Marx, existentialism, recognition theory"
   },
+  schelling_nature_philosophy: {
+    tradition: "German idealism and Naturphilosophie",
+    orientation: "Pre-divide",
+    chronology: "Late 18th and early 19th century",
+    lineage: "Kant -> Schelling -> romantic science, nature philosophy, and later ecological and process thought"
+  },
   marxian_analysis: {
     tradition: "Marxism and historical materialism",
     orientation: "Pre-divide to continental critical lineage",
@@ -7190,6 +7340,24 @@ var PERSPECTIVE_METADATA = {
     orientation: "Pre-divide to continental lineage",
     chronology: "19th century",
     lineage: "Nietzsche -> Freud, Foucault, Deleuze, genealogy"
+  },
+  ralph_waldo_emerson_environmental_thought: {
+    tradition: "Transcendentalism and environmental thought",
+    orientation: "Pre-divide",
+    chronology: "19th century",
+    lineage: "Romanticism and American transcendentalism -> Emerson -> environmental ethics and literary nature writing"
+  },
+  bergson_duration_creativity: {
+    tradition: "Philosophy of life and process thought",
+    orientation: "Pre-divide to continental lineage",
+    chronology: "Late 19th and early 20th century",
+    lineage: "Vitalism, psychology, and French spiritualism -> Bergson -> Deleuze, process thought, and theories of creativity"
+  },
+  william_james_pragmatism: {
+    tradition: "Pragmatism and psychology",
+    orientation: "Bridge across philosophy and psychology",
+    chronology: "Late 19th and early 20th century",
+    lineage: "American pragmatism and psychology -> James -> pluralism, radical empiricism, and framing traditions"
   },
   husserlian_phenomenology: {
     tradition: "Phenomenology",
@@ -7335,6 +7503,12 @@ var PERSPECTIVE_METADATA = {
     chronology: "20th century",
     lineage: "Greek political thought, phenomenology, and anti-totalitarian reflection -> Arendt"
   },
+  amartya_sen_capability_approach: {
+    tradition: "Political philosophy and development ethics",
+    orientation: "Bridge across analytic, political, and applied traditions",
+    chronology: "Late 20th and 21st century",
+    lineage: "Welfare economics, public reasoning, and moral philosophy -> Sen -> capability and justice debates"
+  },
   charles_taylor_sources_self: {
     tradition: "Political philosophy and hermeneutic moral philosophy",
     orientation: "Bridge across analytic and continental reception",
@@ -7443,6 +7617,18 @@ var PERSPECTIVE_METADATA = {
     chronology: "Late 20th and 21st century",
     lineage: "Freud, Lacan, semiotics, and feminism -> Kristeva"
   },
+  psychiatry_perspective: {
+    tradition: "Psychiatry and clinical diagnosis",
+    orientation: "Medical-clinical tradition",
+    chronology: "19th century onward",
+    lineage: "Medical observation, psychiatric nosology, phenomenological psychiatry, community psychiatry, and contemporary diagnostic practice"
+  },
+  psychology_analysis: {
+    tradition: "Psychology",
+    orientation: "Bridge across scientific, humanistic, and clinical traditions",
+    chronology: "19th century onward",
+    lineage: "Experimental psychology, pragmatism, psychoanalysis, behaviourism, cognitive science, and social psychology"
+  },
   freudian_psychoanalysis: {
     tradition: "Psychoanalysis",
     orientation: "Pre-divide to mixed modern reception",
@@ -7461,11 +7647,35 @@ var PERSPECTIVE_METADATA = {
     chronology: "20th century",
     lineage: "Freud -> Lacan -> post-structural and \u017Di\u017Eekian lineages"
   },
+  anti_psychiatry_analysis: {
+    tradition: "Anti-psychiatry and mad critique",
+    orientation: "Interdisciplinary critical and clinical counter-tradition",
+    chronology: "Mid-20th century onward",
+    lineage: "Existential psychiatry, institutional critique, survivor knowledge, and mad studies -> anti-psychiatry"
+  },
+  general_practice_diagnosis: {
+    tradition: "General practice and primary care medicine",
+    orientation: "Medical-clinical tradition",
+    chronology: "20th and 21st century",
+    lineage: "Primary care, family medicine, differential diagnosis, and continuity-of-care practice"
+  },
   critical_theory_perspective: {
     tradition: "Critical theory",
     orientation: "Continental",
     chronology: "20th century",
     lineage: "Marx -> Frankfurt School -> critique of modernity"
+  },
+  adorno_negative_dialectics: {
+    tradition: "Frankfurt School critical theory",
+    orientation: "Continental",
+    chronology: "20th century",
+    lineage: "Hegel, Marx, Freud -> Adorno -> negative dialectics, immanent critique, and culture industry analysis"
+  },
+  althusser_ideology_analysis: {
+    tradition: "Structural Marxism and ideology critique",
+    orientation: "Continental",
+    chronology: "20th century",
+    lineage: "Marx, Spinoza, structuralism, psychoanalysis -> Althusser -> ideology critique and reproduction theory"
   },
   simondonian_analysis: {
     tradition: "Continental philosophy of technics and individuation",
@@ -7478,6 +7688,12 @@ var PERSPECTIVE_METADATA = {
     orientation: "Continental",
     chronology: "20th century",
     lineage: "Nietzsche -> Foucault -> genealogy, discourse, governmentality"
+  },
+  foucauldian_discourse_analysis: {
+    tradition: "Foucauldian discourse analysis",
+    orientation: "Continental and interdisciplinary",
+    chronology: "Late 20th century onward",
+    lineage: "Nietzsche -> Foucault -> archaeology, genealogy, discourse studies, and critical policy analysis"
   },
   derridian_analysis: {
     tradition: "Deconstruction",
@@ -7653,6 +7869,12 @@ var PERSPECTIVE_METADATA = {
     chronology: "20th century",
     lineage: "Philosophy of science -> Feyerabend -> methodological pluralism"
   },
+  french_philosophy_of_science_relation: {
+    tradition: "French philosophy of science and relation",
+    orientation: "Continental and interdisciplinary",
+    chronology: "20th century onward",
+    lineage: "Bachelard, Canguilhem, Simondon, Serres, and Stengers -> historical epistemology, relation, and milieus of knowledge"
+  },
   michel_serres_relations: {
     tradition: "Continental philosophy of relation and science",
     orientation: "Continental",
@@ -7701,6 +7923,30 @@ var PERSPECTIVE_METADATA = {
     chronology: "Late 20th and 21st century",
     lineage: "Feminist epistemology -> standpoint theory -> situated knowledge debates"
   },
+  womens_studies: {
+    tradition: "Women\u2019s studies",
+    orientation: "Interdisciplinary feminist tradition",
+    chronology: "Late 20th century onward",
+    lineage: "Second-wave feminism, women\u2019s history, and interdisciplinary gender critique -> women\u2019s studies"
+  },
+  feminist_epistemology: {
+    tradition: "Feminist epistemology",
+    orientation: "Mixed analytic, continental, and interdisciplinary feminist traditions",
+    chronology: "Late 20th and 21st century",
+    lineage: "Standpoint theory, science studies, and feminist philosophy -> feminist epistemology"
+  },
+  feminist_methodologies: {
+    tradition: "Feminist methodologies",
+    orientation: "Interdisciplinary feminist tradition",
+    chronology: "Late 20th and 21st century",
+    lineage: "Feminist research ethics, standpoint theory, participatory inquiry, and reflexive method -> feminist methodologies"
+  },
+  radical_feminism: {
+    tradition: "Radical feminism",
+    orientation: "Interdisciplinary feminist tradition",
+    chronology: "Late 20th century onward",
+    lineage: "Second-wave feminism -> radical feminist critique of patriarchy and sex-class -> later disputes with liberal, queer, and transfeminist approaches"
+  },
   bell_hooks_love_pedagogy: {
     tradition: "Black feminist thought and critical pedagogy",
     orientation: "Interdisciplinary critical tradition",
@@ -7737,6 +7983,12 @@ var PERSPECTIVE_METADATA = {
     chronology: "Late 20th and 21st century",
     lineage: "Innovation studies, sociology of technology, sustainability transitions -> Multi-Level Perspective"
   },
+  interdisciplinary_studies: {
+    tradition: "Interdisciplinary studies",
+    orientation: "Interdisciplinary",
+    chronology: "20th and 21st century",
+    lineage: "Boundary-crossing research, area studies, cultural studies, and integrative method -> interdisciplinary studies"
+  },
   metascience_analysis: {
     tradition: "Metascience and research evaluation",
     orientation: "Interdisciplinary methodological tradition",
@@ -7748,6 +8000,198 @@ var PERSPECTIVE_METADATA = {
     orientation: "Applied interdisciplinary pedagogy",
     chronology: "21st century",
     lineage: "Engineering responsibility, sustainability education, democratic pedagogy -> Andr\xE9 Baier and TINS_D"
+  },
+  celtic_religion_interpretation: {
+    tradition: "Celtic religion and mythic traditions",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "Ancient and reconstructed historical traditions",
+    lineage: "Celtic ritual worlds, oral myth, sovereignty traditions, and later reconstructionist practice"
+  },
+  herbalism_analysis: {
+    tradition: "Herbalism and traditional healing practice",
+    orientation: "Practical and ritual knowledge tradition",
+    chronology: "Ancient and ongoing",
+    lineage: "Plant lore, domestic medicine, apothecary traditions, and land-based healing practice"
+  },
+  witchcraft_analysis: {
+    tradition: "Witchcraft and magical practice",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "Ancient to contemporary",
+    lineage: "Folk magic, ritual craft, occult knowledge, persecuted practice, and contemporary witchcraft traditions"
+  },
+  anthropology_analysis: {
+    tradition: "Anthropology",
+    orientation: "Interdisciplinary social science",
+    chronology: "19th century onward",
+    lineage: "Ethnography, kinship studies, symbolic anthropology, political anthropology, and material culture analysis"
+  },
+  archaeology_analysis: {
+    tradition: "Archaeology",
+    orientation: "Historical and material research tradition",
+    chronology: "19th century onward",
+    lineage: "Antiquarian study, stratigraphy, material culture analysis, and archaeological interpretation"
+  },
+  public_policy_analytics: {
+    tradition: "Public policy analysis",
+    orientation: "Applied policy and social research tradition",
+    chronology: "20th and 21st century",
+    lineage: "Policy studies, public administration, evaluation research, and institutional analysis"
+  },
+  structuralism_analysis: {
+    tradition: "Structuralism",
+    orientation: "Continental and interdisciplinary",
+    chronology: "20th century",
+    lineage: "Saussurean linguistics, anthropology, literary theory, and psychoanalysis -> structuralism"
+  },
+  textual_analysis: {
+    tradition: "Textual criticism and close reading",
+    orientation: "Humanities interpretive tradition",
+    chronology: "Ancient rhetoric to contemporary criticism",
+    lineage: "Rhetoric, philology, literary criticism, close reading, and textual scholarship"
+  },
+  narrative_psychology_perspective: {
+    tradition: "Narrative psychology and hermeneutic social science",
+    orientation: "Interdisciplinary",
+    chronology: "Late 20th and 21st century",
+    lineage: "Bruner, Ricoeur, McAdams, and life-story research -> narrative psychology"
+  },
+  music_songwriting_analysis: {
+    tradition: "Song studies, poetics, and composition",
+    orientation: "Interdisciplinary artistic tradition",
+    chronology: "Ancient to contemporary",
+    lineage: "Poetics, oral song, lyric writing, music theory, and contemporary songwriting craft"
+  },
+  idiotextual_analysis: {
+    tradition: "Textual singularity and media philosophy",
+    orientation: "Continental and interdisciplinary",
+    chronology: "Late 20th and 21st century",
+    lineage: "Literary textuality, singular inscription, and Bernard Stiegler\u2019s idiotext -> idiosyncratic textual worlds"
+  },
+  intertextuality_analysis: {
+    tradition: "Intertextuality and literary theory",
+    orientation: "Continental and interdisciplinary",
+    chronology: "Late 20th century onward",
+    lineage: "Bakhtin, Kristeva, Barthes, and literary theory of textual relation -> intertextuality"
+  },
+  frame_analysis: {
+    tradition: "Frame analysis and interpretive sociology",
+    orientation: "Interdisciplinary social theory",
+    chronology: "20th century onward",
+    lineage: "Pragmatism, Bateson, symbolic interactionism, and social movement framing -> frame analysis"
+  },
+  goffman_frame_analysis: {
+    tradition: "Interactionist sociology and frame analysis",
+    orientation: "Interdisciplinary social theory",
+    chronology: "20th century",
+    lineage: "William James, pragmatism, Bateson, symbolic interactionism -> Goffman -> frame analysis"
+  },
+  media_studies: {
+    tradition: "Media and cultural studies",
+    orientation: "Interdisciplinary humanities and social theory",
+    chronology: "20th century onward",
+    lineage: "Rhetoric, poetics, film theory, semiotics, political economy, and cultural studies -> media studies"
+  },
+  poetics_analysis: {
+    tradition: "Poetics and literary theory",
+    orientation: "Humanities interpretive tradition",
+    chronology: "Ancient to contemporary",
+    lineage: "Plato and Aristotle -> rhetoric, literary theory, structuralism, and contemporary poetics"
+  },
+  irigarayian_perspective: {
+    tradition: "Continental feminist philosophy and Lacanian psychoanalysis",
+    orientation: "Continental",
+    chronology: "Late 20th and 21st century",
+    lineage: "Freud -> Lacan -> Irigaray -> sexual-difference feminism and critique of phallocentrism"
+  },
+  freirean_pedagogy: {
+    tradition: "Critical pedagogy",
+    orientation: "Interdisciplinary emancipatory tradition",
+    chronology: "20th century onward",
+    lineage: "Liberation pedagogy, anti-oppressive education, and dialogical method -> Paulo Freire"
+  },
+  anti_colonial_studies: {
+    tradition: "Anti-colonial thought",
+    orientation: "Interdisciplinary critical tradition",
+    chronology: "20th century onward",
+    lineage: "Liberation struggle, anti-imperial theory, and decolonization movements -> anti-colonial thought"
+  },
+  postcolonial_studies: {
+    tradition: "Postcolonial studies",
+    orientation: "Interdisciplinary critical tradition",
+    chronology: "Late 20th and 21st century",
+    lineage: "Anticolonial thought, literary theory, feminism, and discourse analysis -> postcolonial studies"
+  },
+  pluriversal_politics: {
+    tradition: "Decolonial and pluriversal politics",
+    orientation: "Interdisciplinary critical tradition",
+    chronology: "21st century",
+    lineage: "Indigenous, decolonial, and relational political thought -> pluriversal politics"
+  },
+  edouard_glissant_relation_poetics: {
+    tradition: "Poetics of relation and postcolonial thought",
+    orientation: "Continental and interdisciplinary",
+    chronology: "Late 20th and 21st century",
+    lineage: "Caribbean thought, decolonial poetics, and relation philosophy -> Glissant"
+  },
+  moten_harney_undercommons: {
+    tradition: "Black study and fugitive social thought",
+    orientation: "Interdisciplinary critical tradition",
+    chronology: "21st century",
+    lineage: "Black radical tradition, critical university studies, and insurgent collectivity -> Moten and Harney"
+  },
+  traditional_ecological_knowledges: {
+    tradition: "Traditional ecological knowledges and Indigenous environmental knowledge",
+    orientation: "Land-based and custodial knowledge traditions",
+    chronology: "Ancient and ongoing",
+    lineage: "Indigenous custodial knowledge, seasonal observation, relational land practice, and intergenerational ecological teaching"
+  },
+  james_lovelock_gaia: {
+    tradition: "Earth systems theory and ecological thought",
+    orientation: "Interdisciplinary scientific tradition",
+    chronology: "Late 20th and 21st century",
+    lineage: "Earth system science, atmospheric chemistry, and planetary feedback thought -> Lovelock and Gaia theory"
+  },
+  food_sovereignty_analysis: {
+    tradition: "Food sovereignty and agrarian politics",
+    orientation: "Interdisciplinary ecological and political tradition",
+    chronology: "Late 20th and 21st century",
+    lineage: "Peasant movements, agrarian justice, Indigenous food systems, and agroecology -> food sovereignty"
+  },
+  electronics_analysis: {
+    tradition: "Electronics and systems engineering",
+    orientation: "Technical and applied tradition",
+    chronology: "20th and 21st century",
+    lineage: "Electrical engineering, signal theory, control systems, and practical electronics"
+  },
+  architectural_theories: {
+    tradition: "Architectural theory",
+    orientation: "Interdisciplinary design tradition",
+    chronology: "Ancient to contemporary",
+    lineage: "Vitruvius, modernism, phenomenology of space, urban theory, and contemporary architectural criticism"
+  },
+  conflict_management: {
+    tradition: "Conflict management and mediation studies",
+    orientation: "Applied interdisciplinary tradition",
+    chronology: "20th and 21st century",
+    lineage: "Negotiation theory, mediation practice, peace studies, and organizational conflict research"
+  },
+  group_work_theories: {
+    tradition: "Group dynamics and collaborative practice",
+    orientation: "Applied interdisciplinary tradition",
+    chronology: "20th and 21st century",
+    lineage: "Social psychology, organizational behaviour, facilitation studies, and group development theory"
+  },
+  study_frameworks: {
+    tradition: "Learning science and study skills",
+    orientation: "Applied educational tradition",
+    chronology: "20th and 21st century",
+    lineage: "Educational psychology, cognitive science, pedagogy, and self-regulated learning frameworks"
+  },
+  emotional_intelligence_analysis: {
+    tradition: "Emotional intelligence and socio-emotional learning",
+    orientation: "Applied psychological tradition",
+    chronology: "Late 20th and 21st century",
+    lineage: "Affect studies, social psychology, SEL, and organizational psychology -> emotional intelligence"
   }
 };
 function getPerspectiveMetadata(key, perspective) {
@@ -7870,6 +8314,16 @@ var OUTPUT_LANGUAGES = {
     prompt: "Write all user-facing generated prose in German. Keep proper names, exact perspective keys, required JSON keys, and original work titles when translating them would be misleading."
   }
 };
+var DICTIONARY_MODES = {
+  engage: {
+    label: "Engage the dictionary",
+    prompt: "When a perspective draws on a dictionary or lexicon, treat it as a living conceptual resource to interpret with rather than something to quote or mimic mechanically."
+  },
+  copy: {
+    label: "Copy the dictionary style",
+    prompt: "When a perspective draws on a dictionary or lexicon, you may echo dictionary-like definitional phrasing and lexical contrast more closely, while still interpreting the journal entry rather than copying source text."
+  }
+};
 var DEFAULT_SETTINGS = {
   openaiApiKey: "",
   journalFolder: "Deleometer/Journal",
@@ -7888,6 +8342,7 @@ var DEFAULT_SETTINGS = {
   selectedPerspectives: getChronologicalPerspectiveKeys(),
   zpdLevel: "tertiary_year_2",
   outputLanguage: "english",
+  dictionaryMode: "engage",
   personalityProfile: null,
   authorMemorySummary: ""
 };
@@ -8347,6 +8802,10 @@ ${content}`
     const level = ZPD_LEVELS[this.settings.zpdLevel] || ZPD_LEVELS.tertiary_year_2;
     return `Reader zone of proximal development: ${level.label}. ${level.prompt}`;
   }
+  getDictionaryModePrompt() {
+    const mode = DICTIONARY_MODES[this.settings.dictionaryMode] || DICTIONARY_MODES.engage;
+    return `Dictionary mode: ${mode.label}. ${mode.prompt}`;
+  }
   getOutputLanguagePrompt() {
     const language = OUTPUT_LANGUAGES[this.settings.outputLanguage] || OUTPUT_LANGUAGES.english;
     return [
@@ -8423,9 +8882,12 @@ For each perspective:
 - for Gallagher's Pattern Theory of Self, map the entry across embodied, experiential, affective, intersubjective, narrative, extended, ecological, and normative dimensions without reducing the self to one single essence.
 - for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.
 - for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.
+- for Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation you have just given.
 - for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.
 - for Julia Kristeva, include both her psychoanalysis and her philosophy. Explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, revolt, and subject formation through concrete details in the entry.
 - for Luce Irigaray, include both her philosophy and her psychoanalysis. Explain sexual difference, desire, embodiment, mimicry, speech, maternal relation, and the critique of phallocentric language through concrete details in the entry.
+- distinguish psychiatry, psychology, and psychoanalysis. Do not treat psychiatry as derived from psychoanalysis; make their different histories, institutions, evidence, and aims visible when those frames appear.
+- for Idiotextual Analysis, attend to singular wording, recurring idiosyncratic phrases, self-made idiom, and if relevant the idea of the idiotext as a uniquely inscribed textual world rather than generic style commentary.
 - for Maslow, Montessori, Piaget, and Vygotsky, interpret needs, development, learning, environment, scaffolding, independence, play, and social support as practical conditions, not abstract labels.
 - for organisational transformation, connect culture, structure, leadership, resistance, capability, implementation, and sustained change to specific patterns in the entry.
 - for Gregory Bateson, interpret communication, feedback loops, learning levels, double binds, relational patterns, and ecology of mind as systems that shape the entry's situation.
@@ -8444,6 +8906,8 @@ ${personalityContext}
 ${authorMemoryContext}
 
 ${readerContext}
+
+${this.getDictionaryModePrompt()}
 
 ${this.getOutputLanguagePrompt()}
 
@@ -8519,9 +8983,12 @@ For each perspective:
 - for Gallagher's Pattern Theory of Self, map the entry across embodied, experiential, affective, intersubjective, narrative, extended, ecological, and normative dimensions without reducing the self to one single essence.
 - for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.
 - for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.
+- for Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation you have just given.
 - for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.
 - for Julia Kristeva, include both her psychoanalysis and her philosophy. Explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, revolt, and subject formation through concrete details in the entry.
 - for Luce Irigaray, include both her philosophy and her psychoanalysis. Explain sexual difference, desire, embodiment, mimicry, speech, maternal relation, and the critique of phallocentric language through concrete details in the entry.
+- distinguish psychiatry, psychology, and psychoanalysis. Do not treat psychiatry as derived from psychoanalysis; make their different histories, institutions, evidence, and aims visible when those frames appear.
+- for Idiotextual Analysis, attend to singular wording, recurring idiosyncratic phrases, self-made idiom, and if relevant the idea of the idiotext as a uniquely inscribed textual world rather than generic style commentary.
 - for Maslow, Montessori, Piaget, and Vygotsky, interpret needs, development, learning, environment, scaffolding, independence, play, and social support as practical conditions, not abstract labels.
 - for organisational transformation, connect culture, structure, leadership, resistance, capability, implementation, and sustained change to specific patterns in the entry.
 - for Gregory Bateson, interpret communication, feedback loops, learning levels, double binds, relational patterns, and ecology of mind as systems that shape the entry's situation.
@@ -8540,6 +9007,8 @@ ${personalityContext}
 ${authorMemoryContext}
 
 ${readerContext}
+
+${this.getDictionaryModePrompt()}
 
 ${this.getOutputLanguagePrompt()}
 
@@ -8644,11 +9113,18 @@ If the frame is Aesthetics, treat the term as contested rather than fixed. Expla
 If the frame is Julia Kristeva, include both her psychoanalysis and her philosophy.
 If the frame is Luce Irigaray, include both her philosophy and her psychoanalysis.
 
+Distinguish psychiatry, psychology, and psychoanalysis. Do not treat psychiatry as derived from psychoanalysis.
+If the frame is Idiotextual Analysis, attend to singular wording, recurring idiosyncratic phrases, self-made idiom, and if relevant the idea of the idiotext as a uniquely inscribed textual world rather than generic style commentary.
+
+If the frame is Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation.
+
 ${personalityContext}
 
 ${authorMemoryContext}
 
 ${readerContext}
+
+${this.getDictionaryModePrompt()}
 
 ${this.getOutputLanguagePrompt()}
 
@@ -8900,6 +9376,8 @@ ${content.slice(0, 5e3)}`
       content: `You are an empathetic analytical companion specializing in ${specializationTitle}. ${specializationDescription}
 
 ${this.getReaderContextPrompt()}
+
+${this.getDictionaryModePrompt()}
 
 ${this.getOutputLanguagePrompt()}
 
@@ -10881,6 +11359,9 @@ ${goal.description}
     if (!OUTPUT_LANGUAGES[this.settings.outputLanguage]) {
       this.settings.outputLanguage = DEFAULT_SETTINGS.outputLanguage;
     }
+    if (!DICTIONARY_MODES[this.settings.dictionaryMode]) {
+      this.settings.dictionaryMode = DEFAULT_SETTINGS.dictionaryMode;
+    }
     this.settings.redactSensitiveDataBeforeAI = typeof this.settings.redactSensitiveDataBeforeAI === "boolean" ? this.settings.redactSensitiveDataBeforeAI : DEFAULT_SETTINGS.redactSensitiveDataBeforeAI;
     this.settings.enableAuthorMemory = typeof this.settings.enableAuthorMemory === "boolean" ? this.settings.enableAuthorMemory : DEFAULT_SETTINGS.enableAuthorMemory;
     this.settings.includeAuthorMemoryInAI = typeof this.settings.includeAuthorMemoryInAI === "boolean" ? this.settings.includeAuthorMemoryInAI : DEFAULT_SETTINGS.includeAuthorMemoryInAI;
@@ -12605,6 +13086,15 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       }
       dropdown.setValue(this.plugin.settings.outputLanguage).onChange(async (value) => {
         this.plugin.settings.outputLanguage = OUTPUT_LANGUAGES[value] ? value : "english";
+        await this.plugin.saveSettings();
+      });
+    });
+    new import_obsidian.Setting(containerEl).setName("Dictionary mode").setDesc("Choose whether dictionary-informed lenses should interpret through a living lexicon or lean into dictionary-like phrasing more directly.").addDropdown((dropdown) => {
+      for (const [key, mode] of Object.entries(DICTIONARY_MODES)) {
+        dropdown.addOption(key, mode.label);
+      }
+      dropdown.setValue(this.plugin.settings.dictionaryMode).onChange(async (value) => {
+        this.plugin.settings.dictionaryMode = DICTIONARY_MODES[value] ? value : "engage";
         await this.plugin.saveSettings();
       });
     });

@@ -237,12 +237,13 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 218 individual analysis frames. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
+The Deleometer currently includes 261 individual analysis frames. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
 
 ### Philosophy as First Discipline
 
 - Australian Indigenous Philosophy Accumulated
 - Buddhist Psychology
+- Confucianism
 - Platonic Philosophy
 - Aristotle's Argonic Teachings
 - Cynics' Philosophy
@@ -253,6 +254,7 @@ The Deleometer currently includes 218 individual analysis frames. Generated anal
 - Ethical Analysis
 - Moral Philosophy
 - Philosophy of Mind
+- Francis Bacon's Experimental Method
 - René Descartes' Cogito and Subject
 - Spinoza's Theologic-Ethico Philosophy
 - Gottfried Wilhelm Leibniz's Monadology
@@ -260,9 +262,14 @@ The Deleometer currently includes 218 individual analysis frames. Generated anal
 - David Hume's Bundle Theory of Self
 - Aesthetics
 - Moral Naturalism
+- Metaethics
 - Immanuel Kant's Transcendental Subject
 - G.W.F. Hegel's Recognition and Subjectivity
+- F. W. J. Schelling's Nature Philosophy
+- Ralph Waldo Emerson's Environmental Thought
 - Nietzschean Philosophy
+- Henri Bergson's Duration and Creativity
+- William James' Pragmatism
 - Set Theory
 - Phenomenology
 - J. L. Austin's Speech Act Philosophy
@@ -291,6 +298,7 @@ The Deleometer currently includes 218 individual analysis frames. Generated anal
 - Jürgen Habermas' Communicative Subject
 - Discourse Ethics
 - Hannah Arendt's Action and Plurality
+- Amartya Sen's Capability Approach
 - Charles Taylor's Sources of the Self
 - Alasdair MacIntyre's Narrative Self
 - Edith Cowan's Civic Reform
@@ -318,15 +326,21 @@ The Deleometer currently includes 218 individual analysis frames. Generated anal
 - Greek Gods Interpretation
 - Roman Gods Interpretation
 - Druidic Interpretation
+- Celtic Religion Interpretation
 - Second Testament / Christian Interpretation
 - Muslim Interpretation
 - Pagan Interpretation
+- Herbalism
+- Witchcraft
 
 ### Social, Spatial, and Research Methods
 
 - Cartographic Analysis
 - Geography
+- Anthropology
+- Archaeology
 - Sociology
+- Public Policy Analytics
 - Social Research Methods
 - Pierre Bourdieu's Field, Habitus, and Capital
 
@@ -334,23 +348,32 @@ The Deleometer currently includes 218 individual analysis frames. Generated anal
 
 - Linguistic Analysis
 - Semiotic Analysis
+- Structuralism
+- Textual Analysis
 - Narrative Psychology
 - Creative Non-Fiction
 - Music Songwriting Analysis
 - Idiotextual Analysis
+- Intertextuality
 - Frame Analysis
 - Erving Goffman's Frame Analysis
 - Media Studies
 - Jean Baudrillard's Simulacra and Hyperreality
+- Poetics
+- Art Theory
+- Susan Sontag on Interpretation
 - Tessa Laird's Cinemal
 
-### Psychoanalytic and Clinical Psychologies
+### Psychology, Psychiatry, Psychoanalysis, and Clinical Approaches
 
 - Freudian Psychoanalysis
 - Jungian Analysis
 - Lacanian Psychoanalysis
 - Julia Kristeva's Abjection and Semiotic
 - Psychiatric Assessment
+- Psychology
+- Anti-Psychiatry
+- General Practice Medical Diagnosis
 - Attachment Theory
 - Gestalt Therapy
 - Transpersonal Psychology
@@ -358,6 +381,7 @@ The Deleometer currently includes 218 individual analysis frames. Generated anal
 - Myers-Briggs analysis
 - Cognitive Behavioral
 - Positive Psychology
+- Emotional Intelligence
 
 ### Family, Care, and Guidance Theories
 
@@ -365,9 +389,15 @@ The Deleometer currently includes 218 individual analysis frames. Generated anal
 - Steiner Education
 - Jean Piaget's Developmental Theory
 - Lev Vygotsky's Sociocultural Theory
+- Freirean Pedagogy
+- Teaching in Primary School
+- Teaching in Secondary School
+- Teaching in Tertiary Education
+- Trades Pedagogy
 - Asian / Japanese Parental Guidance Practices
 - African / Zimbabwean Parental Guidance Practices
 - Western Parental Guidance Theories
+- Advice from Grandma
 
 ### Archeo-Genealogical and Deconstructive Thought
 
@@ -375,28 +405,47 @@ The Deleometer currently includes 218 individual analysis frames. Generated anal
 - Georges Bataillean Analysis
 - Critical Theory
 - Frankfurt School Critical Theory
+- Max Horkheimer's Critical Theory
+- Theodor W. Adorno's Negative Dialectics
+- Louis Althusser's Ideology and Apparatuses
 - Simondonian Analysis
 - Foucaultian Analysis
+- Foucauldian Discourse Analysis
 - Derridian Analysis
 - Deleuzian Schizoanalysis
 - Žižekian Analysis
+- Gayatri Chakravorty Spivak's Subaltern Analysis
 - Posthumanism
 
 ### Gender, Sexuality, and Queer Studies
 
 - Feminist Psychology
 - Irigarayian Feminine
+- Women's Studies
+- Feminist Epistemology
+- Feminist Methodologies
+- Standpoint Theory
+- Radical Feminism
+- Ecofeminism
 - Lesbian & Gay Studies
 - Sexualities Studies
 - Gender Studies
+- bell hooks' Love and Pedagogy
+- Elizabeth Grosz's Corporeal Feminism
+- Donna Haraway's Situated Knowledges
 - Queer Theory
 - Trans Studies
 
 ### Race, Coloniality, and Embodiment Studies
 
+- Anti-Colonial Studies
 - Critical Race Studies
 - Frantz Fanonian Analysis
+- Postcolonial Studies
 - Decolonial Studies
+- Pluriversal Politics
+- Edouard Glissant's Poetics of Relation
+- Moten and Harney Undercommons
 - Crip Studies
 - Fat Studies
 - Mad Studies
@@ -404,28 +453,58 @@ The Deleometer currently includes 218 individual analysis frames. Generated anal
 ### Systems, Ecology, and Food Futures
 
 - Ecology
+- Traditional Ecological Knowledges
 - Quantum Theory Analysis
 - Gregory Bateson's Ecology of Mind
+- James Lovelock's Gaia Theory
+- Science and Technology Studies
 - Latourian Analysis
 - Karen Barad's Agential Realism
+- Isabelle Stengers' Cosmopolitics
+- New Materialisms
+- Naturalism
+- Philosophy of Science
+- Philosophy of Physics
+- Paul Feyerabend's Epistemological Anarchism
+- French Philosophy of Science and Relation
+- Michel Serres' Relations and Parasites
 - Resilience
 - Social-Ecological Systems Theory
 - Critical Food Systems Analysis
+- Food Sovereignty
+- Feminist Food Studies
 - Biomimicry
 - Ecopoiesis
+- Rewilding
+- Regenerative Design
+- Permaculture
+- Theory of Landscape Design
+- Reciprocity, Mutual Aid, and Sharing Economies
+- Jesper Hoffmeyer's Biosemiotics
 
 ### Strategy, Method, and Organisation
 
 - Mechanical Engineering Analysis
+- Electronics
+- Computer Science
+- Data Science
+- Metascience
+- Interdisciplinary Studies
 - Australian Legal Discourse
+- Architectural Theories
 - SWOT Analysis
 - Grounded Theory
 - Autoethnography
+- Conflict Management
+- Group Work Theories
 - Feasibility Analysis
 - Risk Analysis
 - Transitional Theory
+- Socio-Technical Transitions and the Multi-Level Perspective
 - Organisational Theories
 - Organisational Transformation
 - Theories Growing a Social Movement
+- André Baier's TINS_D Analysis
 - Tacktical Methodological Analysis
+- Study Frameworks
 - Imagining Transformative Futures
