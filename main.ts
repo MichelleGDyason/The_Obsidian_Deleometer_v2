@@ -1930,6 +1930,30 @@ const ASSESSMENT_QUESTIONS = [
   { trait: 'neuroticism', question: 'My emotions tend to fluctuate significantly throughout the day.', reverse: false }
 ];
 
+const MYERS_BRIGGS_QUESTIONS = [
+  { dimension: 'ei', prompt: 'After a demanding week, what restores you more?', leftLabel: 'Quiet time alone', rightLabel: 'Time with other people' },
+  { dimension: 'ei', prompt: 'In a new group, what feels more natural?', leftLabel: 'Observe first', rightLabel: 'Jump in and interact' },
+  { dimension: 'sn', prompt: 'When learning something new, what do you trust more first?', leftLabel: 'Concrete facts', rightLabel: 'Patterns and possibilities' },
+  { dimension: 'sn', prompt: 'What kind of conversation holds you longer?', leftLabel: 'Practical detail', rightLabel: 'Future ideas' },
+  { dimension: 'tf', prompt: 'When making a hard decision, what usually leads?', leftLabel: 'Logic and consistency', rightLabel: 'Values and people impact' },
+  { dimension: 'tf', prompt: 'What criticism are you more likely to accept?', leftLabel: 'It is not efficient', rightLabel: 'It felt hurtful' },
+  { dimension: 'jp', prompt: 'What makes you calmer?', leftLabel: 'A settled plan', rightLabel: 'Room to adapt' },
+  { dimension: 'jp', prompt: 'How do you tend to handle deadlines?', leftLabel: 'Finish early or on schedule', rightLabel: 'Work flexibly close to the deadline' }
+] as const;
+
+const MASLOW_QUESTIONS = [
+  { need: 'physiological', question: 'My basic sleep, food, hydration, and rest needs feel reasonably met lately.', reverse: false },
+  { need: 'physiological', question: 'Physical exhaustion or neglect of my body has been getting in the way.', reverse: true },
+  { need: 'safety', question: 'I feel materially and emotionally safe enough to think beyond immediate survival.', reverse: false },
+  { need: 'safety', question: 'Instability, uncertainty, or threat often dominates my attention.', reverse: true },
+  { need: 'belonging', question: 'I feel meaningfully connected to other people, groups, or communities.', reverse: false },
+  { need: 'belonging', question: 'Loneliness or disconnection has been shaping my daily life.', reverse: true },
+  { need: 'esteem', question: 'I have a workable sense of self-respect and belief in my capacities.', reverse: false },
+  { need: 'esteem', question: 'Self-doubt or lack of recognition often blocks me from acting.', reverse: true },
+  { need: 'self_actualization', question: 'I have some space to pursue purpose, creativity, growth, or deeper meaning.', reverse: false },
+  { need: 'self_actualization', question: 'My life feels too constrained for me to develop in the directions that matter to me.', reverse: true }
+] as const;
+
 const SCALE_LABELS = ['Strongly Disagree', 'Disagree', 'Slightly Disagree', 'Neutral', 'Slightly Agree', 'Agree', 'Strongly Agree'];
 
 const GOAL_CATEGORIES: Record<string, string> = {
@@ -1999,7 +2023,32 @@ const DICTIONARY_MODES: Record<string, { label: string; prompt: string }> = {
 };
 
 interface BigFiveScores { openness: number; conscientiousness: number; extraversion: number; agreeableness: number; neuroticism: number; }
-interface PersonalityProfile { big_five_scores: BigFiveScores; assessment_date: string; dominant_traits: string[]; psychological_type: string; growth_areas: string[]; }
+interface PersonalityProfile { theory: string; big_five_scores: BigFiveScores; assessment_date: string; dominant_traits: string[]; psychological_type: string; growth_areas: string[]; }
+interface MyersBriggsDimensions { ei: number; sn: number; tf: number; jp: number; }
+interface MyersBriggsProfile {
+  theory: string;
+  assessment_date: string;
+  type_code: string;
+  dimension_scores: MyersBriggsDimensions;
+  summary: string;
+  strengths: string[];
+  growth_areas: string[];
+}
+interface MaslowNeedsScores {
+  physiological: number;
+  safety: number;
+  belonging: number;
+  esteem: number;
+  self_actualization: number;
+}
+interface MaslowProfile {
+  theory: string;
+  assessment_date: string;
+  needs_scores: MaslowNeedsScores;
+  strongest_needs: string[];
+  growth_areas: string[];
+  summary: string;
+}
 interface Milestone { title: string; completed: boolean; completion_date?: string; }
 interface GoalSuggestion { title: string; description: string; category: string; targetDate?: string; milestones: string[]; sourcePerspectives: string[]; sourceAnalysisPath?: string; }
 interface InspirationalSong {
@@ -2091,6 +2140,8 @@ interface DeleometerSettings {
   outputLanguage: string;
   dictionaryMode: string;
   personalityProfile: PersonalityProfile | null;
+  myersBriggsProfile: MyersBriggsProfile | null;
+  maslowProfile: MaslowProfile | null;
   authorMemorySummary: string;
 }
 
@@ -2102,6 +2153,8 @@ const DEFAULT_SETTINGS: DeleometerSettings = {
   includePersonalityProfileInAI: true, sendFullJournalToChat: false,
   selectedPerspectives: getChronologicalPerspectiveKeys(), zpdLevel: 'tertiary_year_2', outputLanguage: 'english', dictionaryMode: 'engage',
   personalityProfile: null,
+  myersBriggsProfile: null,
+  maslowProfile: null,
   authorMemorySummary: ''
 };
 
@@ -2237,12 +2290,36 @@ export default class DeleometerPlugin extends Plugin {
   }
 
   getPersonalityContextForAI(): string {
-    if (!this.settings.includePersonalityProfileInAI || !this.settings.personalityProfile) {
+    if (!this.settings.includePersonalityProfileInAI) {
       return 'Personality profile: unavailable or not shared with AI';
     }
 
+    const parts: string[] = [];
     const profile = this.settings.personalityProfile;
-    return this.prepareTextForAI(`Personality profile:\n- Type: ${profile.psychological_type}\n- Dominant traits: ${profile.dominant_traits.join(', ')}\n- Growth areas: ${profile.growth_areas.join(', ')}`);
+    if (profile) {
+      const theory = profile.theory || 'Five-Factor Model (Big Five) reflective profile';
+      parts.push(
+        `Big Five / Five-Factor Model:\n- Theory: ${theory}\n- Type: ${profile.psychological_type}\n- Dominant traits: ${profile.dominant_traits.join(', ')}\n- Growth areas: ${profile.growth_areas.join(', ')}`
+      );
+    }
+    const mbti = this.settings.myersBriggsProfile;
+    if (mbti) {
+      parts.push(
+        `Myers-Briggs reflective profile:\n- Theory: ${mbti.theory}\n- Type: ${mbti.type_code}\n- Summary: ${mbti.summary}\n- Strengths: ${mbti.strengths.join(', ')}\n- Growth areas: ${mbti.growth_areas.join(', ')}`
+      );
+    }
+    const maslow = this.settings.maslowProfile;
+    if (maslow) {
+      parts.push(
+        `Maslow needs profile:\n- Theory: ${maslow.theory}\n- Strongest needs currently supported: ${maslow.strongest_needs.join(', ')}\n- Growth areas: ${maslow.growth_areas.join(', ')}\n- Summary: ${maslow.summary}`
+      );
+    }
+
+    if (parts.length === 0) {
+      return 'Personality profile: unavailable or not shared with AI';
+    }
+
+    return this.prepareTextForAI(`Reflective assessment profiles:\n${parts.join('\n\n')}`);
   }
 
   getAuthorMemoryContextForAI(): string {
@@ -5873,6 +5950,15 @@ ${event.kind === 'goal_due'
     this.settings.includePersonalityProfileInAI = typeof this.settings.includePersonalityProfileInAI === 'boolean'
       ? this.settings.includePersonalityProfileInAI
       : DEFAULT_SETTINGS.includePersonalityProfileInAI;
+    this.settings.myersBriggsProfile = this.settings.myersBriggsProfile && typeof this.settings.myersBriggsProfile === 'object'
+      ? this.settings.myersBriggsProfile
+      : DEFAULT_SETTINGS.myersBriggsProfile;
+    this.settings.maslowProfile = this.settings.maslowProfile && typeof this.settings.maslowProfile === 'object'
+      ? this.settings.maslowProfile
+      : DEFAULT_SETTINGS.maslowProfile;
+    if (this.settings.personalityProfile && !this.settings.personalityProfile.theory) {
+      this.settings.personalityProfile.theory = 'Five-Factor Model (Big Five). A broad trait model across openness, conscientiousness, extraversion, agreeableness, and neuroticism.';
+    }
     this.settings.sendFullJournalToChat = typeof this.settings.sendFullJournalToChat === 'boolean'
       ? this.settings.sendFullJournalToChat
       : DEFAULT_SETTINGS.sendFullJournalToChat;
@@ -5973,6 +6059,14 @@ class DashboardView extends ItemView {
   getDisplayText() { return 'Deleometer dashboard'; }
   getIcon() { return 'bar-chart-3'; }
 
+  getMoodScaleLabel(mood: number): string {
+    if (mood <= 2) return 'very low';
+    if (mood <= 4) return 'low';
+    if (mood <= 6) return 'mid-range';
+    if (mood <= 8) return 'high';
+    return 'very high';
+  }
+
   onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
     container.empty();
@@ -6010,21 +6104,73 @@ class DashboardView extends ItemView {
       ).open();
     });
 
-    // Personality Profile Section
-    if (this.plugin.settings.personalityProfile) {
-      const profile = this.plugin.settings.personalityProfile;
+    // Reflective assessment section
+    if (this.plugin.settings.personalityProfile || this.plugin.settings.myersBriggsProfile || this.plugin.settings.maslowProfile) {
       const profileSection = container.createDiv({ cls: 'analysis-section' });
-      profileSection.createEl('h3', { text: 'Your personality profile' });
-      const chart = profileSection.createDiv({ cls: 'big-five-chart' });
-      const traits = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'] as const;
-      for (const trait of traits) {
-        const score = profile.big_five_scores[trait];
-        const bar = chart.createDiv({ cls: 'trait-bar' });
-        bar.createDiv({ cls: 'trait-label', text: trait.charAt(0).toUpperCase() + trait.slice(1) });
-        const progress = bar.createDiv({ cls: 'trait-progress' });
-        const fill = progress.createDiv({ cls: `trait-fill ${trait}` });
-        fill.style.width = `${score}%`;
-        bar.createDiv({ cls: 'trait-score', text: `${score}` });
+      profileSection.createEl('h3', { text: 'Your reflective assessments' });
+      profileSection.createEl('p', {
+        text: 'These are reflective summaries. The big five section uses the five-factor model. The myers-briggs and maslow tools are stored separately rather than being inferred from the big five scores.',
+        cls: 'analysis-source'
+      });
+
+      if (this.plugin.settings.personalityProfile) {
+        const profile = this.plugin.settings.personalityProfile;
+        const theory = profile.theory || 'Five-Factor Model (Big Five) reflective profile';
+        const bigFiveSection = profileSection.createDiv({ cls: 'analysis-section' });
+        bigFiveSection.createEl('h4', { text: 'Big five / five-factor model' });
+        bigFiveSection.createEl('p', { text: theory, cls: 'analysis-source' });
+        const chart = bigFiveSection.createDiv({ cls: 'big-five-chart' });
+        const traits = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'] as const;
+        for (const trait of traits) {
+          const score = profile.big_five_scores[trait];
+          const bar = chart.createDiv({ cls: 'trait-bar' });
+          bar.createDiv({ cls: 'trait-label', text: trait.charAt(0).toUpperCase() + trait.slice(1) });
+          const progress = bar.createDiv({ cls: 'trait-progress' });
+          const fill = progress.createDiv({ cls: `trait-fill ${trait}` });
+          fill.style.width = `${score}%`;
+          bar.createDiv({ cls: 'trait-score', text: `${score}` });
+        }
+        bigFiveSection.createEl('p', { text: `Summary: ${profile.psychological_type}` });
+        bigFiveSection.createEl('p', { text: `Dominant traits: ${profile.dominant_traits.join(', ')}` });
+        bigFiveSection.createEl('p', { text: `Growth areas: ${profile.growth_areas.join(', ')}` });
+      }
+
+      if (this.plugin.settings.myersBriggsProfile) {
+        const mbti = this.plugin.settings.myersBriggsProfile;
+        const mbtiSection = profileSection.createDiv({ cls: 'analysis-section' });
+        mbtiSection.createEl('h4', { text: 'Typology profile' });
+        mbtiSection.createEl('p', { text: mbti.theory, cls: 'analysis-source' });
+        mbtiSection.createEl('p', { text: `Type: ${mbti.type_code}` });
+        mbtiSection.createEl('p', { text: mbti.summary });
+        mbtiSection.createEl('p', { text: `Strengths: ${mbti.strengths.join(', ')}` });
+        mbtiSection.createEl('p', { text: `Growth areas: ${mbti.growth_areas.join(', ')}` });
+      }
+
+      if (this.plugin.settings.maslowProfile) {
+        const maslow = this.plugin.settings.maslowProfile;
+        const maslowSection = profileSection.createDiv({ cls: 'analysis-section' });
+        maslowSection.createEl('h4', { text: 'Maslow needs profile' });
+        maslowSection.createEl('p', { text: maslow.theory, cls: 'analysis-source' });
+        const needLabels: Array<{ key: keyof MaslowNeedsScores; label: string }> = [
+          { key: 'physiological', label: 'Physiological' },
+          { key: 'safety', label: 'Safety' },
+          { key: 'belonging', label: 'Belonging' },
+          { key: 'esteem', label: 'Esteem' },
+          { key: 'self_actualization', label: 'Self-actualization' }
+        ];
+        const needsChart = maslowSection.createDiv({ cls: 'big-five-chart' });
+        for (const need of needLabels) {
+          const score = maslow.needs_scores[need.key];
+          const bar = needsChart.createDiv({ cls: 'trait-bar' });
+          bar.createDiv({ cls: 'trait-label', text: need.label });
+          const progress = bar.createDiv({ cls: 'trait-progress' });
+          const fill = progress.createDiv({ cls: 'progress-fill' });
+          fill.style.width = `${score}%`;
+          bar.createDiv({ cls: 'trait-score', text: `${score}` });
+        }
+        maslowSection.createEl('p', { text: `Currently strongest supported needs: ${maslow.strongest_needs.join(', ')}` });
+        maslowSection.createEl('p', { text: `Growth areas: ${maslow.growth_areas.join(', ')}` });
+        maslowSection.createEl('p', { text: maslow.summary });
       }
     }
 
@@ -6032,9 +6178,26 @@ class DashboardView extends ItemView {
     if (journalStats.entries > 0) {
       const moodChartSection = container.createDiv({ cls: 'analysis-section' });
       moodChartSection.createEl('h3', { text: 'Mood trends' });
+      moodChartSection.createEl('p', {
+        text: 'This chart shows the last 7 journal entries with mood scores. Each bar is one entry, not an average.',
+        cls: 'analysis-source'
+      });
       const moodData = this.getMoodTrendData();
       if (moodData.labels.length > 0) {
         this.renderMoodChart(moodChartSection, moodData);
+        const scaleSummary = moodChartSection.createDiv({ cls: 'mood-scale-summary' });
+        scaleSummary.createEl('p', {
+          text: `Average mood ${journalStats.avgMood.toFixed(1)} sits in the ${this.getMoodScaleLabel(journalStats.avgMood)} range on your 1-10 self-rating scale.`,
+          cls: 'analysis-source'
+        });
+        scaleSummary.createEl('p', {
+          text: 'Scale guide: 1-2 very low, 3-4 low, 5-6 middle range, 7-8 high, 9-10 very high. 5 is the midpoint, not a perfect score.',
+          cls: 'analysis-source'
+        });
+        scaleSummary.createEl('p', {
+          text: 'This scale is reflective, not diagnostic. If mood stays unusually low or unusually high, or comes with major changes in sleep, energy, activity, concentration, or risk-taking, speak with a general practitioner, psychologist, psychiatrist, or other health professional. You can also journal those changes here so the pattern is easier to review.',
+          cls: 'analysis-source'
+        });
       } else {
         moodChartSection.createEl('p', { text: 'Add mood scores to your journal entries to see trends.', cls: 'empty-state' });
       }
@@ -6113,10 +6276,15 @@ class DashboardView extends ItemView {
     const chartBars = chartDiv.createDiv({ cls: 'simple-chart' });
     data.labels.forEach((label, i) => {
       const barWrapper = chartBars.createDiv({ cls: 'chart-bar-wrapper' });
+      barWrapper.createDiv({ cls: 'chart-value', text: `${data.data[i]}/10` });
       const bar = barWrapper.createDiv({ cls: 'chart-bar' });
       bar.style.height = `${(data.data[i] / maxMood) * 100}%`;
       bar.style.backgroundColor = this.getMoodColor(data.data[i]);
       barWrapper.createDiv({ cls: 'chart-label', text: label });
+    });
+    const legend = chartDiv.createDiv({ cls: 'mood-scale-legend' });
+    ['1-2 very low', '3-4 low', '5-6 middle', '7-8 high', '9-10 very high'].forEach((label) => {
+      legend.createEl('span', { text: label, cls: 'legend-item' });
     });
   }
 
@@ -6741,13 +6909,14 @@ class JournalEntryModal extends Modal {
     try {
       await this.plugin.ensureFolder(this.plugin.settings.journalFolder);
       const date = new Date();
+      const localDate = this.plugin.formatDateOnly(date);
       const safeTitle = this.plugin.sanitizeFileNamePart(this.title || 'journal');
       const fileName = this.plugin.getUniqueMarkdownPath(
         this.plugin.settings.journalFolder,
-        `${date.toISOString().split('T')[0]}-${safeTitle}`
+        `${localDate}-${safeTitle}`
       );
       const template = `---
-date: ${date.toISOString()}
+date: ${localDate}
 type: journal
 entry_type: ${this.entryType}
 mood_score: ${this.moodScore}
@@ -7230,6 +7399,80 @@ class MilestoneConsolidationModal extends Modal {
 // Personality Assessment Modal
 class PersonalityAssessmentModal extends Modal {
   plugin: DeleometerPlugin;
+
+  constructor(app: App, plugin: DeleometerPlugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('deleometer-modal');
+    contentEl.addClass('deleometer-modal-medium');
+    contentEl.createEl('h2', { text: 'Reflective assessments' });
+    contentEl.createEl('p', {
+      text: 'Choose a reflective assessment. The big five uses the five-factor model. The typology and maslow profiles are stored separately rather than being inferred from one another.',
+      cls: 'analysis-source'
+    });
+
+    const options = contentEl.createDiv({ cls: 'analysis-results' });
+
+    const bigFiveCard = options.createDiv({ cls: 'analysis-section' });
+    bigFiveCard.createEl('h3', { text: 'Big five / five-factor model' });
+    bigFiveCard.createEl('p', {
+      text: 'Trait-based personality model using openness, conscientiousness, extraversion, agreeableness, and neuroticism.',
+      cls: 'analysis-source'
+    });
+    if (this.plugin.settings.personalityProfile) {
+      bigFiveCard.createEl('p', { text: `Latest summary: ${this.plugin.settings.personalityProfile.psychological_type}` });
+    }
+    const bigFiveBtn = bigFiveCard.createEl('button', { text: 'Take big five assessment', cls: 'btn-primary' });
+    bigFiveBtn.onclick = () => {
+      this.close();
+      new BigFiveAssessmentModal(this.app, this.plugin).open();
+    };
+
+    const mbtiCard = options.createDiv({ cls: 'analysis-section' });
+    mbtiCard.createEl('h3', { text: 'Typology profile' });
+    mbtiCard.createEl('p', {
+      text: 'Typology-oriented reflective profile across introversion-extraversion, sensing-intuition, thinking-feeling, and judging-perceiving. This short version draws on the myers-briggs tradition but is not an official mbti instrument.',
+      cls: 'analysis-source'
+    });
+    if (this.plugin.settings.myersBriggsProfile) {
+      mbtiCard.createEl('p', { text: `Latest type: ${this.plugin.settings.myersBriggsProfile.type_code}` });
+    }
+    const mbtiBtn = mbtiCard.createEl('button', { text: 'Take typology assessment', cls: 'btn-primary' });
+    mbtiBtn.onclick = () => {
+      this.close();
+      new MyersBriggsAssessmentModal(this.app, this.plugin).open();
+    };
+
+    const maslowCard = options.createDiv({ cls: 'analysis-section' });
+    maslowCard.createEl('h3', { text: 'Maslow needs profile' });
+    maslowCard.createEl('p', {
+      text: 'Reflective needs profile across physiological, safety, belonging, esteem, and self-actualization layers.',
+      cls: 'analysis-source'
+    });
+    if (this.plugin.settings.maslowProfile) {
+      maslowCard.createEl('p', { text: `Latest summary: ${this.plugin.settings.maslowProfile.summary}` });
+    }
+    const maslowBtn = maslowCard.createEl('button', { text: 'Take needs assessment', cls: 'btn-primary' });
+    maslowBtn.onclick = () => {
+      this.close();
+      new MaslowAssessmentModal(this.app, this.plugin).open();
+    };
+
+    const btnRow = contentEl.createDiv({ cls: 'btn-row' });
+    const closeBtn = btnRow.createEl('button', { text: 'Close', cls: 'btn-secondary' });
+    closeBtn.onclick = () => this.close();
+  }
+
+  onClose() { this.contentEl.empty(); }
+}
+
+class BigFiveAssessmentModal extends Modal {
+  plugin: DeleometerPlugin;
   currentQuestion: number = 0;
   answers: number[] = [];
 
@@ -7253,9 +7496,13 @@ class PersonalityAssessmentModal extends Modal {
     }
 
     const q = ASSESSMENT_QUESTIONS[this.currentQuestion];
-    const progress = ((this.currentQuestion) / ASSESSMENT_QUESTIONS.length) * 100;
+    const progress = (this.currentQuestion / ASSESSMENT_QUESTIONS.length) * 100;
 
-    contentEl.createEl('h2', { text: 'Personality assessment' });
+    contentEl.createEl('h2', { text: 'Big five assessment' });
+    contentEl.createEl('p', {
+      text: 'Theory: five-factor model. This short reflective questionnaire estimates five broad personality traits. It is not a clinical or official psychometric instrument.',
+      cls: 'analysis-source'
+    });
 
     const progressDiv = contentEl.createDiv({ cls: 'assessment-progress' });
     const progressBar = progressDiv.createDiv({ cls: 'progress-bar' });
@@ -7272,7 +7519,7 @@ class PersonalityAssessmentModal extends Modal {
       option.createEl('span', { text: label });
       option.onclick = () => {
         this.answers.push(i + 1);
-        this.currentQuestion++;
+        this.currentQuestion += 1;
         this.renderQuestion();
       };
     });
@@ -7285,6 +7532,7 @@ class PersonalityAssessmentModal extends Modal {
 
     const scores = this.calculateScores();
     const profile: PersonalityProfile = {
+      theory: 'Five-Factor Model (Big Five). A broad trait model across openness, conscientiousness, extraversion, agreeableness, and neuroticism, estimated here through a short reflective questionnaire.',
       big_five_scores: scores,
       assessment_date: new Date().toISOString(),
       dominant_traits: this.getDominantTraits(scores),
@@ -7295,7 +7543,8 @@ class PersonalityAssessmentModal extends Modal {
     this.plugin.settings.personalityProfile = profile;
     void this.plugin.saveSettings();
 
-    contentEl.createEl('h2', { text: 'Your personality profile' });
+    contentEl.createEl('h2', { text: 'Your big five profile' });
+    contentEl.createEl('p', { text: profile.theory, cls: 'analysis-source' });
 
     const chart = contentEl.createDiv({ cls: 'big-five-chart' });
     const traits = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'] as const;
@@ -7322,6 +7571,11 @@ class PersonalityAssessmentModal extends Modal {
     growth.createEl('p', { text: profile.growth_areas.join(', ') });
 
     const btnRow = contentEl.createDiv({ cls: 'btn-row' });
+    const backBtn = btnRow.createEl('button', { text: 'Back to assessments', cls: 'btn-secondary' });
+    backBtn.onclick = () => {
+      this.close();
+      new PersonalityAssessmentModal(this.app, this.plugin).open();
+    };
     const closeBtn = btnRow.createEl('button', { text: 'Close', cls: 'btn-primary' });
     closeBtn.onclick = () => this.close();
   }
@@ -7363,6 +7617,327 @@ class PersonalityAssessmentModal extends Modal {
     if (scores.agreeableness < 40) areas.push('Developing empathy');
     if (scores.neuroticism > 60) areas.push('Emotional regulation');
     return areas.length ? areas : ['Continue your balanced growth'];
+  }
+
+  onClose() { this.contentEl.empty(); }
+}
+
+class MyersBriggsAssessmentModal extends Modal {
+  plugin: DeleometerPlugin;
+  currentQuestion: number = 0;
+  answers: number[] = [];
+
+  constructor(app: App, plugin: DeleometerPlugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+
+  onOpen() {
+    this.renderQuestion();
+  }
+
+  renderQuestion() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('deleometer-modal');
+
+    if (this.currentQuestion >= MYERS_BRIGGS_QUESTIONS.length) {
+      this.showResults();
+      return;
+    }
+
+    const q = MYERS_BRIGGS_QUESTIONS[this.currentQuestion];
+    const progress = (this.currentQuestion / MYERS_BRIGGS_QUESTIONS.length) * 100;
+
+    contentEl.createEl('h2', { text: 'Typology assessment' });
+    contentEl.createEl('p', {
+      text: 'Theory: jung-influenced typology. This short reflective version draws on the myers-briggs tradition for orientation and is not an official mbti instrument.',
+      cls: 'analysis-source'
+    });
+
+    const progressDiv = contentEl.createDiv({ cls: 'assessment-progress' });
+    const progressBar = progressDiv.createDiv({ cls: 'progress-bar' });
+    const progressFill = progressBar.createDiv({ cls: 'progress-fill' });
+    progressFill.style.width = `${progress}%`;
+    progressDiv.createEl('p', { text: `Question ${this.currentQuestion + 1} of ${MYERS_BRIGGS_QUESTIONS.length}`, cls: 'progress-text' });
+
+    const questionDiv = contentEl.createDiv({ cls: 'assessment-question' });
+    questionDiv.createEl('h3', { text: q.prompt });
+    questionDiv.createEl('p', { text: `${q.leftLabel}  <->  ${q.rightLabel}`, cls: 'analysis-source' });
+
+    const optionsDiv = questionDiv.createDiv({ cls: 'scale-options' });
+    SCALE_LABELS.forEach((label, i) => {
+      const option = optionsDiv.createDiv({ cls: 'scale-option' });
+      option.createEl('span', { text: label });
+      option.onclick = () => {
+        this.answers.push(i + 1);
+        this.currentQuestion += 1;
+        this.renderQuestion();
+      };
+    });
+  }
+
+  calculateProfile(): MyersBriggsProfile {
+    const dimensionScores: MyersBriggsDimensions = { ei: 0, sn: 0, tf: 0, jp: 0 };
+    const grouped: Record<keyof MyersBriggsDimensions, number[]> = { ei: [], sn: [], tf: [], jp: [] };
+
+    MYERS_BRIGGS_QUESTIONS.forEach((question, index) => {
+      grouped[question.dimension].push(this.answers[index]);
+    });
+
+    (Object.keys(grouped) as Array<keyof MyersBriggsDimensions>).forEach((dimension) => {
+      const avg = grouped[dimension].reduce((sum, value) => sum + value, 0) / grouped[dimension].length;
+      dimensionScores[dimension] = Math.round(((avg - 1) / 6) * 100);
+    });
+
+    const typeCode = [
+      dimensionScores.ei >= 50 ? 'E' : 'I',
+      dimensionScores.sn >= 50 ? 'N' : 'S',
+      dimensionScores.tf >= 50 ? 'F' : 'T',
+      dimensionScores.jp >= 50 ? 'P' : 'J'
+    ].join('');
+
+    const strengths: string[] = [];
+    const growthAreas: string[] = [];
+
+    if (typeCode[0] === 'E') strengths.push('energising interaction and outward engagement');
+    else strengths.push('reflection, focus, and self-directed processing');
+    if (typeCode[1] === 'N') strengths.push('pattern recognition and future possibility thinking');
+    else strengths.push('practical detail and grounded observation');
+    if (typeCode[2] === 'T') strengths.push('logical analysis and consistency');
+    else strengths.push('value sensitivity and relational awareness');
+    if (typeCode[3] === 'J') strengths.push('structure, closure, and advance planning');
+    else strengths.push('adaptability, openness, and responsive improvisation');
+
+    if (typeCode[0] === 'E') growthAreas.push('making room for solitude and slower reflection');
+    else growthAreas.push('stepping outward when collaboration is needed');
+    if (typeCode[1] === 'N') growthAreas.push('checking ideas against practical detail');
+    else growthAreas.push('making room for longer-range imagination');
+    if (typeCode[2] === 'T') growthAreas.push('attending to emotional and relational effects');
+    else growthAreas.push('holding values alongside firmer decision criteria');
+    if (typeCode[3] === 'J') growthAreas.push('keeping flexibility when plans change');
+    else growthAreas.push('building more stable routines and commitments');
+
+    const summary = `Type ${typeCode} suggests a preference pattern rather than a fixed identity: ${strengths.slice(0, 2).join(', ')}, with likely growth in ${growthAreas.slice(0, 2).join(' and ')}.`;
+
+    return {
+      theory: 'Myers-Briggs / Jungian typology reflective profile. A short preference-oriented exercise across Extraversion-Introversion, Sensing-Intuition, Thinking-Feeling, and Judging-Perceiving. This plugin version is reflective and unofficial.',
+      assessment_date: new Date().toISOString(),
+      type_code: typeCode,
+      dimension_scores: dimensionScores,
+      summary,
+      strengths,
+      growth_areas: growthAreas
+    };
+  }
+
+  showResults() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('deleometer-modal');
+
+    const profile = this.calculateProfile();
+    this.plugin.settings.myersBriggsProfile = profile;
+    void this.plugin.saveSettings();
+
+    contentEl.createEl('h2', { text: 'Your typology profile' });
+    contentEl.createEl('p', { text: profile.theory, cls: 'analysis-source' });
+
+    const summary = contentEl.createDiv({ cls: 'analysis-section' });
+    summary.createEl('h4', { text: `Type ${profile.type_code}` });
+    summary.createEl('p', { text: profile.summary });
+
+    const dimensions = contentEl.createDiv({ cls: 'big-five-chart' });
+    const labels: Array<{ key: keyof MyersBriggsDimensions; label: string }> = [
+      { key: 'ei', label: 'E / I' },
+      { key: 'sn', label: 'N / S' },
+      { key: 'tf', label: 'F / T' },
+      { key: 'jp', label: 'P / J' }
+    ];
+    for (const dimension of labels) {
+      const score = profile.dimension_scores[dimension.key];
+      const bar = dimensions.createDiv({ cls: 'trait-bar' });
+      bar.createDiv({ cls: 'trait-label', text: dimension.label });
+      const progress = bar.createDiv({ cls: 'trait-progress' });
+      const fill = progress.createDiv({ cls: 'progress-fill' });
+      fill.style.width = `${score}%`;
+      bar.createDiv({ cls: 'trait-score', text: `${score}` });
+    }
+
+    const strengths = contentEl.createDiv({ cls: 'analysis-section' });
+    strengths.createEl('h4', { text: 'Strengths' });
+    strengths.createEl('p', { text: profile.strengths.join(', ') });
+
+    const growth = contentEl.createDiv({ cls: 'analysis-section' });
+    growth.createEl('h4', { text: 'Growth areas' });
+    growth.createEl('p', { text: profile.growth_areas.join(', ') });
+
+    const btnRow = contentEl.createDiv({ cls: 'btn-row' });
+    const backBtn = btnRow.createEl('button', { text: 'Back to assessments', cls: 'btn-secondary' });
+    backBtn.onclick = () => {
+      this.close();
+      new PersonalityAssessmentModal(this.app, this.plugin).open();
+    };
+    const closeBtn = btnRow.createEl('button', { text: 'Close', cls: 'btn-primary' });
+    closeBtn.onclick = () => this.close();
+  }
+
+  onClose() { this.contentEl.empty(); }
+}
+
+class MaslowAssessmentModal extends Modal {
+  plugin: DeleometerPlugin;
+  currentQuestion: number = 0;
+  answers: number[] = [];
+
+  constructor(app: App, plugin: DeleometerPlugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+
+  onOpen() {
+    this.renderQuestion();
+  }
+
+  renderQuestion() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('deleometer-modal');
+
+    if (this.currentQuestion >= MASLOW_QUESTIONS.length) {
+      this.showResults();
+      return;
+    }
+
+    const q = MASLOW_QUESTIONS[this.currentQuestion];
+    const progress = (this.currentQuestion / MASLOW_QUESTIONS.length) * 100;
+
+    contentEl.createEl('h2', { text: 'Needs assessment' });
+    contentEl.createEl('p', {
+      text: 'Theory: maslow hierarchy of needs. This short reflective questionnaire looks at which layers of need feel more supported or more strained right now. It is not a diagnostic tool.',
+      cls: 'analysis-source'
+    });
+
+    const progressDiv = contentEl.createDiv({ cls: 'assessment-progress' });
+    const progressBar = progressDiv.createDiv({ cls: 'progress-bar' });
+    const progressFill = progressBar.createDiv({ cls: 'progress-fill' });
+    progressFill.style.width = `${progress}%`;
+    progressDiv.createEl('p', { text: `Question ${this.currentQuestion + 1} of ${MASLOW_QUESTIONS.length}`, cls: 'progress-text' });
+
+    const questionDiv = contentEl.createDiv({ cls: 'assessment-question' });
+    questionDiv.createEl('h3', { text: q.question });
+
+    const optionsDiv = questionDiv.createDiv({ cls: 'scale-options' });
+    SCALE_LABELS.forEach((label, i) => {
+      const option = optionsDiv.createDiv({ cls: 'scale-option' });
+      option.createEl('span', { text: label });
+      option.onclick = () => {
+        this.answers.push(i + 1);
+        this.currentQuestion += 1;
+        this.renderQuestion();
+      };
+    });
+  }
+
+  calculateProfile(): MaslowProfile {
+    const grouped: Record<keyof MaslowNeedsScores, number[]> = {
+      physiological: [],
+      safety: [],
+      belonging: [],
+      esteem: [],
+      self_actualization: []
+    };
+    MASLOW_QUESTIONS.forEach((question, index) => {
+      let score = this.answers[index];
+      if (question.reverse) score = 8 - score;
+      grouped[question.need].push(score);
+    });
+
+    const needsScores: MaslowNeedsScores = {
+      physiological: 0,
+      safety: 0,
+      belonging: 0,
+      esteem: 0,
+      self_actualization: 0
+    };
+
+    (Object.keys(needsScores) as Array<keyof MaslowNeedsScores>).forEach((need) => {
+      const avg = grouped[need].reduce((sum, value) => sum + value, 0) / grouped[need].length;
+      needsScores[need] = Math.round((avg / 7) * 100);
+    });
+
+    const ranked = Object.entries(needsScores).sort((a, b) => b[1] - a[1]);
+    const labelMap: Record<keyof MaslowNeedsScores, string> = {
+      physiological: 'physiological',
+      safety: 'safety',
+      belonging: 'belonging',
+      esteem: 'esteem',
+      self_actualization: 'self-actualization'
+    };
+    const strongest = ranked.slice(0, 2).map(([key]) => labelMap[key as keyof MaslowNeedsScores]);
+    const growthAreas = ranked.slice(-2).map(([key]) => labelMap[key as keyof MaslowNeedsScores]);
+    const summary = `Your current pattern suggests stronger support around ${strongest.join(' and ')}, with more attention likely needed around ${growthAreas.join(' and ')}.`;
+
+    return {
+      theory: 'Maslow hierarchy of needs reflective profile. A short exercise across physiological, safety, belonging, esteem, and self-actualization layers, used here as a practical reflection tool rather than a fixed ranking of human worth.',
+      assessment_date: new Date().toISOString(),
+      needs_scores: needsScores,
+      strongest_needs: strongest,
+      growth_areas: growthAreas,
+      summary
+    };
+  }
+
+  showResults() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('deleometer-modal');
+
+    const profile = this.calculateProfile();
+    this.plugin.settings.maslowProfile = profile;
+    void this.plugin.saveSettings();
+
+    contentEl.createEl('h2', { text: 'Your needs profile' });
+    contentEl.createEl('p', { text: profile.theory, cls: 'analysis-source' });
+
+    const needsChart = contentEl.createDiv({ cls: 'big-five-chart' });
+    const labels: Array<{ key: keyof MaslowNeedsScores; label: string }> = [
+      { key: 'physiological', label: 'Physiological' },
+      { key: 'safety', label: 'Safety' },
+      { key: 'belonging', label: 'Belonging' },
+      { key: 'esteem', label: 'Esteem' },
+      { key: 'self_actualization', label: 'Self-actualization' }
+    ];
+    for (const need of labels) {
+      const score = profile.needs_scores[need.key];
+      const bar = needsChart.createDiv({ cls: 'trait-bar' });
+      bar.createDiv({ cls: 'trait-label', text: need.label });
+      const progress = bar.createDiv({ cls: 'trait-progress' });
+      const fill = progress.createDiv({ cls: 'progress-fill' });
+      fill.style.width = `${score}%`;
+      bar.createDiv({ cls: 'trait-score', text: `${score}` });
+    }
+
+    const summary = contentEl.createDiv({ cls: 'analysis-section' });
+    summary.createEl('h4', { text: 'Summary' });
+    summary.createEl('p', { text: profile.summary });
+
+    const strongest = contentEl.createDiv({ cls: 'analysis-section' });
+    strongest.createEl('h4', { text: 'Currently strongest supported needs' });
+    strongest.createEl('p', { text: profile.strongest_needs.join(', ') });
+
+    const growth = contentEl.createDiv({ cls: 'analysis-section' });
+    growth.createEl('h4', { text: 'Growth areas' });
+    growth.createEl('p', { text: profile.growth_areas.join(', ') });
+
+    const btnRow = contentEl.createDiv({ cls: 'btn-row' });
+    const backBtn = btnRow.createEl('button', { text: 'Back to assessments', cls: 'btn-secondary' });
+    backBtn.onclick = () => {
+      this.close();
+      new PersonalityAssessmentModal(this.app, this.plugin).open();
+    };
+    const closeBtn = btnRow.createEl('button', { text: 'Close', cls: 'btn-primary' });
+    closeBtn.onclick = () => this.close();
   }
 
   onClose() { this.contentEl.empty(); }
@@ -7641,7 +8216,7 @@ class DeleometerSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Share personality profile with AI')
-      .setDesc('When enabled, the personality assessment summary can be included in AI prompts. Disable this to keep it local only.')
+      .setDesc('When enabled, saved reflective assessment profiles can be included in AI prompts. Disable this to keep them local only.')
       .addToggle((toggle) => toggle
         .setValue(this.plugin.settings.includePersonalityProfileInAI)
         .onChange(async (value) => {

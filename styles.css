@@ -266,6 +266,23 @@
   border-radius: 8px 8px 0 0;
 }
 
+.chart-value {
+  min-width: 3rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.mood-scale-summary {
+  margin-top: 0.75rem;
+}
+
+.mood-scale-legend {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
 .chart-label,
 .legend-item,
 .trait-score,
