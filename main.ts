@@ -2208,6 +2208,11 @@ export default class DeleometerPlugin extends Plugin {
     this.addCommand({ id: 'repair-goal-frontmatter', name: 'Repair goal note frontmatter', callback: async () => this.repairAllGoalFrontmatter(true) });
 
     this.addSettingTab(new DeleometerSettingTab(this.app, this));
+    this.registerEvent(this.app.vault.on('delete', (file) => {
+      if (!(file instanceof TFile)) return;
+      if (!this.isManagedGoalPath(file.path)) return;
+      void this.handleGoalFileDeleted(file.path);
+    }));
     this.registerMarkdownPostProcessor((element) => {
       element.querySelectorAll('a[href^="deleometer://chat?"]').forEach((linkEl) => {
         const link = linkEl as HTMLAnchorElement;
@@ -4498,6 +4503,10 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join('\n') || '- [ ] 
     });
   }
 
+  isManagedGoalPath(goalFilePath: string): boolean {
+    return goalFilePath.startsWith(`${this.settings.goalsFolder}/`) && goalFilePath.toLowerCase().endsWith('.md');
+  }
+
   buildMilestoneNote(event: {
     title: string;
     description: string;
@@ -4597,11 +4606,15 @@ ${event.description}
     return await this.app.vault.create(path, note);
   }
 
-  async deleteGoalMilestoneNotes(goalFile: TFile) {
-    const files = this.getGoalOwnedMilestoneFiles(goalFile.path);
+  async deleteGoalMilestoneNotesByPath(goalFilePath: string) {
+    const files = this.getGoalOwnedMilestoneFiles(goalFilePath);
     for (const file of files) {
       await this.app.fileManager.trashFile(file);
     }
+  }
+
+  async deleteGoalMilestoneNotes(goalFile: TFile) {
+    await this.deleteGoalMilestoneNotesByPath(goalFile.path);
   }
 
   async syncGoalMilestonesToFolder(goalFile: TFile, _force: boolean = false): Promise<boolean> {
@@ -5228,10 +5241,23 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
 `;
   }
 
-  async deleteGoalCalendarEvents(goalFile: TFile) {
-    const files = await this.getGoalOwnedCalendarFiles(goalFile.path);
+  async deleteGoalCalendarEventsByPath(goalFilePath: string) {
+    const files = await this.getGoalOwnedCalendarFiles(goalFilePath);
     for (const file of files) {
       await this.app.fileManager.trashFile(file);
+    }
+  }
+
+  async deleteGoalCalendarEvents(goalFile: TFile) {
+    await this.deleteGoalCalendarEventsByPath(goalFile.path);
+  }
+
+  async handleGoalFileDeleted(goalFilePath: string) {
+    try {
+      await this.deleteGoalMilestoneNotesByPath(goalFilePath);
+      await this.deleteGoalCalendarEventsByPath(goalFilePath);
+    } catch (error) {
+      console.error('Could not clean up deleted Deleometer goal artifacts', goalFilePath, error);
     }
   }
 

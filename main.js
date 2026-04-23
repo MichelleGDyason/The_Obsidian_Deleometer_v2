@@ -8399,6 +8399,11 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     this.addCommand({ id: "consolidate-similar-milestones", name: "Consolidate similar milestones", callback: async () => this.openMilestoneConsolidationModal() });
     this.addCommand({ id: "repair-goal-frontmatter", name: "Repair goal note frontmatter", callback: async () => this.repairAllGoalFrontmatter(true) });
     this.addSettingTab(new DeleometerSettingTab(this.app, this));
+    this.registerEvent(this.app.vault.on("delete", (file) => {
+      if (!(file instanceof import_obsidian.TFile)) return;
+      if (!this.isManagedGoalPath(file.path)) return;
+      void this.handleGoalFileDeleted(file.path);
+    }));
     this.registerMarkdownPostProcessor((element) => {
       element.querySelectorAll('a[href^="deleometer://chat?"]').forEach((linkEl) => {
         const link = linkEl;
@@ -10382,6 +10387,9 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join("\n") || "- [ ] 
       return indexA - indexB;
     });
   }
+  isManagedGoalPath(goalFilePath) {
+    return goalFilePath.startsWith(`${this.settings.goalsFolder}/`) && goalFilePath.toLowerCase().endsWith(".md");
+  }
   buildMilestoneNote(event) {
     var _a2;
     const goalLink = `[[${this.getWikiLinkTarget(event.goalFile.path)}|${event.goalTitle}]]`;
@@ -10452,11 +10460,14 @@ ${event.description}
     );
     return await this.app.vault.create(path, note);
   }
-  async deleteGoalMilestoneNotes(goalFile) {
-    const files = this.getGoalOwnedMilestoneFiles(goalFile.path);
+  async deleteGoalMilestoneNotesByPath(goalFilePath) {
+    const files = this.getGoalOwnedMilestoneFiles(goalFilePath);
     for (const file of files) {
       await this.app.fileManager.trashFile(file);
     }
+  }
+  async deleteGoalMilestoneNotes(goalFile) {
+    await this.deleteGoalMilestoneNotesByPath(goalFile.path);
   }
   async syncGoalMilestonesToFolder(goalFile, _force = false) {
     var _a2, _b;
@@ -10945,10 +10956,21 @@ merged_into: "${this.escapeYamlString(targetGoalPath)}"
 This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}|${mergedTitle}]].
 `;
   }
-  async deleteGoalCalendarEvents(goalFile) {
-    const files = await this.getGoalOwnedCalendarFiles(goalFile.path);
+  async deleteGoalCalendarEventsByPath(goalFilePath) {
+    const files = await this.getGoalOwnedCalendarFiles(goalFilePath);
     for (const file of files) {
       await this.app.fileManager.trashFile(file);
+    }
+  }
+  async deleteGoalCalendarEvents(goalFile) {
+    await this.deleteGoalCalendarEventsByPath(goalFile.path);
+  }
+  async handleGoalFileDeleted(goalFilePath) {
+    try {
+      await this.deleteGoalMilestoneNotesByPath(goalFilePath);
+      await this.deleteGoalCalendarEventsByPath(goalFilePath);
+    } catch (error) {
+      console.error("Could not clean up deleted Deleometer goal artifacts", goalFilePath, error);
     }
   }
   buildStandardGoalNote(goal, extras) {
