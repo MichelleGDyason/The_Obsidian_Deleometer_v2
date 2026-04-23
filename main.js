@@ -10023,6 +10023,10 @@ ${preparedJournalContext}`
     const normalized = (path || "").split("/").map((part) => part.trim()).filter(Boolean).join("/");
     return normalized || fallback;
   }
+  isAbsoluteFolderSetting(path) {
+    const trimmed = (path || "").trim();
+    return trimmed.startsWith("/") || /^[A-Za-z]:[\\/]/.test(trimmed);
+  }
   estimateAnalysisDurationSeconds(content) {
     const selectedPerspectiveCount = getChronologicalPerspectiveKeys().filter((key) => this.settings.selectedPerspectives.includes(key)).length;
     const selectedGroupCount = new Set(
@@ -13230,17 +13234,38 @@ var MyersBriggsAssessmentModal = class extends import_obsidian.Modal {
     progressDiv.createEl("p", { text: `Question ${this.currentQuestion + 1} of ${MYERS_BRIGGS_QUESTIONS.length}`, cls: "progress-text" });
     const questionDiv = contentEl.createDiv({ cls: "assessment-question" });
     questionDiv.createEl("h3", { text: q.prompt });
-    questionDiv.createEl("p", { text: `${q.leftLabel}  <->  ${q.rightLabel}`, cls: "analysis-source" });
-    const optionsDiv = questionDiv.createDiv({ cls: "scale-options" });
-    SCALE_LABELS.forEach((label, i) => {
-      const option = optionsDiv.createDiv({ cls: "scale-option" });
-      option.createEl("span", { text: label });
-      option.onclick = () => {
-        this.answers.push(i + 1);
-        this.currentQuestion += 1;
-        this.renderQuestion();
-      };
+    questionDiv.createEl("p", {
+      text: "Move the slider toward the side that feels more true for you right now. Leave it near the middle when both sides fit.",
+      cls: "analysis-source"
     });
+    const scaleDiv = questionDiv.createDiv({ cls: "bipolar-scale" });
+    const labelsDiv = scaleDiv.createDiv({ cls: "bipolar-labels" });
+    labelsDiv.createEl("span", { text: q.leftLabel });
+    labelsDiv.createEl("span", { text: q.rightLabel });
+    const slider = scaleDiv.createEl("input", {
+      type: "range",
+      cls: "bipolar-slider",
+      attr: { min: "1", max: "7", step: "1", value: "4" }
+    });
+    const currentValue = scaleDiv.createEl("p", {
+      text: this.describeTypologySliderValue(4, q.leftLabel, q.rightLabel),
+      cls: "bipolar-current"
+    });
+    slider.oninput = () => {
+      currentValue.setText(this.describeTypologySliderValue(Number(slider.value), q.leftLabel, q.rightLabel));
+    };
+    new import_obsidian.Setting(questionDiv).addButton((button) => button.setButtonText(this.currentQuestion === MYERS_BRIGGS_QUESTIONS.length - 1 ? "See results" : "Next").setCta().onClick(() => {
+      this.answers.push(Number(slider.value));
+      this.currentQuestion += 1;
+      this.renderQuestion();
+    }));
+  }
+  describeTypologySliderValue(value, leftLabel, rightLabel) {
+    if (value <= 1) return `Strongly toward ${leftLabel.toLowerCase()}`;
+    if (value <= 3) return `Somewhat toward ${leftLabel.toLowerCase()}`;
+    if (value === 4) return "Balanced, mixed, or not sure";
+    if (value <= 6) return `Somewhat toward ${rightLabel.toLowerCase()}`;
+    return `Strongly toward ${rightLabel.toLowerCase()}`;
   }
   calculateProfile() {
     const dimensionScores = { ei: 0, sn: 0, tf: 0, jp: 0 };
@@ -13711,7 +13736,14 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       await this.plugin.saveSettings();
     }));
     new import_obsidian.Setting(containerEl).setName("Calendar integration").setHeading();
-    new import_obsidian.Setting(containerEl).setName("Calendar folder").setDesc("Folder watched by your calendar plugin local calendar source. Deleometer will create dated event notes here.").addText((text) => text.setValue(this.plugin.settings.fullCalendarFolder).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("Calendar folder").setDesc("Vault-relative folder watched by your calendar plugin local calendar source, such as deleometer or calendar. Do not use an absolute macOS path.").addText((text) => text.setValue(this.plugin.settings.fullCalendarFolder).onChange(async (value) => {
+      if (this.plugin.isAbsoluteFolderSetting(value)) {
+        new import_obsidian.Notice("Use a folder inside this vault, such as deleometer or calendar, not an absolute file path.");
+        this.plugin.settings.fullCalendarFolder = DEFAULT_SETTINGS.fullCalendarFolder;
+        await this.plugin.saveSettings();
+        this.display();
+        return;
+      }
       this.plugin.settings.fullCalendarFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.fullCalendarFolder);
       await this.plugin.saveSettings();
     }));

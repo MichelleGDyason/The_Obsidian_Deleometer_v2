@@ -4052,6 +4052,11 @@ export default class DeleometerPlugin extends Plugin {
     return normalized || fallback;
   }
 
+  isAbsoluteFolderSetting(path: string | undefined): boolean {
+    const trimmed = (path || '').trim();
+    return trimmed.startsWith('/') || /^[A-Za-z]:[\\/]/.test(trimmed);
+  }
+
   estimateAnalysisDurationSeconds(content: string): number {
     const selectedPerspectiveCount = getChronologicalPerspectiveKeys()
       .filter((key) => this.settings.selectedPerspectives.includes(key))
@@ -7663,18 +7668,46 @@ class MyersBriggsAssessmentModal extends Modal {
 
     const questionDiv = contentEl.createDiv({ cls: 'assessment-question' });
     questionDiv.createEl('h3', { text: q.prompt });
-    questionDiv.createEl('p', { text: `${q.leftLabel}  <->  ${q.rightLabel}`, cls: 'analysis-source' });
-
-    const optionsDiv = questionDiv.createDiv({ cls: 'scale-options' });
-    SCALE_LABELS.forEach((label, i) => {
-      const option = optionsDiv.createDiv({ cls: 'scale-option' });
-      option.createEl('span', { text: label });
-      option.onclick = () => {
-        this.answers.push(i + 1);
-        this.currentQuestion += 1;
-        this.renderQuestion();
-      };
+    questionDiv.createEl('p', {
+      text: 'Move the slider toward the side that feels more true for you right now. Leave it near the middle when both sides fit.',
+      cls: 'analysis-source'
     });
+
+    const scaleDiv = questionDiv.createDiv({ cls: 'bipolar-scale' });
+    const labelsDiv = scaleDiv.createDiv({ cls: 'bipolar-labels' });
+    labelsDiv.createEl('span', { text: q.leftLabel });
+    labelsDiv.createEl('span', { text: q.rightLabel });
+
+    const slider = scaleDiv.createEl('input', {
+      type: 'range',
+      cls: 'bipolar-slider',
+      attr: { min: '1', max: '7', step: '1', value: '4' }
+    });
+    const currentValue = scaleDiv.createEl('p', {
+      text: this.describeTypologySliderValue(4, q.leftLabel, q.rightLabel),
+      cls: 'bipolar-current'
+    });
+    slider.oninput = () => {
+      currentValue.setText(this.describeTypologySliderValue(Number(slider.value), q.leftLabel, q.rightLabel));
+    };
+
+    new Setting(questionDiv)
+      .addButton((button) => button
+        .setButtonText(this.currentQuestion === MYERS_BRIGGS_QUESTIONS.length - 1 ? 'See results' : 'Next')
+        .setCta()
+        .onClick(() => {
+          this.answers.push(Number(slider.value));
+          this.currentQuestion += 1;
+          this.renderQuestion();
+        }));
+  }
+
+  describeTypologySliderValue(value: number, leftLabel: string, rightLabel: string): string {
+    if (value <= 1) return `Strongly toward ${leftLabel.toLowerCase()}`;
+    if (value <= 3) return `Somewhat toward ${leftLabel.toLowerCase()}`;
+    if (value === 4) return 'Balanced, mixed, or not sure';
+    if (value <= 6) return `Somewhat toward ${rightLabel.toLowerCase()}`;
+    return `Strongly toward ${rightLabel.toLowerCase()}`;
   }
 
   calculateProfile(): MyersBriggsProfile {
@@ -8299,10 +8332,17 @@ class DeleometerSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Calendar folder')
-      .setDesc('Folder watched by your calendar plugin local calendar source. Deleometer will create dated event notes here.')
+      .setDesc('Vault-relative folder watched by your calendar plugin local calendar source, such as deleometer or calendar. Do not use an absolute macOS path.')
       .addText(text => text
         .setValue(this.plugin.settings.fullCalendarFolder)
         .onChange(async (value) => {
+          if (this.plugin.isAbsoluteFolderSetting(value)) {
+            new Notice('Use a folder inside this vault, such as deleometer or calendar, not an absolute file path.');
+            this.plugin.settings.fullCalendarFolder = DEFAULT_SETTINGS.fullCalendarFolder;
+            await this.plugin.saveSettings();
+            this.display();
+            return;
+          }
           this.plugin.settings.fullCalendarFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.fullCalendarFolder);
           await this.plugin.saveSettings();
         }));
