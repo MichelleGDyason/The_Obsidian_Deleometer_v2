@@ -2147,7 +2147,7 @@ interface DeleometerSettings {
 
 const DEFAULT_SETTINGS: DeleometerSettings = {
   openaiApiKey: '', journalFolder: 'Deleometer/Journal', goalsFolder: 'Deleometer/Goals',
-  milestonesFolder: 'Deleometer/Milestones', songsFolder: 'Deleometer/Songs', chatsFolder: 'Deleometer/Chats', fullCalendarFolder: 'Deleometer', autoSyncGoalsToFullCalendar: true,
+  milestonesFolder: 'Deleometer/Milestones', songsFolder: 'Deleometer/Songs', chatsFolder: 'Deleometer/Chats', fullCalendarFolder: 'Deleometer/Calendar', autoSyncGoalsToFullCalendar: true,
   generateInspirationalSong: true,
   redactSensitiveDataBeforeAI: true, enableAuthorMemory: true, includeAuthorMemoryInAI: true,
   includePersonalityProfileInAI: true, sendFullJournalToChat: false,
@@ -4052,6 +4052,11 @@ export default class DeleometerPlugin extends Plugin {
     return normalized || fallback;
   }
 
+  normalizeFullCalendarFolderSetting(path: string | undefined): string {
+    const normalized = this.normalizeFolderSetting(path, DEFAULT_SETTINGS.fullCalendarFolder);
+    return normalized === 'Deleometer' ? DEFAULT_SETTINGS.fullCalendarFolder : normalized;
+  }
+
   isAbsoluteFolderSetting(path: string | undefined): boolean {
     const trimmed = (path || '').trim();
     return trimmed.startsWith('/') || /^[A-Za-z]:[\\/]/.test(trimmed);
@@ -5224,7 +5229,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
   }
 
   async deleteGoalCalendarEvents(goalFile: TFile) {
-    const files = this.getGoalOwnedCalendarFiles(goalFile.path);
+    const files = await this.getGoalOwnedCalendarFiles(goalFile.path);
     for (const file of files) {
       await this.app.fileManager.trashFile(file);
     }
@@ -5407,23 +5412,46 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
     return Array.from({ length: milestoneCount }, (_, index) => this.formatDateOnly(this.addDays(startDate, (index + 1) * 7)));
   }
 
-  getFullCalendarFolderFiles(): TFile[] {
-    const folder = this.app.vault.getAbstractFileByPath(this.settings.fullCalendarFolder);
-    if (!(folder instanceof TFolder)) return [];
-    return folder.children.filter((child): child is TFile => child instanceof TFile);
+  async getCalendarEventFrontmatter(file: TFile): Promise<Record<string, unknown> | null> {
+    const cachedFrontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+    const content = await this.app.vault.cachedRead(file);
+    const looseFrontmatter = this.parseLooseFrontmatter(content);
+    if (cachedFrontmatter && looseFrontmatter) return { ...looseFrontmatter, ...cachedFrontmatter };
+    return cachedFrontmatter || looseFrontmatter;
   }
 
-  getGoalOwnedCalendarFiles(goalFilePath: string): TFile[] {
-    return this.getFullCalendarFolderFiles().filter((file) => {
-      const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
-      return frontmatter?.deleometer_owner === 'deleometer'
+  async getGoalOwnedCalendarFiles(goalFilePath: string): Promise<TFile[]> {
+    const ownedFiles: TFile[] = [];
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      const frontmatter = await this.getCalendarEventFrontmatter(file);
+      if (frontmatter?.deleometer_owner === 'deleometer'
+        && (frontmatter.deleometer_event_kind === 'goal_due' || frontmatter.deleometer_event_kind === 'milestone')
         && typeof frontmatter.deleometer_goal_path === 'string'
-        && frontmatter.deleometer_goal_path === goalFilePath;
-    });
+        && frontmatter.deleometer_goal_path === goalFilePath) {
+        ownedFiles.push(file);
+      }
+    }
+    return ownedFiles;
   }
 
-  buildFullCalendarEventPath(baseName: string): string {
-    return this.getUniqueMarkdownPath(this.settings.fullCalendarFolder, this.sanitizeFileNamePart(baseName));
+  getFullCalendarEventBaseName(event: {
+    title: string;
+    date: string;
+    goalTitle: string;
+    kind: 'goal_due' | 'milestone';
+    milestoneIndex?: number;
+  }): string {
+    return `${event.date} ${event.kind === 'goal_due' ? 'Goal Due' : `Milestone ${event.milestoneIndex ?? ''}`} ${event.goalTitle}`.trim();
+  }
+
+  getFullCalendarEventPath(event: {
+    title: string;
+    date: string;
+    goalTitle: string;
+    kind: 'goal_due' | 'milestone';
+    milestoneIndex?: number;
+  }): string {
+    return `${this.settings.fullCalendarFolder}/${this.sanitizeFileNamePart(this.getFullCalendarEventBaseName(event))}.md`;
   }
 
   buildFullCalendarEventId(goalFilePath: string, kind: 'goal_due' | 'milestone', milestoneIndex?: number): string {
@@ -5502,12 +5530,21 @@ ${event.kind === 'goal_due'
   }) {
     const note = this.buildFullCalendarEventNote(event);
     if (existingFile) {
+      const desiredPath = this.getFullCalendarEventPath(event);
+      if (existingFile.path !== desiredPath && !this.app.vault.getAbstractFileByPath(desiredPath)) {
+        await this.ensureFolder(this.settings.fullCalendarFolder);
+        await this.app.fileManager.renameFile(existingFile, desiredPath);
+        const renamed = this.getVaultMarkdownFile(desiredPath);
+        if (renamed) existingFile = renamed;
+      }
       await this.app.vault.modify(existingFile, note);
       return existingFile;
     }
 
-    const baseName = `${event.date} ${event.kind === 'goal_due' ? 'Goal Due' : `Milestone ${event.milestoneIndex ?? ''}`} ${event.goalTitle}`.trim();
-    const path = this.buildFullCalendarEventPath(baseName);
+    const desiredPath = this.getFullCalendarEventPath(event);
+    const path = this.app.vault.getAbstractFileByPath(desiredPath)
+      ? this.getUniqueMarkdownPath(this.settings.fullCalendarFolder, this.sanitizeFileNamePart(this.getFullCalendarEventBaseName(event)))
+      : desiredPath;
     return await this.app.vault.create(path, note);
   }
 
@@ -5519,16 +5556,30 @@ ${event.kind === 'goal_due'
 
     await this.ensureFolder(this.settings.fullCalendarFolder);
 
-    const existingFiles = this.getGoalOwnedCalendarFiles(goalFile.path);
+    const existingFiles = await this.getGoalOwnedCalendarFiles(goalFile.path);
     const byKey = new Map<string, TFile>();
+    const duplicateFiles: TFile[] = [];
     for (const file of existingFiles) {
-      const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+      const frontmatter = await this.getCalendarEventFrontmatter(file);
       const kind = typeof frontmatter?.deleometer_event_kind === 'string' ? frontmatter.deleometer_event_kind : '';
       const milestoneIndex = typeof frontmatter?.deleometer_milestone_index === 'number'
         ? frontmatter.deleometer_milestone_index
         : (typeof frontmatter?.deleometer_milestone_index === 'string' ? Number(frontmatter.deleometer_milestone_index) : NaN);
       const key = kind === 'milestone' && Number.isFinite(milestoneIndex) ? `milestone:${milestoneIndex}` : kind;
-      if (key) byKey.set(key, file);
+      if (!key) continue;
+      const existing = byKey.get(key);
+      if (!existing) {
+        byKey.set(key, file);
+        continue;
+      }
+      const existingInCurrentFolder = existing.path.startsWith(`${this.settings.fullCalendarFolder}/`);
+      const fileInCurrentFolder = file.path.startsWith(`${this.settings.fullCalendarFolder}/`);
+      if (!existingInCurrentFolder && fileInCurrentFolder) {
+        duplicateFiles.push(existing);
+        byKey.set(key, file);
+      } else {
+        duplicateFiles.push(file);
+      }
     }
 
     const expectedKeys = new Set<string>();
@@ -5568,6 +5619,10 @@ ${event.kind === 'goal_due'
       if (!expectedKeys.has(key)) {
         await this.app.fileManager.trashFile(file);
       }
+    }
+
+    for (const file of duplicateFiles) {
+      await this.app.fileManager.trashFile(file);
     }
 
     return true;
@@ -5933,7 +5988,7 @@ ${event.kind === 'goal_due'
     this.settings.milestonesFolder = this.normalizeFolderSetting(this.settings.milestonesFolder, DEFAULT_SETTINGS.milestonesFolder);
     this.settings.songsFolder = this.normalizeFolderSetting(this.settings.songsFolder, DEFAULT_SETTINGS.songsFolder);
     this.settings.chatsFolder = this.normalizeFolderSetting(this.settings.chatsFolder, DEFAULT_SETTINGS.chatsFolder);
-    this.settings.fullCalendarFolder = this.normalizeFolderSetting(this.settings.fullCalendarFolder, DEFAULT_SETTINGS.fullCalendarFolder);
+    this.settings.fullCalendarFolder = this.normalizeFullCalendarFolderSetting(this.settings.fullCalendarFolder);
     if (!ZPD_LEVELS[this.settings.zpdLevel]) {
       this.settings.zpdLevel = DEFAULT_SETTINGS.zpdLevel;
     }
@@ -8332,18 +8387,22 @@ class DeleometerSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Calendar folder')
-      .setDesc('Vault-relative folder watched by your calendar plugin local calendar source, such as deleometer or calendar. Do not use an absolute macOS path.')
+      .setDesc('Vault-relative folder watched by your calendar plugin local calendar source, such as deleometer/calendar. Do not use an absolute macOS path or the top-level deleometer folder.')
       .addText(text => text
         .setValue(this.plugin.settings.fullCalendarFolder)
         .onChange(async (value) => {
           if (this.plugin.isAbsoluteFolderSetting(value)) {
-            new Notice('Use a folder inside this vault, such as deleometer or calendar, not an absolute file path.');
+            new Notice('Use a folder inside this vault, such as deleometer/calendar, not an absolute file path.');
             this.plugin.settings.fullCalendarFolder = DEFAULT_SETTINGS.fullCalendarFolder;
             await this.plugin.saveSettings();
             this.display();
             return;
           }
-          this.plugin.settings.fullCalendarFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.fullCalendarFolder);
+          const nextFolder = this.plugin.normalizeFullCalendarFolderSetting(value);
+          if (nextFolder !== this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.fullCalendarFolder)) {
+            new Notice('Calendar events now go in deleometer/calendar so they do not sit beside goals and milestones.');
+          }
+          this.plugin.settings.fullCalendarFolder = nextFolder;
           await this.plugin.saveSettings();
         }));
 
