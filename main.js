@@ -8375,6 +8375,8 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     super(...arguments);
     this.openai = null;
     this.pendingChatContext = null;
+    this.activeAnalysisJobs = /* @__PURE__ */ new Map();
+    this.authorMemoryUpdateQueue = Promise.resolve();
   }
   async onload() {
     await this.loadSettings();
@@ -8608,6 +8610,72 @@ ${this.settings.authorMemorySummary.trim()}`);
       console.error(error);
     }
   }
+  isAnalysisRunningForFile(filePath) {
+    return Array.from(this.activeAnalysisJobs.values()).some((job) => job.filePath === filePath);
+  }
+  beginAnalysisJob(sourceFile) {
+    const jobId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    this.activeAnalysisJobs.set(jobId, {
+      filePath: sourceFile.path,
+      fileLabel: sourceFile.basename,
+      status: "Queued",
+      startedAt: Date.now()
+    });
+    return jobId;
+  }
+  updateAnalysisJobStatus(jobId, status) {
+    const job = this.activeAnalysisJobs.get(jobId);
+    if (!job) return;
+    job.status = status;
+    this.activeAnalysisJobs.set(jobId, job);
+  }
+  finishAnalysisJob(jobId) {
+    this.activeAnalysisJobs.delete(jobId);
+  }
+  getActiveAnalysisJobCount() {
+    return this.activeAnalysisJobs.size;
+  }
+  async queueAuthorMemorySummaryUpdate(authorMemorySummary) {
+    if (!this.settings.enableAuthorMemory || !authorMemorySummary) return;
+    this.authorMemoryUpdateQueue = this.authorMemoryUpdateQueue.catch(() => {
+    }).then(async () => {
+      if (authorMemorySummary === this.settings.authorMemorySummary) return;
+      this.settings.authorMemorySummary = authorMemorySummary;
+      await this.saveSettings();
+    });
+    await this.authorMemoryUpdateQueue;
+  }
+  async runJournalAnalysisForFile(sourceFile, journalContent) {
+    if (!this.openai) throw new Error("OpenAI not initialized");
+    if (this.isAnalysisRunningForFile(sourceFile.path)) {
+      throw new Error("An analysis is already running for this note");
+    }
+    const estimateText = this.getAnalysisEstimateText(journalContent);
+    const jobId = this.beginAnalysisJob(sourceFile);
+    const activeCount = this.getActiveAnalysisJobCount();
+    new import_obsidian.Notice(
+      activeCount > 1 ? `Analysis started for ${sourceFile.basename}. ${activeCount} analyses are now running in parallel.` : `Analyzing with multiple perspectives. ${estimateText}`,
+      15e3
+    );
+    try {
+      this.updateAnalysisJobStatus(jobId, `Analysis started. ${estimateText}`);
+      await this.writeAnalysisStatusToFile(sourceFile, `Analysis started. ${estimateText}`);
+      const analysis = await this.getMultiPerspectiveAnalysis(journalContent, async (message) => {
+        this.updateAnalysisJobStatus(jobId, message);
+        new import_obsidian.Notice(message);
+        await this.writeAnalysisStatusToFile(sourceFile, message);
+      });
+      await this.appendAnalysisToFile(sourceFile, analysis);
+      this.updateAnalysisJobStatus(jobId, "Completed");
+      return analysis;
+    } catch (error) {
+      this.updateAnalysisJobStatus(jobId, `Failed: ${this.getErrorMessage(error)}`);
+      await this.writeAnalysisStatusToFile(sourceFile, `Analysis could not be completed: ${this.getErrorMessage(error)}`);
+      throw error;
+    } finally {
+      this.finishAnalysisJob(jobId);
+    }
+  }
   async backfillAnalysisChatLinksForActiveFile(editor) {
     var _a2;
     const file = this.app.workspace.getActiveFile();
@@ -8763,9 +8831,8 @@ ${this.settings.authorMemorySummary.trim()}`);
       }
     }
     const authorMemorySummary = this.settings.enableAuthorMemory ? synthesis.authorMemorySummary || this.settings.authorMemorySummary : "";
-    if (this.settings.enableAuthorMemory && authorMemorySummary && authorMemorySummary !== this.settings.authorMemorySummary) {
-      this.settings.authorMemorySummary = authorMemorySummary;
-      await this.saveSettings();
+    if (this.settings.enableAuthorMemory && authorMemorySummary) {
+      await this.queueAuthorMemorySummaryUpdate(authorMemorySummary);
     }
     return {
       perspectives: results,
@@ -12625,21 +12692,13 @@ ${this.content}
           new import_obsidian.Notice("Please set your API key in settings to analyze");
           return;
         }
-        const estimateText = this.plugin.getAnalysisEstimateText(this.content);
-        new import_obsidian.Notice(`Analyzing with multiple perspectives. ${estimateText}`, 15e3);
         try {
-          await this.plugin.writeAnalysisStatusToFile(file, `Analysis started. ${estimateText}`);
           const savedContent = await this.app.vault.read(file);
           const journalContent = this.plugin.stripFrontmatter(savedContent);
-          const analysis = await this.plugin.getMultiPerspectiveAnalysis(journalContent, async (message) => {
-            new import_obsidian.Notice(message);
-            await this.plugin.writeAnalysisStatusToFile(file, message);
-          });
-          await this.plugin.appendAnalysisToFile(file, analysis);
+          const analysis = await this.plugin.runJournalAnalysisForFile(file, journalContent);
           new AnalysisResultModal(this.app, this.plugin, analysis, journalContent, file).open();
           new import_obsidian.Notice("Analysis added to the note");
         } catch (error) {
-          await this.plugin.writeAnalysisStatusToFile(file, `Analysis could not be completed: ${this.plugin.getErrorMessage(error)}`);
           new import_obsidian.Notice(this.plugin.getOpenAIErrorMessage(error, "Error analyzing journal entry"));
           console.error(error);
         }
