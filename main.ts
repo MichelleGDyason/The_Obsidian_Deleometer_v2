@@ -2686,7 +2686,7 @@ export default class DeleometerPlugin extends Plugin {
       philosophicalReaccumulation: synthesis.philosophicalReaccumulation,
       inspirationalSong,
       authorMemorySummary,
-      goalSuggestions: synthesis.goalSuggestions,
+      goalSuggestions: [],
       analysisWarnings
     };
   }
@@ -3237,7 +3237,7 @@ export default class DeleometerPlugin extends Plugin {
     authorMemoryContext: string,
     readerContext: string,
     dateContext: string
-  ): Promise<{ philosophicalReaccumulation: string; authorMemorySummary: string; goalSuggestions: GoalSuggestion[] }> {
+  ): Promise<{ philosophicalReaccumulation: string; authorMemorySummary: string }> {
     if (!this.openai) throw new Error('OpenAI not initialized');
     const groupList = selectedGroupKeys
       .map((groupKey) => `- ${groupKey}: ${PERSPECTIVE_GROUPS[groupKey]?.title || groupKey}\n${groupSyntheses[groupKey] || 'No group synthesis returned.'}`)
@@ -3261,8 +3261,7 @@ export default class DeleometerPlugin extends Plugin {
             `Synthesize the completed individual and group analyses of a journal entry.\n\n` +
             `Return JSON with exactly these keys:\n` +
             `- philosophical_reaccumulation: 360-520 words. Iteratively recombine the group syntheses into Philosophy as the first discipline. Treat this as an archeo-genealogical recombination of subdisciplines, theories, and analyses into an overarching philosophical orientation. Include interpretation, critique, implications, likely outcomes, further steps, and imaginative futures.\n` +
-            `- author_memory_summary: under 220 words, updating enduring patterns, strengths, values, risks, supports, and recurring concerns.\n` +
-            `- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(', ')}. targetDate must be YYYY-MM-DD and must be today or later in the user's timezone. When suggesting a form of activity, include concrete real-life examples of that form, such as types of groups, everyday actions, practices, scenes, public activities, mutual aid settings, study circles, creative routines, community organisations, or other realistic examples relevant to the journal entry. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.\n\n` +
+            `- author_memory_summary: under 220 words, updating enduring patterns, strengths, values, risks, supports, and recurring concerns.\n\n` +
             `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${dateContext}\n\n` +
             `${this.getOutputLanguagePrompt()}\n\n` +
             `Group syntheses:\n${groupList}\n\n` +
@@ -3273,7 +3272,7 @@ export default class DeleometerPlugin extends Plugin {
     });
     const rawContent = response.choices[0]?.message?.content;
     if (!rawContent) {
-      return { philosophicalReaccumulation: '', authorMemorySummary: this.settings.authorMemorySummary, goalSuggestions: [] };
+      return { philosophicalReaccumulation: '', authorMemorySummary: this.settings.authorMemorySummary };
     }
 
     const parsed = this.parseJsonObject(rawContent);
@@ -3283,9 +3282,65 @@ export default class DeleometerPlugin extends Plugin {
     const authorMemorySummary = typeof parsed.author_memory_summary === 'string'
       ? this.normalizeGeneratedEnglishUsage(parsed.author_memory_summary.trim())
       : this.settings.authorMemorySummary;
-    const goalSuggestions = this.parseGoalSuggestions(parsed.goal_suggestions).slice(0, 3);
 
-    return { philosophicalReaccumulation, authorMemorySummary, goalSuggestions };
+    return { philosophicalReaccumulation, authorMemorySummary };
+  }
+
+  async generateGoalSuggestionsFromAnalysis(
+    content: string,
+    analysis: AnalysisPayload,
+    sourceAnalysisPath: string = ''
+  ): Promise<GoalSuggestion[]> {
+    if (!this.openai) throw new Error('OpenAI not initialized');
+
+    const selectedGroupKeys = Object.keys(analysis.groupSyntheses);
+    const groupList = selectedGroupKeys.length > 0
+      ? selectedGroupKeys
+          .map((groupKey) => `- ${groupKey}: ${PERSPECTIVE_GROUPS[groupKey]?.title || groupKey}\n${analysis.groupSyntheses[groupKey] || 'No group synthesis returned.'}`)
+          .join('\n\n')
+      : 'No group syntheses available.';
+    const perspectiveSummaries = Object.entries(analysis.perspectives)
+      .map(([key, value]) => `- ${key}: ${value.slice(0, 700)}`)
+      .join('\n');
+    const personalityContext = this.getPersonalityContextForAI();
+    const authorMemoryContext = this.getAuthorMemoryContextForAI();
+    const readerContext = this.getReaderContextPrompt();
+    const dateContext = this.getLocalDateContext();
+
+    const response = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      response_format: { type: 'json_object' },
+      max_tokens: 2500,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an empathetic interdisciplinary analysis assistant. Return valid JSON only.'
+        },
+        {
+          role: 'user',
+          content:
+            `Using the completed journal analyses below, generate goals only when explicitly requested.\n\n` +
+            `Return JSON with exactly one top-level key:\n` +
+            `- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives.\n\n` +
+            `These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(', ')}. targetDate must be YYYY-MM-DD and must be today or later in the user's timezone. When suggesting a form of activity, include concrete real-life examples of that form, such as types of groups, everyday actions, practices, scenes, public activities, mutual aid settings, study circles, creative routines, community organisations, or other realistic examples relevant to the journal entry. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.\n\n` +
+            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${dateContext}\n\n` +
+            `${this.getOutputLanguagePrompt()}\n\n` +
+            `Group syntheses:\n${groupList}\n\n` +
+            `Individual analysis excerpts:\n${perspectiveSummaries}\n\n` +
+            `Journal entry:\n${content}`
+        }
+      ]
+    });
+
+    const rawContent = response.choices[0]?.message?.content;
+    if (!rawContent) return [];
+    const parsed = this.parseJsonObject(rawContent);
+    return this.parseGoalSuggestions(parsed.goal_suggestions)
+      .slice(0, 3)
+      .map((goal) => ({
+        ...goal,
+        sourceAnalysisPath: goal.sourceAnalysisPath || sourceAnalysisPath
+      }));
   }
 
   async getInspirationalSong(
@@ -8137,6 +8192,7 @@ class AnalysisResultModal extends Modal {
   analysis: AnalysisPayload;
   originalContent: string;
   sourceFile: TFile | null;
+  isGeneratingGoals: boolean = false;
 
   constructor(app: App, plugin: DeleometerPlugin, analysis: AnalysisPayload, originalContent: string = '', sourceFile: TFile | null = null) {
     super(app);
@@ -8246,16 +8302,40 @@ class AnalysisResultModal extends Modal {
         text: 'Append analysis to note',
         cls: 'btn-secondary analysis-append-button'
       });
-      appendBtn.onclick = () => { void this.appendAnalysisToNote(); };
+      appendBtn.onclick = () => { void this.runButtonAction(appendBtn, 'Append analysis to note', 'Appending...', () => this.appendAnalysisToNote()); };
     }
 
     const btnRow = contentEl.createDiv({ cls: 'btn-row' });
-    if (this.analysis.goalSuggestions.length > 0) {
-      const goalBtn = btnRow.createEl('button', { text: 'Draft goals from analysis', cls: 'btn-secondary' });
-      goalBtn.onclick = () => this.openGoalDrafts();
+    if (this.sourceFile || this.analysis.goalSuggestions.length > 0) {
+      const goalBtn = btnRow.createEl('button', {
+        text: this.analysis.goalSuggestions.length > 0 ? 'Draft goals from analysis' : 'Generate draft goals',
+        cls: 'btn-secondary'
+      });
+      goalBtn.onclick = () => {
+        void this.runButtonAction(
+          goalBtn,
+          () => (this.analysis.goalSuggestions.length > 0 ? 'Draft goals from analysis' : 'Generate draft goals'),
+          'Generating...',
+          async () => this.openGoalDrafts(goalBtn)
+        );
+      };
     }
     const closeBtn = btnRow.createEl('button', { text: 'Close', cls: 'btn-primary' });
     closeBtn.onclick = () => this.close();
+  }
+
+  async runButtonAction(button: HTMLButtonElement, idleText: string | (() => string), busyText: string, action: () => Promise<void>) {
+    if (button.disabled) return;
+    button.disabled = true;
+    button.addClass('is-busy');
+    button.setText(busyText);
+    try {
+      await action();
+    } finally {
+      button.removeClass('is-busy');
+      button.disabled = false;
+      button.setText(typeof idleText === 'function' ? idleText() : idleText);
+    }
   }
 
   async openChatWithPerspective(perspectiveKey: string, initialAnalysis: string) {
@@ -8302,7 +8382,27 @@ class AnalysisResultModal extends Modal {
     new Notice('Analysis appended to note!');
   }
 
-  openGoalDrafts() {
+  async openGoalDrafts(button?: HTMLButtonElement) {
+    if (this.analysis.goalSuggestions.length === 0) {
+      if (!this.sourceFile) {
+        new Notice('Goal drafts can only be generated from a saved analysis note.');
+        return;
+      }
+      this.analysis.goalSuggestions = await this.plugin.generateGoalSuggestionsFromAnalysis(
+        this.originalContent,
+        this.analysis,
+        this.sourceFile.path
+      );
+      if (this.analysis.goalSuggestions.length === 0) {
+        new Notice('No goal drafts could be generated from this analysis.');
+        return;
+      }
+      await this.plugin.appendAnalysisToFile(this.sourceFile, this.analysis);
+      if (button) {
+        button.setText('Draft goals from analysis');
+      }
+      new Notice('Draft goals generated from this analysis.');
+    }
     new GoalDraftsModal(this.app, this.plugin, this.analysis.goalSuggestions, this.sourceFile?.path || '').open();
   }
 

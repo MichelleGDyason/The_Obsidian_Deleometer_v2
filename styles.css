@@ -110,6 +110,7 @@
   border-radius: 8px;
   padding: 0.45rem 0.8rem;
   cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
 }
 
 .btn-primary,
@@ -122,6 +123,33 @@
 .btn-secondary {
   background: var(--background-primary-alt);
   color: var(--text-normal);
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.chat-send-btn:hover,
+.chat-with-btn:hover {
+  filter: brightness(1.04);
+}
+
+.btn-primary:active,
+.btn-secondary:active,
+.chat-send-btn:active,
+.chat-with-btn:active,
+.btn-primary.is-busy,
+.btn-secondary.is-busy,
+.chat-send-btn.is-busy,
+.chat-with-btn.is-busy {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.18);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.chat-send-btn:disabled,
+.chat-with-btn:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }
 
 .btn-small {
