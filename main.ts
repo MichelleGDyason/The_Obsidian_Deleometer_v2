@@ -2561,7 +2561,8 @@ export default class DeleometerPlugin extends Plugin {
     const furtherReadings: Record<string, string[]> = {};
     const groupSyntheses: Record<string, string> = {};
     const analysisWarnings: string[] = [];
-    const chronologicalChunks = this.chunkArray(perspectives, 4);
+    const chronologicalBatchSize = perspectives.length > 180 ? 3 : 4;
+    const chronologicalChunks = this.chunkArray(perspectives, chronologicalBatchSize);
 
     for (let chunkIndex = 0; chunkIndex < chronologicalChunks.length; chunkIndex += 1) {
       const chunk = chronologicalChunks[chunkIndex];
@@ -2597,7 +2598,8 @@ export default class DeleometerPlugin extends Plugin {
     }
 
     const missingFurtherReadings = perspectives.filter(({ key }) => results[key] && (furtherReadings[key]?.length || 0) < 3);
-    const furtherReadingChunks = this.chunkArray(missingFurtherReadings, 8);
+    const furtherReadingBatchSize = perspectives.length > 180 ? 6 : 8;
+    const furtherReadingChunks = this.chunkArray(missingFurtherReadings, furtherReadingBatchSize);
     for (let chunkIndex = 0; chunkIndex < furtherReadingChunks.length; chunkIndex += 1) {
       const chunk = furtherReadingChunks[chunkIndex];
       if (chunk.length === 0) continue;
@@ -2709,7 +2711,12 @@ export default class DeleometerPlugin extends Plugin {
       : fenced;
     const withoutTrailingCommas = extracted.replace(/,\s*([}\]])/g, '$1');
     const quotedBareKeys = withoutTrailingCommas.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)(\s*:)/g, '$1"$2"$3');
-    const candidates = [trimmed, fenced, extracted, withoutTrailingCommas, quotedBareKeys];
+    const inferredMissingCommas = quotedBareKeys.replace(
+      /(\}|\]|\btrue\b|\bfalse\b|\bnull\b|"[^"]*"|-?\d+(?:\.\d+)?)(\s*)("[A-Za-z_][A-Za-z0-9_-]*"\s*:)/g,
+      '$1,$2$3'
+    );
+    const closedJson = this.closeJsonCandidate(inferredMissingCommas).replace(/,\s*([}\]])/g, '$1');
+    const candidates = [trimmed, fenced, extracted, withoutTrailingCommas, quotedBareKeys, inferredMissingCommas, closedJson];
     let lastError: unknown = null;
 
     for (const candidate of candidates) {
@@ -2724,6 +2731,46 @@ export default class DeleometerPlugin extends Plugin {
     }
 
     throw lastError instanceof Error ? lastError : new Error('Could not parse JSON response');
+  }
+
+  closeJsonCandidate(candidate: string): string {
+    let result = candidate.trim();
+    const stack: string[] = [];
+    let inString = false;
+    let escaped = false;
+
+    for (const char of result) {
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (char === '\\') {
+          escaped = true;
+        } else if (char === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        inString = true;
+      } else if (char === '{' || char === '[') {
+        stack.push(char);
+      } else if (char === '}' && stack[stack.length - 1] === '{') {
+        stack.pop();
+      } else if (char === ']' && stack[stack.length - 1] === '[') {
+        stack.pop();
+      }
+    }
+
+    if (inString) {
+      result += '"';
+    }
+
+    for (let index = stack.length - 1; index >= 0; index -= 1) {
+      result += stack[index] === '{' ? '}' : ']';
+    }
+
+    return result;
   }
 
   async prepareJournalContentForAnalysis(content: string, onProgress?: AnalysisProgressCallback): Promise<string> {

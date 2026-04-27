@@ -8729,7 +8729,8 @@ ${this.settings.authorMemorySummary.trim()}`);
     const furtherReadings = {};
     const groupSyntheses = {};
     const analysisWarnings = [];
-    const chronologicalChunks = this.chunkArray(perspectives, 4);
+    const chronologicalBatchSize = perspectives.length > 180 ? 3 : 4;
+    const chronologicalChunks = this.chunkArray(perspectives, chronologicalBatchSize);
     for (let chunkIndex = 0; chunkIndex < chronologicalChunks.length; chunkIndex += 1) {
       const chunk = chronologicalChunks[chunkIndex];
       try {
@@ -8763,7 +8764,8 @@ ${this.settings.authorMemorySummary.trim()}`);
       var _a3;
       return results[key] && (((_a3 = furtherReadings[key]) == null ? void 0 : _a3.length) || 0) < 3;
     });
-    const furtherReadingChunks = this.chunkArray(missingFurtherReadings, 8);
+    const furtherReadingBatchSize = perspectives.length > 180 ? 6 : 8;
+    const furtherReadingChunks = this.chunkArray(missingFurtherReadings, furtherReadingBatchSize);
     for (let chunkIndex = 0; chunkIndex < furtherReadingChunks.length; chunkIndex += 1) {
       const chunk = furtherReadingChunks[chunkIndex];
       if (chunk.length === 0) continue;
@@ -8861,7 +8863,12 @@ ${this.settings.authorMemorySummary.trim()}`);
     const extracted = objectStart !== -1 && objectEnd > objectStart ? fenced.slice(objectStart, objectEnd + 1) : fenced;
     const withoutTrailingCommas = extracted.replace(/,\s*([}\]])/g, "$1");
     const quotedBareKeys = withoutTrailingCommas.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)(\s*:)/g, '$1"$2"$3');
-    const candidates = [trimmed, fenced, extracted, withoutTrailingCommas, quotedBareKeys];
+    const inferredMissingCommas = quotedBareKeys.replace(
+      /(\}|\]|\btrue\b|\bfalse\b|\bnull\b|"[^"]*"|-?\d+(?:\.\d+)?)(\s*)("[A-Za-z_][A-Za-z0-9_-]*"\s*:)/g,
+      "$1,$2$3"
+    );
+    const closedJson = this.closeJsonCandidate(inferredMissingCommas).replace(/,\s*([}\]])/g, "$1");
+    const candidates = [trimmed, fenced, extracted, withoutTrailingCommas, quotedBareKeys, inferredMissingCommas, closedJson];
     let lastError = null;
     for (const candidate of candidates) {
       try {
@@ -8874,6 +8881,40 @@ ${this.settings.authorMemorySummary.trim()}`);
       }
     }
     throw lastError instanceof Error ? lastError : new Error("Could not parse JSON response");
+  }
+  closeJsonCandidate(candidate) {
+    let result = candidate.trim();
+    const stack = [];
+    let inString = false;
+    let escaped = false;
+    for (const char of result) {
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (char === "\\") {
+          escaped = true;
+        } else if (char === '"') {
+          inString = false;
+        }
+        continue;
+      }
+      if (char === '"') {
+        inString = true;
+      } else if (char === "{" || char === "[") {
+        stack.push(char);
+      } else if (char === "}" && stack[stack.length - 1] === "{") {
+        stack.pop();
+      } else if (char === "]" && stack[stack.length - 1] === "[") {
+        stack.pop();
+      }
+    }
+    if (inString) {
+      result += '"';
+    }
+    for (let index = stack.length - 1; index >= 0; index -= 1) {
+      result += stack[index] === "{" ? "}" : "]";
+    }
+    return result;
   }
   async prepareJournalContentForAnalysis(content, onProgress) {
     var _a2, _b;
