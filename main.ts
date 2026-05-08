@@ -2183,6 +2183,9 @@ const RECOMMENDED_LOCAL_MODELS: Record<string, string> = {
   'mistral': 'Smaller general-purpose model',
   'gemma2': 'Compact general-purpose model'
 };
+const OLLAMA_DOWNLOAD_URL = 'https://ollama.com/download';
+const GPT_4O_MINI_INPUT_USD_PER_1M = 0.15;
+const GPT_4O_MINI_OUTPUT_USD_PER_1M = 0.60;
 
 interface ChatContext {
   chatKind?: 'perspective' | 'group_synthesis';
@@ -4444,15 +4447,8 @@ export default class DeleometerPlugin extends Plugin {
   }
 
   estimateAnalysisDurationSeconds(content: string): number {
-    const selectedPerspectiveCount = getChronologicalPerspectiveKeys()
-      .filter((key) => this.settings.selectedPerspectives.includes(key))
-      .length;
-    const selectedGroupCount = new Set(
-      getChronologicalPerspectiveKeys()
-        .filter((key) => this.settings.selectedPerspectives.includes(key))
-        .map((key) => PERSPECTIVES[key]?.group)
-        .filter(Boolean)
-    ).size;
+    const selectedPerspectiveCount = this.getSelectedPerspectiveCount();
+    const selectedGroupCount = this.getSelectedGroupCount();
     const chronologicalBatches = Math.ceil(selectedPerspectiveCount / 4);
     const furtherReadingBatches = Math.ceil(selectedPerspectiveCount / 8);
     let seconds = 20
@@ -4493,6 +4489,56 @@ export default class DeleometerPlugin extends Plugin {
       .filter((key) => this.settings.selectedPerspectives.includes(key))
       .length;
     return `Estimated analysis time: ${this.formatDurationLabel(lower)} to ${this.formatDurationLabel(upper)} for ${selectedPerspectiveCount} enabled analyses.`;
+  }
+
+  getSelectedPerspectiveCount(): number {
+    return getChronologicalPerspectiveKeys()
+      .filter((key) => this.settings.selectedPerspectives.includes(key))
+      .length;
+  }
+
+  getSelectedGroupCount(): number {
+    return new Set(
+      getChronologicalPerspectiveKeys()
+        .filter((key) => this.settings.selectedPerspectives.includes(key))
+        .map((key) => PERSPECTIVES[key]?.group)
+        .filter(Boolean)
+    ).size;
+  }
+
+  formatUsdRange(lower: number, upper: number): string {
+    const format = (value: number) => value < 0.01 ? '<$0.01' : `$${value.toFixed(2)}`;
+    return lower === upper ? format(lower) : `${format(lower)}-${format(upper)}`;
+  }
+
+  getAIProviderCostEstimateText(): string {
+    const selectedPerspectiveCount = this.getSelectedPerspectiveCount();
+    const selectedGroupCount = this.getSelectedGroupCount();
+    const chronologicalBatches = Math.ceil(selectedPerspectiveCount / 4);
+    const furtherReadingBatches = Math.ceil(selectedPerspectiveCount / 8);
+    const estimatedInputTokens = 4000
+      + (chronologicalBatches * 9000)
+      + (furtherReadingBatches * 5000)
+      + (selectedGroupCount * 4500)
+      + (selectedPerspectiveCount * 450);
+    const estimatedOutputTokens = 1200
+      + (selectedPerspectiveCount * 950)
+      + (selectedGroupCount * 450)
+      + (this.settings.generateInspirationalSong ? 900 : 0);
+    const lowerInputTokens = Math.round(estimatedInputTokens * 0.7);
+    const upperInputTokens = Math.round(estimatedInputTokens * 1.6);
+    const lowerOutputTokens = Math.round(estimatedOutputTokens * 0.7);
+    const upperOutputTokens = Math.round(estimatedOutputTokens * 1.6);
+    const lowerOpenAICost = (lowerInputTokens / 1_000_000 * GPT_4O_MINI_INPUT_USD_PER_1M)
+      + (lowerOutputTokens / 1_000_000 * GPT_4O_MINI_OUTPUT_USD_PER_1M);
+    const upperOpenAICost = (upperInputTokens / 1_000_000 * GPT_4O_MINI_INPUT_USD_PER_1M)
+      + (upperOutputTokens / 1_000_000 * GPT_4O_MINI_OUTPUT_USD_PER_1M);
+
+    if (this.settings.aiProvider === 'ollama') {
+      return `Local Ollama estimate for ${selectedPerspectiveCount} selected lenses across ${selectedGroupCount} groups: $0 OpenAI/API cost. Cost is local instead: model download size, disk space, battery/CPU/GPU use, and slower analysis depending on your computer and chosen model.`;
+    }
+
+    return `OpenAI estimate for ${selectedPerspectiveCount} selected lenses across ${selectedGroupCount} groups: roughly ${this.formatUsdRange(lowerOpenAICost, upperOpenAICost)} per full analysis on gpt-4o-mini pricing ($${GPT_4O_MINI_INPUT_USD_PER_1M}/1M input tokens, $${GPT_4O_MINI_OUTPUT_USD_PER_1M}/1M output tokens). Actual cost varies with journal length, retries, generated goals/songs, and model pricing.`;
   }
 
   getSongFolderPath(sourceFilePath: string): string {
@@ -8709,6 +8755,10 @@ class DeleometerSettingTab extends PluginSettingTab {
           this.display();
         }));
 
+    new Setting(containerEl)
+      .setName('Estimated AI cost')
+      .setDesc(this.plugin.getAIProviderCostEstimateText());
+
     if (this.plugin.settings.aiProvider === 'openai') {
       new Setting(containerEl)
         .setName('OpenAI model')
@@ -8752,6 +8802,19 @@ class DeleometerSettingTab extends PluginSettingTab {
     }
 
     if (this.plugin.settings.aiProvider === 'ollama') {
+      const ollamaLinkFragment = document.createDocumentFragment();
+      ollamaLinkFragment.appendText('Install Ollama first if this computer does not have it. ');
+      const ollamaLink = ollamaLinkFragment.createEl('a', {
+        text: 'Download Ollama',
+        href: OLLAMA_DOWNLOAD_URL
+      });
+      ollamaLink.setAttr('target', '_blank');
+      ollamaLink.setAttr('rel', 'noopener');
+      ollamaLinkFragment.appendText(' then return here and use Find installed models or Download model into Ollama.');
+      new Setting(containerEl)
+        .setName('Install Ollama')
+        .setDesc(ollamaLinkFragment);
+
       new Setting(containerEl)
         .setName('Local Ollama endpoint')
         .setDesc(`${this.plugin.getLocalModelSetupHelp()} Local AI mode sends journal and chat context to this endpoint only. The plugin will not fall back to OpenAI.`)
