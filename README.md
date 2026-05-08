@@ -93,11 +93,13 @@ After enabling the plugin:
 
 1. Open `Settings -> Community plugins -> The Deleometer`.
 2. Choose an AI provider: OpenAI or Local Ollama.
-3. For OpenAI, paste your OpenAI API key. For Local Ollama, set the local endpoint and model name.
+3. For OpenAI, paste your OpenAI API key. For Local Ollama, make sure Ollama is installed and running on this computer.
 4. Confirm or change the journal, goals, and milestones folders.
 5. If you use Full Calendar, set the `Full Calendar Folder` to the folder watched by your Full Calendar local source.
 
-Local Ollama models are local files. They do not update themselves inside The Deleometer. The plugin records the selected model digest and local model library signature, and shows a notice when your local Ollama model library changes. Use the `Refresh local models` button in settings after pulling or replacing local models.
+Local Ollama models are local files. They do not come bundled with The Deleometer and they do not update themselves inside The Deleometer. The user must download at least one model in Ollama before local AI can work. In settings, use `Find installed models` to detect the models already available on the machine, then choose one from the installed model dropdown. If no models are found, use `Download model into Ollama` in settings, or install one directly in Ollama. Starter examples include `llama3.1`, `qwen2.5`, or `mistral`.
+
+The Deleometer records the selected model digest and local model library signature, and shows a notice when your local Ollama model library changes. Use `Find installed models` again after pulling or replacing local models.
 
 ## Basic Workflow
 

@@ -8352,6 +8352,8 @@ var DEFAULT_SETTINGS = {
   openaiModel: "gpt-4o-mini",
   localEndpoint: "http://localhost:11434",
   localModel: "llama3.1",
+  localModelToInstall: "llama3.1",
+  lastLocalModelNames: [],
   lastLocalModelDigest: "",
   lastLocalModelLibrarySignature: "",
   lastLocalModelLibraryCheckedAt: "",
@@ -8376,6 +8378,12 @@ var DEFAULT_SETTINGS = {
   myersBriggsProfile: null,
   maslowProfile: null,
   authorMemorySummary: ""
+};
+var RECOMMENDED_LOCAL_MODELS = {
+  "llama3.1": "General-purpose starter model",
+  "qwen2.5": "Strong general reasoning model",
+  "mistral": "Smaller general-purpose model",
+  "gemma2": "Compact general-purpose model"
 };
 var DeleometerPlugin = class extends import_obsidian.Plugin {
   constructor() {
@@ -8550,6 +8558,38 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     const data = await response.json();
     return Array.isArray(data.models) ? data.models : [];
   }
+  async installLocalModel(modelName) {
+    const name = modelName.trim();
+    if (!name) throw new Error("Choose or type a model name to download into Ollama.");
+    const endpoint = this.settings.localEndpoint.replace(/\/+$/, "");
+    const response = await fetch(`${endpoint}/api/pull`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, stream: false })
+    });
+    if (!response.ok) {
+      throw new Error(`Could not download "${name}" into Ollama (${response.status}). Check that Ollama is running and the model name is valid.`);
+    }
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    this.settings.localModel = name;
+    this.settings.localModelToInstall = name;
+    await this.saveSettings();
+    await this.checkLocalModelLibrary(false);
+  }
+  getLocalModelName(model) {
+    return model.name || model.model || "";
+  }
+  getLocalModelNames(models) {
+    return models.map((model) => this.getLocalModelName(model).trim()).filter(Boolean).sort((a, b) => a.localeCompare(b));
+  }
+  getLocalModelSetupHelp() {
+    return [
+      "Local Ollama mode requires the Ollama app/server to be installed and running on this computer.",
+      "The Deleometer cannot use a local model until at least one model has been downloaded in Ollama.",
+      "Recommended starter commands: ollama pull llama3.1, ollama pull qwen2.5, or ollama pull mistral."
+    ].join(" ");
+  }
   getLocalModelLibrarySignature(models) {
     return models.map((model) => `${model.name}|${model.digest || ""}|${model.modified_at || ""}|${model.size || ""}`).sort().join("\n");
   }
@@ -8558,15 +8598,21 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     try {
       const models = await this.fetchLocalModels();
       const signature = this.getLocalModelLibrarySignature(models);
-      const selectedModel = models.find((model) => model.name === this.settings.localModel || model.model === this.settings.localModel);
+      const modelNames = this.getLocalModelNames(models);
       const previousSignature = this.settings.lastLocalModelLibrarySignature;
       const previousDigest = this.settings.lastLocalModelDigest;
+      const selectedModelName = modelNames.includes(this.settings.localModel) ? this.settings.localModel : modelNames[0] || this.settings.localModel;
+      const selectedModel = models.find((model) => model.name === selectedModelName || model.model === selectedModelName);
       const nextDigest = (selectedModel == null ? void 0 : selectedModel.digest) || "";
       this.settings.lastLocalModelLibrarySignature = signature;
+      this.settings.lastLocalModelNames = modelNames;
       this.settings.lastLocalModelDigest = nextDigest;
       this.settings.lastLocalModelLibraryCheckedAt = (/* @__PURE__ */ new Date()).toISOString();
+      this.settings.localModel = selectedModelName;
       await this.saveSettings();
-      if (previousDigest && nextDigest && previousDigest !== nextDigest) {
+      if (modelNames.length === 0 && showNotice) {
+        new import_obsidian.Notice("Ollama is running, but no local models are installed. Download one in Ollama, then refresh local models again.", 12e3);
+      } else if (previousDigest && nextDigest && previousDigest !== nextDigest) {
         new import_obsidian.Notice(`Your selected local model "${this.settings.localModel}" has been updated locally.`, 12e3);
       } else if (previousSignature && previousSignature !== signature) {
         new import_obsidian.Notice("Your local Ollama model library has changed. Review the selected model in The Deleometer settings.", 12e3);
@@ -11879,7 +11925,7 @@ ${goal.description}
     return isGoalType || hasProgress || hasKnownCategory || hasMilestones;
   }
   async loadSettings() {
-    var _a2, _b, _c;
+    var _a2, _b, _c, _d;
     const savedData = await this.loadData();
     this.settings = Object.assign({}, DEFAULT_SETTINGS, savedData != null ? savedData : {});
     this.settings.journalFolder = this.normalizeFolderSetting(this.settings.journalFolder, DEFAULT_SETTINGS.journalFolder);
@@ -11894,6 +11940,8 @@ ${goal.description}
     this.settings.openaiModel = ((_a2 = this.settings.openaiModel) == null ? void 0 : _a2.trim()) || DEFAULT_SETTINGS.openaiModel;
     this.settings.localEndpoint = ((_b = this.settings.localEndpoint) == null ? void 0 : _b.trim()) || DEFAULT_SETTINGS.localEndpoint;
     this.settings.localModel = ((_c = this.settings.localModel) == null ? void 0 : _c.trim()) || DEFAULT_SETTINGS.localModel;
+    this.settings.localModelToInstall = ((_d = this.settings.localModelToInstall) == null ? void 0 : _d.trim()) || DEFAULT_SETTINGS.localModelToInstall;
+    this.settings.lastLocalModelNames = Array.isArray(this.settings.lastLocalModelNames) ? this.settings.lastLocalModelNames.filter((value) => typeof value === "string" && !!value.trim()).map((value) => value.trim()) : DEFAULT_SETTINGS.lastLocalModelNames;
     this.settings.lastLocalModelDigest = typeof this.settings.lastLocalModelDigest === "string" ? this.settings.lastLocalModelDigest : DEFAULT_SETTINGS.lastLocalModelDigest;
     this.settings.lastLocalModelLibrarySignature = typeof this.settings.lastLocalModelLibrarySignature === "string" ? this.settings.lastLocalModelLibrarySignature : DEFAULT_SETTINGS.lastLocalModelLibrarySignature;
     this.settings.lastLocalModelLibraryCheckedAt = typeof this.settings.lastLocalModelLibraryCheckedAt === "string" ? this.settings.lastLocalModelLibraryCheckedAt : DEFAULT_SETTINGS.lastLocalModelLibraryCheckedAt;
@@ -14058,16 +14106,57 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       }));
     }
     if (this.plugin.settings.aiProvider === "ollama") {
-      new import_obsidian.Setting(containerEl).setName("Local Ollama endpoint").setDesc("Local AI mode sends journal and chat context to this endpoint only. The plugin will not fall back to OpenAI.").addText((text) => text.setPlaceholder(DEFAULT_SETTINGS.localEndpoint).setValue(this.plugin.settings.localEndpoint).onChange(async (value) => {
+      new import_obsidian.Setting(containerEl).setName("Local Ollama endpoint").setDesc(`${this.plugin.getLocalModelSetupHelp()} Local AI mode sends journal and chat context to this endpoint only. The plugin will not fall back to OpenAI.`).addText((text) => text.setPlaceholder(DEFAULT_SETTINGS.localEndpoint).setValue(this.plugin.settings.localEndpoint).onChange(async (value) => {
         this.plugin.settings.localEndpoint = value.trim() || DEFAULT_SETTINGS.localEndpoint;
         await this.plugin.saveSettings();
       }));
-      new import_obsidian.Setting(containerEl).setName("Local model").setDesc("The Ollama model name to use, for example llama3.1, mistral, qwen2.5, or gemma2.").addText((text) => text.setPlaceholder(DEFAULT_SETTINGS.localModel).setValue(this.plugin.settings.localModel).onChange(async (value) => {
+      const installedLocalModels = this.plugin.settings.lastLocalModelNames;
+      if (installedLocalModels.length > 0) {
+        new import_obsidian.Setting(containerEl).setName("Installed Ollama model").setDesc("Choose from models currently detected in the local Ollama library.").addDropdown((dropdown) => {
+          installedLocalModels.forEach((modelName) => dropdown.addOption(modelName, modelName));
+          dropdown.setValue(installedLocalModels.includes(this.plugin.settings.localModel) ? this.plugin.settings.localModel : installedLocalModels[0]).onChange(async (value) => {
+            this.plugin.settings.localModel = value;
+            await this.plugin.saveSettings();
+          });
+        });
+      }
+      new import_obsidian.Setting(containerEl).setName("Manual Ollama model name").setDesc(installedLocalModels.length > 0 ? "Advanced: type a model name manually if it is not shown in the installed model list." : "No installed models have been detected yet. Install Ollama, download a model, then refresh. Example model names: llama3.1, qwen2.5, mistral, gemma2.").addText((text) => text.setPlaceholder(DEFAULT_SETTINGS.localModel).setValue(this.plugin.settings.localModel).onChange(async (value) => {
         this.plugin.settings.localModel = value.trim() || DEFAULT_SETTINGS.localModel;
         await this.plugin.saveSettings();
-      })).addButton((button) => button.setButtonText("Refresh local models").onClick(async () => {
+      })).addButton((button) => button.setButtonText("Find installed models").onClick(async () => {
         await this.plugin.checkLocalModelLibrary(true);
         this.display();
+      }));
+      new import_obsidian.Setting(containerEl).setName("Download model into Ollama").setDesc("Choose a recommended model or type any Ollama model name. This downloads the model to this computer through the local Ollama server, then selects it for The Deleometer.").addDropdown((dropdown) => {
+        Object.entries(RECOMMENDED_LOCAL_MODELS).forEach(([modelName, description]) => {
+          dropdown.addOption(modelName, `${modelName} - ${description}`);
+        });
+        if (!RECOMMENDED_LOCAL_MODELS[this.plugin.settings.localModelToInstall]) {
+          dropdown.addOption(this.plugin.settings.localModelToInstall, this.plugin.settings.localModelToInstall);
+        }
+        dropdown.setValue(this.plugin.settings.localModelToInstall).onChange(async (value) => {
+          this.plugin.settings.localModelToInstall = value;
+          await this.plugin.saveSettings();
+          this.display();
+        });
+      }).addText((text) => text.setPlaceholder("Any Ollama model name").setValue(this.plugin.settings.localModelToInstall).onChange(async (value) => {
+        this.plugin.settings.localModelToInstall = value.trim() || DEFAULT_SETTINGS.localModelToInstall;
+        await this.plugin.saveSettings();
+      })).addButton((button) => button.setButtonText("Download").onClick(async () => {
+        const modelName = this.plugin.settings.localModelToInstall.trim();
+        button.setDisabled(true);
+        button.setButtonText("Downloading...");
+        try {
+          await this.plugin.installLocalModel(modelName);
+          new import_obsidian.Notice(`Downloaded and selected local model "${modelName}".`, 12e3);
+          this.display();
+        } catch (error) {
+          new import_obsidian.Notice(this.plugin.getAIErrorMessage(error, `Could not download "${modelName}" into Ollama`), 12e3);
+          console.error(error);
+        } finally {
+          button.setDisabled(false);
+          button.setButtonText("Download");
+        }
       }));
       const checkedAt = this.plugin.settings.lastLocalModelLibraryCheckedAt ? new Date(this.plugin.settings.lastLocalModelLibraryCheckedAt).toLocaleString() : "Not checked yet";
       new import_obsidian.Setting(containerEl).setName("Local model updates").setDesc(`Last checked: ${checkedAt}. The Deleometer stores the selected model digest and shows a notice when your local Ollama model library changes.`);

@@ -2126,6 +2126,8 @@ interface DeleometerSettings {
   openaiModel: string;
   localEndpoint: string;
   localModel: string;
+  localModelToInstall: string;
+  lastLocalModelNames: string[];
   lastLocalModelDigest: string;
   lastLocalModelLibrarySignature: string;
   lastLocalModelLibraryCheckedAt: string;
@@ -2158,6 +2160,8 @@ const DEFAULT_SETTINGS: DeleometerSettings = {
   openaiModel: 'gpt-4o-mini',
   localEndpoint: 'http://localhost:11434',
   localModel: 'llama3.1',
+  localModelToInstall: 'llama3.1',
+  lastLocalModelNames: [],
   lastLocalModelDigest: '',
   lastLocalModelLibrarySignature: '',
   lastLocalModelLibraryCheckedAt: '',
@@ -2171,6 +2175,13 @@ const DEFAULT_SETTINGS: DeleometerSettings = {
   myersBriggsProfile: null,
   maslowProfile: null,
   authorMemorySummary: ''
+};
+
+const RECOMMENDED_LOCAL_MODELS: Record<string, string> = {
+  'llama3.1': 'General-purpose starter model',
+  'qwen2.5': 'Strong general reasoning model',
+  'mistral': 'Smaller general-purpose model',
+  'gemma2': 'Compact general-purpose model'
 };
 
 interface ChatContext {
@@ -2396,6 +2407,47 @@ export default class DeleometerPlugin extends Plugin {
     return Array.isArray(data.models) ? data.models : [];
   }
 
+  async installLocalModel(modelName: string): Promise<void> {
+    const name = modelName.trim();
+    if (!name) throw new Error('Choose or type a model name to download into Ollama.');
+    const endpoint = this.settings.localEndpoint.replace(/\/+$/, '');
+    const response = await fetch(`${endpoint}/api/pull`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, stream: false })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Could not download "${name}" into Ollama (${response.status}). Check that Ollama is running and the model name is valid.`);
+    }
+
+    const data = await response.json() as { error?: string; status?: string };
+    if (data.error) throw new Error(data.error);
+    this.settings.localModel = name;
+    this.settings.localModelToInstall = name;
+    await this.saveSettings();
+    await this.checkLocalModelLibrary(false);
+  }
+
+  getLocalModelName(model: LocalModelInfo): string {
+    return model.name || model.model || '';
+  }
+
+  getLocalModelNames(models: LocalModelInfo[]): string[] {
+    return models
+      .map((model) => this.getLocalModelName(model).trim())
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
+  }
+
+  getLocalModelSetupHelp(): string {
+    return [
+      'Local Ollama mode requires the Ollama app/server to be installed and running on this computer.',
+      'The Deleometer cannot use a local model until at least one model has been downloaded in Ollama.',
+      'Recommended starter commands: ollama pull llama3.1, ollama pull qwen2.5, or ollama pull mistral.'
+    ].join(' ');
+  }
+
   getLocalModelLibrarySignature(models: LocalModelInfo[]): string {
     return models
       .map((model) => `${model.name}|${model.digest || ''}|${model.modified_at || ''}|${model.size || ''}`)
@@ -2408,17 +2460,25 @@ export default class DeleometerPlugin extends Plugin {
     try {
       const models = await this.fetchLocalModels();
       const signature = this.getLocalModelLibrarySignature(models);
-      const selectedModel = models.find((model) => model.name === this.settings.localModel || model.model === this.settings.localModel);
+      const modelNames = this.getLocalModelNames(models);
       const previousSignature = this.settings.lastLocalModelLibrarySignature;
       const previousDigest = this.settings.lastLocalModelDigest;
+      const selectedModelName = modelNames.includes(this.settings.localModel)
+        ? this.settings.localModel
+        : modelNames[0] || this.settings.localModel;
+      const selectedModel = models.find((model) => model.name === selectedModelName || model.model === selectedModelName);
       const nextDigest = selectedModel?.digest || '';
 
       this.settings.lastLocalModelLibrarySignature = signature;
+      this.settings.lastLocalModelNames = modelNames;
       this.settings.lastLocalModelDigest = nextDigest;
       this.settings.lastLocalModelLibraryCheckedAt = new Date().toISOString();
+      this.settings.localModel = selectedModelName;
       await this.saveSettings();
 
-      if (previousDigest && nextDigest && previousDigest !== nextDigest) {
+      if (modelNames.length === 0 && showNotice) {
+        new Notice('Ollama is running, but no local models are installed. Download one in Ollama, then refresh local models again.', 12000);
+      } else if (previousDigest && nextDigest && previousDigest !== nextDigest) {
         new Notice(`Your selected local model "${this.settings.localModel}" has been updated locally.`, 12000);
       } else if (previousSignature && previousSignature !== signature) {
         new Notice('Your local Ollama model library has changed. Review the selected model in The Deleometer settings.', 12000);
@@ -6337,6 +6397,10 @@ ${event.kind === 'goal_due'
     this.settings.openaiModel = this.settings.openaiModel?.trim() || DEFAULT_SETTINGS.openaiModel;
     this.settings.localEndpoint = this.settings.localEndpoint?.trim() || DEFAULT_SETTINGS.localEndpoint;
     this.settings.localModel = this.settings.localModel?.trim() || DEFAULT_SETTINGS.localModel;
+    this.settings.localModelToInstall = this.settings.localModelToInstall?.trim() || DEFAULT_SETTINGS.localModelToInstall;
+    this.settings.lastLocalModelNames = Array.isArray(this.settings.lastLocalModelNames)
+      ? this.settings.lastLocalModelNames.filter((value): value is string => typeof value === 'string' && !!value.trim()).map((value) => value.trim())
+      : DEFAULT_SETTINGS.lastLocalModelNames;
     this.settings.lastLocalModelDigest = typeof this.settings.lastLocalModelDigest === 'string'
       ? this.settings.lastLocalModelDigest
       : DEFAULT_SETTINGS.lastLocalModelDigest;
@@ -8690,7 +8754,7 @@ class DeleometerSettingTab extends PluginSettingTab {
     if (this.plugin.settings.aiProvider === 'ollama') {
       new Setting(containerEl)
         .setName('Local Ollama endpoint')
-        .setDesc('Local AI mode sends journal and chat context to this endpoint only. The plugin will not fall back to OpenAI.')
+        .setDesc(`${this.plugin.getLocalModelSetupHelp()} Local AI mode sends journal and chat context to this endpoint only. The plugin will not fall back to OpenAI.`)
         .addText((text) => text
           .setPlaceholder(DEFAULT_SETTINGS.localEndpoint)
           .setValue(this.plugin.settings.localEndpoint)
@@ -8699,9 +8763,29 @@ class DeleometerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }));
 
+      const installedLocalModels = this.plugin.settings.lastLocalModelNames;
+      if (installedLocalModels.length > 0) {
+        new Setting(containerEl)
+          .setName('Installed Ollama model')
+          .setDesc('Choose from models currently detected in the local Ollama library.')
+          .addDropdown((dropdown) => {
+            installedLocalModels.forEach((modelName) => dropdown.addOption(modelName, modelName));
+            dropdown
+              .setValue(installedLocalModels.includes(this.plugin.settings.localModel)
+                ? this.plugin.settings.localModel
+                : installedLocalModels[0])
+              .onChange(async (value) => {
+                this.plugin.settings.localModel = value;
+                await this.plugin.saveSettings();
+              });
+          });
+      }
+
       new Setting(containerEl)
-        .setName('Local model')
-        .setDesc('The Ollama model name to use, for example llama3.1, mistral, qwen2.5, or gemma2.')
+        .setName('Manual Ollama model name')
+        .setDesc(installedLocalModels.length > 0
+          ? 'Advanced: type a model name manually if it is not shown in the installed model list.'
+          : 'No installed models have been detected yet. Install Ollama, download a model, then refresh. Example model names: llama3.1, qwen2.5, mistral, gemma2.')
         .addText((text) => text
           .setPlaceholder(DEFAULT_SETTINGS.localModel)
           .setValue(this.plugin.settings.localModel)
@@ -8710,10 +8794,54 @@ class DeleometerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }))
         .addButton((button) => button
-          .setButtonText('Refresh local models')
+          .setButtonText('Find installed models')
           .onClick(async () => {
             await this.plugin.checkLocalModelLibrary(true);
             this.display();
+          }));
+
+      new Setting(containerEl)
+        .setName('Download model into Ollama')
+        .setDesc('Choose a recommended model or type any Ollama model name. This downloads the model to this computer through the local Ollama server, then selects it for The Deleometer.')
+        .addDropdown((dropdown) => {
+          Object.entries(RECOMMENDED_LOCAL_MODELS).forEach(([modelName, description]) => {
+            dropdown.addOption(modelName, `${modelName} - ${description}`);
+          });
+          if (!RECOMMENDED_LOCAL_MODELS[this.plugin.settings.localModelToInstall]) {
+            dropdown.addOption(this.plugin.settings.localModelToInstall, this.plugin.settings.localModelToInstall);
+          }
+          dropdown
+            .setValue(this.plugin.settings.localModelToInstall)
+            .onChange(async (value) => {
+              this.plugin.settings.localModelToInstall = value;
+              await this.plugin.saveSettings();
+              this.display();
+            });
+        })
+        .addText((text) => text
+          .setPlaceholder('Any Ollama model name')
+          .setValue(this.plugin.settings.localModelToInstall)
+          .onChange(async (value) => {
+            this.plugin.settings.localModelToInstall = value.trim() || DEFAULT_SETTINGS.localModelToInstall;
+            await this.plugin.saveSettings();
+          }))
+        .addButton((button) => button
+          .setButtonText('Download')
+          .onClick(async () => {
+            const modelName = this.plugin.settings.localModelToInstall.trim();
+            button.setDisabled(true);
+            button.setButtonText('Downloading...');
+            try {
+              await this.plugin.installLocalModel(modelName);
+              new Notice(`Downloaded and selected local model "${modelName}".`, 12000);
+              this.display();
+            } catch (error) {
+              new Notice(this.plugin.getAIErrorMessage(error, `Could not download "${modelName}" into Ollama`), 12000);
+              console.error(error);
+            } finally {
+              button.setDisabled(false);
+              button.setButtonText('Download');
+            }
           }));
 
       const checkedAt = this.plugin.settings.lastLocalModelLibraryCheckedAt
