@@ -11,11 +11,11 @@ The Deleometer is a reflective conversation and journaling tool. It is not a med
 
 AI can make mistakes and can sound more certain than it is. Treat Deleometer responses as invitations to think with, question, revise, and discuss, not as truth to absorb undiluted. Use it like a rigorous conversation with a thoughtful friend, not an all-knowing or infallible robot. Continuing to chat with the AI can help mistakes become clearer, because you can challenge the response, ask for evidence, request a simpler explanation, or ask it to reinterpret the same entry through another frame.
 
-Your OpenAI API key is hidden in the settings screen, but it is still stored locally in Obsidian plugin data. If your vault, device backups, or plugin data are synced or shared, treat the key as sensitive.
+If you use OpenAI mode, your OpenAI API key is hidden in the settings screen, but it is still stored locally in Obsidian plugin data. If your vault, device backups, or plugin data are synced or shared, treat the key as sensitive.
 
 ## Security and Privacy
 
-The Deleometer is an Obsidian plugin, not a sealed or encrypted vault. AI features send the relevant journal, chat, goal, author memory, and analysis context to OpenAI. The settings include privacy controls for redacting common sensitive details before AI calls, keeping author memory local, excluding the personality profile from prompts, clearing stored author memory, clearing the API key, and avoiding full-journal context in perspective chat.
+The Deleometer is an Obsidian plugin, not a sealed or encrypted vault. AI features send the relevant journal, chat, goal, author memory, and analysis context to the AI provider selected in settings. OpenAI mode sends context to OpenAI. Local Ollama mode sends context only to the configured local endpoint and does not silently fall back to OpenAI. The settings include privacy controls for redacting common sensitive details before AI calls, keeping author memory local, excluding the personality profile from prompts, clearing stored author memory, clearing the API key, avoiding full-journal context in perspective chat, and checking the local Ollama model library for changes.
 
 Saved analyses, chats, goals, author memory, and plugin settings are stored locally as Obsidian data or Markdown. The Deleometer does not encrypt those files. Anyone with access to the vault, backups, sync provider, device account, or another sufficiently powerful Obsidian plugin may be able to read them. Install the plugin only from the MichelleGDyason GitHub repository or the official Obsidian community plugin listing when available, and treat BRAT beta releases as development builds.
 
@@ -50,7 +50,7 @@ The plugin keeps an author memory summary so later analyses can respond as part 
 ## Requirements
 
 - Obsidian `1.5.0` or later
-- an OpenAI API key
+- either an OpenAI API key or a local Ollama installation with a downloaded model
 - desktop Obsidian is recommended for the full workflow
 
 ## Installation
@@ -92,9 +92,12 @@ Obsidian does not load `main.ts` directly. It must be built into `main.js`.
 After enabling the plugin:
 
 1. Open `Settings -> Community plugins -> The Deleometer`.
-2. Paste your OpenAI API key.
-3. Confirm or change the journal, goals, and milestones folders.
-4. If you use Full Calendar, set the `Full Calendar Folder` to the folder watched by your Full Calendar local source.
+2. Choose an AI provider: OpenAI or Local Ollama.
+3. For OpenAI, paste your OpenAI API key. For Local Ollama, set the local endpoint and model name.
+4. Confirm or change the journal, goals, and milestones folders.
+5. If you use Full Calendar, set the `Full Calendar Folder` to the folder watched by your Full Calendar local source.
+
+Local Ollama models are local files. They do not update themselves inside The Deleometer. The plugin records the selected model digest and local model library signature, and shows a notice when your local Ollama model library changes. Use the `Refresh local models` button in settings after pulling or replacing local models.
 
 ## Basic Workflow
 

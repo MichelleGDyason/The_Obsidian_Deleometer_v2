@@ -1967,7 +1967,7 @@ const ENTRY_TYPES: Record<string, string> = {
 };
 
 const SAFETY_DISCLAIMER = 'The Deleometer is a reflective conversation and journaling tool, not a medical device, diagnosis, treatment, or substitute for medication, therapy, crisis support, or professional care. AI can make mistakes and can sound more certain than it is. Treat responses as invitations to think with, question, revise, and discuss, not as truth to absorb undiluted.';
-const PRIVACY_SECURITY_NOTICE = 'AI analysis sends journal, chat, goal, and context text to OpenAI when you use AI features. Saved analyses, chats, goals, author memory, and plugin settings are stored as local Obsidian data or Markdown, not encrypted by The Deleometer. Other installed Obsidian plugins, vault sync tools, backups, or anyone with device access may be able to read them.';
+const PRIVACY_SECURITY_NOTICE = 'AI analysis sends journal, chat, goal, and context text to the AI provider selected in settings. OpenAI mode sends context to OpenAI. Local Ollama mode sends context only to the configured local endpoint and never falls back to OpenAI automatically. Saved analyses, chats, goals, author memory, and plugin settings are stored as local Obsidian data or Markdown, not encrypted by The Deleometer. Other installed Obsidian plugins, vault sync tools, backups, or anyone with device access may be able to read them.';
 
 const ZPD_LEVELS: Record<string, { label: string; prompt: string }> = {
   primary_year_5: {
@@ -2121,7 +2121,14 @@ interface MilestoneMergeDraft {
 }
 
 interface DeleometerSettings {
+  aiProvider: AIProvider;
   openaiApiKey: string;
+  openaiModel: string;
+  localEndpoint: string;
+  localModel: string;
+  lastLocalModelDigest: string;
+  lastLocalModelLibrarySignature: string;
+  lastLocalModelLibraryCheckedAt: string;
   journalFolder: string;
   goalsFolder: string;
   milestonesFolder: string;
@@ -2146,7 +2153,15 @@ interface DeleometerSettings {
 }
 
 const DEFAULT_SETTINGS: DeleometerSettings = {
-  openaiApiKey: '', journalFolder: 'Deleometer/Journal', goalsFolder: 'Deleometer/Goals',
+  aiProvider: 'openai',
+  openaiApiKey: '',
+  openaiModel: 'gpt-4o-mini',
+  localEndpoint: 'http://localhost:11434',
+  localModel: 'llama3.1',
+  lastLocalModelDigest: '',
+  lastLocalModelLibrarySignature: '',
+  lastLocalModelLibraryCheckedAt: '',
+  journalFolder: 'Deleometer/Journal', goalsFolder: 'Deleometer/Goals',
   milestonesFolder: 'Deleometer/Milestones', songsFolder: 'Deleometer/Songs', chatsFolder: 'Deleometer/Chats', fullCalendarFolder: 'Deleometer/Calendar', autoSyncGoalsToFullCalendar: true,
   generateInspirationalSong: true,
   redactSensitiveDataBeforeAI: true, enableAuthorMemory: true, includeAuthorMemoryInAI: true,
@@ -2175,6 +2190,24 @@ interface ConversationMessage {
 }
 
 type AnalysisProgressCallback = (message: string) => void | Promise<void>;
+type AIProvider = 'openai' | 'ollama';
+type AIMessage = ChatCompletionMessageParam;
+type AIResponseFormat = { type: 'json_object' };
+
+interface AIChatCompletionRequest {
+  messages: AIMessage[];
+  max_tokens?: number;
+  response_format?: AIResponseFormat;
+  temperature?: number;
+}
+
+interface LocalModelInfo {
+  name: string;
+  model?: string;
+  modified_at?: string;
+  digest?: string;
+  size?: number;
+}
 
 export default class DeleometerPlugin extends Plugin {
   settings: DeleometerSettings;
@@ -2185,7 +2218,7 @@ export default class DeleometerPlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
-    if (this.settings.openaiApiKey) this.initializeOpenAI();
+    this.initializeAIProvider();
 
     this.registerView(VIEW_TYPE_DASHBOARD, (leaf) => new DashboardView(leaf, this));
     this.registerView(VIEW_TYPE_AI_CHAT, (leaf) => new AIChatView(leaf, this));
@@ -2271,6 +2304,131 @@ export default class DeleometerPlugin extends Plugin {
       dangerouslyAllowBrowser: true,
       maxRetries: 0
     });
+  }
+
+  initializeAIProvider() {
+    if (this.settings.aiProvider === 'openai' && this.settings.openaiApiKey) {
+      this.initializeOpenAI();
+      return;
+    }
+    this.openai = null;
+    if (this.settings.aiProvider === 'ollama') {
+      void this.checkLocalModelLibrary(false);
+    }
+  }
+
+  hasAIProviderConfigured(): boolean {
+    if (this.settings.aiProvider === 'openai') return !!this.settings.openaiApiKey.trim();
+    if (this.settings.aiProvider === 'ollama') return !!this.settings.localEndpoint.trim() && !!this.settings.localModel.trim();
+    return false;
+  }
+
+  getAIProviderSetupNotice(): string {
+    if (this.settings.aiProvider === 'ollama') {
+      return 'Configure a local Ollama endpoint and model in settings before using AI features';
+    }
+    return 'Please set your OpenAI API key in settings';
+  }
+
+  getAIProviderPrivacyNotice(): string {
+    if (this.settings.aiProvider === 'ollama') {
+      return `Local AI mode: journal and chat context is sent only to ${this.settings.localEndpoint || 'your local endpoint'}. The Deleometer will not fall back to OpenAI automatically.`;
+    }
+    return 'OpenAI mode: journal and chat context is sent to OpenAI when you use AI features.';
+  }
+
+  async createAIChatCompletion(request: AIChatCompletionRequest): Promise<string> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+
+    if (this.settings.aiProvider === 'ollama') {
+      return this.createOllamaChatCompletion(request);
+    }
+
+    if (!this.openai) this.initializeOpenAI();
+    const openai = this.openai;
+    if (!openai) throw new Error('OpenAI not initialized');
+    const response = await openai.chat.completions.create({
+      model: this.settings.openaiModel || DEFAULT_SETTINGS.openaiModel,
+      response_format: request.response_format,
+      max_tokens: request.max_tokens,
+      temperature: request.temperature,
+      messages: request.messages
+    });
+    return response.choices[0]?.message?.content || '';
+  }
+
+  async createOllamaChatCompletion(request: AIChatCompletionRequest): Promise<string> {
+    const endpoint = this.settings.localEndpoint.replace(/\/+$/, '');
+    const response = await fetch(`${endpoint}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: this.settings.localModel,
+        messages: request.messages.map((message) => ({
+          role: message.role,
+          content: typeof message.content === 'string' ? message.content : JSON.stringify(message.content)
+        })),
+        stream: false,
+        format: request.response_format?.type === 'json_object' ? 'json' : undefined,
+        options: {
+          temperature: request.temperature,
+          num_predict: request.max_tokens
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Local Ollama request failed (${response.status}). Check that Ollama is running and model "${this.settings.localModel}" is installed.`);
+    }
+
+    const data = await response.json() as { message?: { content?: string }; error?: string };
+    if (data.error) throw new Error(data.error);
+    return data.message?.content || '';
+  }
+
+  async fetchLocalModels(): Promise<LocalModelInfo[]> {
+    const endpoint = this.settings.localEndpoint.replace(/\/+$/, '');
+    const response = await fetch(`${endpoint}/api/tags`);
+    if (!response.ok) {
+      throw new Error(`Could not read local model library (${response.status})`);
+    }
+    const data = await response.json() as { models?: LocalModelInfo[] };
+    return Array.isArray(data.models) ? data.models : [];
+  }
+
+  getLocalModelLibrarySignature(models: LocalModelInfo[]): string {
+    return models
+      .map((model) => `${model.name}|${model.digest || ''}|${model.modified_at || ''}|${model.size || ''}`)
+      .sort()
+      .join('\n');
+  }
+
+  async checkLocalModelLibrary(showNotice: boolean = true): Promise<void> {
+    if (this.settings.aiProvider !== 'ollama') return;
+    try {
+      const models = await this.fetchLocalModels();
+      const signature = this.getLocalModelLibrarySignature(models);
+      const selectedModel = models.find((model) => model.name === this.settings.localModel || model.model === this.settings.localModel);
+      const previousSignature = this.settings.lastLocalModelLibrarySignature;
+      const previousDigest = this.settings.lastLocalModelDigest;
+      const nextDigest = selectedModel?.digest || '';
+
+      this.settings.lastLocalModelLibrarySignature = signature;
+      this.settings.lastLocalModelDigest = nextDigest;
+      this.settings.lastLocalModelLibraryCheckedAt = new Date().toISOString();
+      await this.saveSettings();
+
+      if (previousDigest && nextDigest && previousDigest !== nextDigest) {
+        new Notice(`Your selected local model "${this.settings.localModel}" has been updated locally.`, 12000);
+      } else if (previousSignature && previousSignature !== signature) {
+        new Notice('Your local Ollama model library has changed. Review the selected model in The Deleometer settings.', 12000);
+      } else if (showNotice) {
+        new Notice(`Local model library checked. ${models.length} model${models.length === 1 ? '' : 's'} available.`);
+      }
+    } catch (error) {
+      if (showNotice) new Notice(this.getAIErrorMessage(error, 'Could not check local model library'));
+      console.error(error);
+    }
   }
 
   async ensureFolder(path: string) {
@@ -2404,7 +2562,7 @@ export default class DeleometerPlugin extends Plugin {
   }
 
   async analyzeCurrentNote(editor: Editor) {
-    if (!this.openai) { new Notice('Please set your API key in settings'); return; }
+    if (!this.hasAIProviderConfigured()) { new Notice(this.getAIProviderSetupNotice()); return; }
     const content = editor.getValue();
     const sourceFile = this.app.workspace.getActiveFile();
     const estimateText = this.getAnalysisEstimateText(content);
@@ -2415,7 +2573,7 @@ export default class DeleometerPlugin extends Plugin {
       });
       new AnalysisResultModal(this.app, this, analysis, content, sourceFile).open();
     } catch (error) {
-      new Notice(this.getOpenAIErrorMessage(error, 'Error analyzing emotions'));
+      new Notice(this.getAIErrorMessage(error, 'Error analyzing emotions'));
       console.error(error);
     }
   }
@@ -2465,7 +2623,7 @@ export default class DeleometerPlugin extends Plugin {
   }
 
   async runJournalAnalysisForFile(sourceFile: TFile, journalContent: string): Promise<AnalysisPayload> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
     if (this.isAnalysisRunningForFile(sourceFile.path)) {
       throw new Error('An analysis is already running for this note');
     }
@@ -2530,7 +2688,7 @@ export default class DeleometerPlugin extends Plugin {
   }
 
   async getMultiPerspectiveAnalysis(content: string, onProgress?: AnalysisProgressCallback): Promise<AnalysisPayload> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
     const selectedPerspectiveKeys = new Set(this.settings.selectedPerspectives);
     const perspectives = getChronologicalPerspectiveKeys()
       .filter((key) => selectedPerspectiveKeys.has(key))
@@ -2774,14 +2932,13 @@ export default class DeleometerPlugin extends Plugin {
   }
 
   async prepareJournalContentForAnalysis(content: string, onProgress?: AnalysisProgressCallback): Promise<string> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
     const maxDirectAnalysisChars = 12000;
     if (content.length <= maxDirectAnalysisChars) return content;
 
     await onProgress?.('Creating a compact analysis brief for this long journal entry...');
     try {
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+      const rawContent = await this.createAIChatCompletion({
         response_format: { type: 'json_object' },
         max_tokens: 2500,
         messages: [
@@ -2798,7 +2955,6 @@ export default class DeleometerPlugin extends Plugin {
           }
         ]
       });
-      const rawContent = response.choices[0]?.message?.content;
       if (!rawContent) throw new Error('No analysis brief returned');
       const parsed = this.parseJsonObject(rawContent);
       const brief = typeof parsed.analysis_brief === 'string' ? parsed.analysis_brief.trim() : '';
@@ -2894,14 +3050,13 @@ export default class DeleometerPlugin extends Plugin {
     authorMemoryContext: string,
     readerContext: string
   ): Promise<{ perspectives: Record<string, string>; furtherReadings: Record<string, string[]>; groupSynthesis: string }> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
     const group = PERSPECTIVE_GROUPS[groupKey];
     const perspectiveList = perspectives
       .map(({ key, perspective }) => `- ${buildPerspectivePromptDescriptor(key, perspective)}`)
       .join('\n');
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const rawContent = await this.createAIChatCompletion({
       response_format: { type: 'json_object' },
       max_tokens: 12000,
       messages: [
@@ -2962,8 +3117,6 @@ export default class DeleometerPlugin extends Plugin {
         }
       ]
     });
-
-    const rawContent = response.choices[0]?.message?.content;
     if (!rawContent) throw new Error('No analysis returned');
 
     const parsed = this.parseJsonObject(rawContent);
@@ -3013,13 +3166,12 @@ export default class DeleometerPlugin extends Plugin {
     authorMemoryContext: string,
     readerContext: string
   ): Promise<{ perspectives: Record<string, string>; furtherReadings: Record<string, string[]> }> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
     const perspectiveList = perspectives
       .map(({ key, perspective }) => `- ${buildPerspectivePromptDescriptor(key, perspective)}`)
       .join('\n');
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const rawContent = await this.createAIChatCompletion({
       response_format: { type: 'json_object' },
       max_tokens: 11000,
       messages: [
@@ -3078,8 +3230,6 @@ export default class DeleometerPlugin extends Plugin {
         }
       ]
     });
-
-    const rawContent = response.choices[0]?.message?.content;
     if (!rawContent) throw new Error('No analysis returned');
 
     const parsed = this.parseJsonObject(rawContent);
@@ -3126,7 +3276,7 @@ export default class DeleometerPlugin extends Plugin {
     authorMemoryContext: string,
     readerContext: string
   ): Promise<string> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
     const group = PERSPECTIVE_GROUPS[groupKey];
     const analysisList = perspectiveKeys
       .map((key) => {
@@ -3136,8 +3286,7 @@ export default class DeleometerPlugin extends Plugin {
       })
       .join('\n');
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const rawContent = await this.createAIChatCompletion({
       max_tokens: 1200,
       messages: [
         {
@@ -3158,7 +3307,7 @@ export default class DeleometerPlugin extends Plugin {
       ]
     });
 
-    return this.normalizeGeneratedEnglishUsage(response.choices[0]?.message?.content?.trim() || '');
+    return this.normalizeGeneratedEnglishUsage(rawContent.trim());
   }
 
   async getSingleGeneratedPerspectiveAnalysis(
@@ -3169,9 +3318,8 @@ export default class DeleometerPlugin extends Plugin {
     authorMemoryContext: string,
     readerContext: string
   ): Promise<{ analysis: string; furtherReadings: string[] }> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+    const rawContent = await this.createAIChatCompletion({
       response_format: { type: 'json_object' },
       max_tokens: 2500,
       messages: [
@@ -3199,7 +3347,6 @@ export default class DeleometerPlugin extends Plugin {
         }
       ]
     });
-    const rawContent = response.choices[0]?.message?.content;
     if (!rawContent) return { analysis: '', furtherReadings: [] };
     const parsed = this.parseJsonObject(rawContent);
     const analysis = typeof parsed.analysis === 'string' ? this.normalizeGeneratedEnglishUsage(parsed.analysis.trim()) : '';
@@ -3219,7 +3366,7 @@ export default class DeleometerPlugin extends Plugin {
     authorMemoryContext: string,
     readerContext: string
   ): Promise<Record<string, string[]>> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
     const perspectiveList = perspectives
       .map(({ key, perspective }) => {
         const analysisExcerpt = (perspectiveAnalyses[key] || '').slice(0, 800);
@@ -3227,8 +3374,7 @@ export default class DeleometerPlugin extends Plugin {
       })
       .join('\n');
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const rawContent = await this.createAIChatCompletion({
       response_format: { type: 'json_object' },
       max_tokens: 5000,
       messages: [
@@ -3251,8 +3397,6 @@ export default class DeleometerPlugin extends Plugin {
         }
       ]
     });
-
-    const rawContent = response.choices[0]?.message?.content;
     if (!rawContent) return {};
 
     const parsed = this.parseJsonObject(rawContent);
@@ -3285,7 +3429,7 @@ export default class DeleometerPlugin extends Plugin {
     readerContext: string,
     dateContext: string
   ): Promise<{ philosophicalReaccumulation: string; authorMemorySummary: string }> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
     const groupList = selectedGroupKeys
       .map((groupKey) => `- ${groupKey}: ${PERSPECTIVE_GROUPS[groupKey]?.title || groupKey}\n${groupSyntheses[groupKey] || 'No group synthesis returned.'}`)
       .join('\n\n');
@@ -3293,8 +3437,7 @@ export default class DeleometerPlugin extends Plugin {
       .map(([key, value]) => `- ${key}: ${value.slice(0, 700)}`)
       .join('\n');
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const rawContent = await this.createAIChatCompletion({
       response_format: { type: 'json_object' },
       max_tokens: 4500,
       messages: [
@@ -3317,7 +3460,6 @@ export default class DeleometerPlugin extends Plugin {
         }
       ]
     });
-    const rawContent = response.choices[0]?.message?.content;
     if (!rawContent) {
       return { philosophicalReaccumulation: '', authorMemorySummary: this.settings.authorMemorySummary };
     }
@@ -3338,7 +3480,7 @@ export default class DeleometerPlugin extends Plugin {
     analysis: AnalysisPayload,
     sourceAnalysisPath: string = ''
   ): Promise<GoalSuggestion[]> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
 
     const selectedGroupKeys = Object.keys(analysis.groupSyntheses);
     const groupList = selectedGroupKeys.length > 0
@@ -3354,8 +3496,7 @@ export default class DeleometerPlugin extends Plugin {
     const readerContext = this.getReaderContextPrompt();
     const dateContext = this.getLocalDateContext();
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const rawContent = await this.createAIChatCompletion({
       response_format: { type: 'json_object' },
       max_tokens: 2500,
       messages: [
@@ -3378,8 +3519,6 @@ export default class DeleometerPlugin extends Plugin {
         }
       ]
     });
-
-    const rawContent = response.choices[0]?.message?.content;
     if (!rawContent) return [];
     const parsed = this.parseJsonObject(rawContent);
     return this.parseGoalSuggestions(parsed.goal_suggestions)
@@ -3399,7 +3538,7 @@ export default class DeleometerPlugin extends Plugin {
     authorMemoryContext: string,
     readerContext: string
   ): Promise<{ song: InspirationalSong | null; warning?: string }> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
 
     const perspectiveSummaries = Object.entries(perspectives)
       .slice(0, 24)
@@ -3409,8 +3548,7 @@ export default class DeleometerPlugin extends Plugin {
       .map(([key, value]) => `- ${PERSPECTIVE_GROUPS[key]?.title || key}: ${value.slice(0, 320)}`)
       .join('\n');
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const rawContent = await this.createAIChatCompletion({
       response_format: { type: 'json_object' },
       max_tokens: 2200,
       messages: [
@@ -3442,8 +3580,6 @@ export default class DeleometerPlugin extends Plugin {
         }
       ]
     });
-
-    const rawContent = response.choices[0]?.message?.content;
     if (!rawContent) {
       return {
         song: this.buildFallbackInspirationalSong(content, philosophicalReaccumulation),
@@ -3675,7 +3811,7 @@ export default class DeleometerPlugin extends Plugin {
     perspective: string,
     contextOverride?: { title?: string; description?: string }
   ): Promise<string> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
     const persp = PERSPECTIVES[perspective];
     const authorContext = this.buildAuthorContext();
     const specializationTitle = contextOverride?.title?.trim() || persp?.title || 'reflective analysis';
@@ -3688,14 +3824,12 @@ export default class DeleometerPlugin extends Plugin {
       role: message.role,
       content: this.prepareTextForAI(message.content)
     }));
-    const response = await this.openai.chat.completions.create({ model: 'gpt-4o-mini', messages: [systemMessage, ...conversation] });
-    return this.normalizeGeneratedEnglishUsage(
-      response.choices[0]?.message?.content || 'I apologize, I could not generate a response.'
-    );
+    const rawContent = await this.createAIChatCompletion({ messages: [systemMessage, ...conversation] });
+    return this.normalizeGeneratedEnglishUsage(rawContent || 'I apologize, I could not generate a response.');
   }
 
   async getRandomJournalPrompt(): Promise<string> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
 
     const goalStats = this.getGoalStats();
     const activeGoalFiles = goalStats.goals
@@ -3722,8 +3856,7 @@ export default class DeleometerPlugin extends Plugin {
     const preparedGoalContext = this.prepareTextForAI(goalContext);
     const preparedJournalContext = this.prepareTextForAI(journalContext);
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const rawContent = await this.createAIChatCompletion({
       temperature: 1,
       messages: [
         {
@@ -3755,7 +3888,7 @@ export default class DeleometerPlugin extends Plugin {
     });
 
     return this.normalizeGeneratedEnglishUsage(
-      response.choices[0]?.message?.content?.trim() || 'Write about a moment today that quietly echoed one of your deeper goals, and follow that thread until it reveals what you most need right now.'
+      rawContent.trim() || 'Write about a moment today that quietly echoed one of your deeper goals, and follow that thread until it reveals what you most need right now.'
     );
   }
 
@@ -4115,7 +4248,7 @@ export default class DeleometerPlugin extends Plugin {
     return 'Unknown error';
   }
 
-  getOpenAIErrorMessage(error: unknown, fallback: string): string {
+  getAIErrorMessage(error: unknown, fallback: string): string {
     if (error && typeof error === 'object') {
       const maybeError = error as {
         status?: number;
@@ -6198,6 +6331,21 @@ ${event.kind === 'goal_due'
     this.settings.songsFolder = this.normalizeFolderSetting(this.settings.songsFolder, DEFAULT_SETTINGS.songsFolder);
     this.settings.chatsFolder = this.normalizeFolderSetting(this.settings.chatsFolder, DEFAULT_SETTINGS.chatsFolder);
     this.settings.fullCalendarFolder = this.normalizeFullCalendarFolderSetting(this.settings.fullCalendarFolder);
+    if (this.settings.aiProvider !== 'openai' && this.settings.aiProvider !== 'ollama') {
+      this.settings.aiProvider = DEFAULT_SETTINGS.aiProvider;
+    }
+    this.settings.openaiModel = this.settings.openaiModel?.trim() || DEFAULT_SETTINGS.openaiModel;
+    this.settings.localEndpoint = this.settings.localEndpoint?.trim() || DEFAULT_SETTINGS.localEndpoint;
+    this.settings.localModel = this.settings.localModel?.trim() || DEFAULT_SETTINGS.localModel;
+    this.settings.lastLocalModelDigest = typeof this.settings.lastLocalModelDigest === 'string'
+      ? this.settings.lastLocalModelDigest
+      : DEFAULT_SETTINGS.lastLocalModelDigest;
+    this.settings.lastLocalModelLibrarySignature = typeof this.settings.lastLocalModelLibrarySignature === 'string'
+      ? this.settings.lastLocalModelLibrarySignature
+      : DEFAULT_SETTINGS.lastLocalModelLibrarySignature;
+    this.settings.lastLocalModelLibraryCheckedAt = typeof this.settings.lastLocalModelLibraryCheckedAt === 'string'
+      ? this.settings.lastLocalModelLibraryCheckedAt
+      : DEFAULT_SETTINGS.lastLocalModelLibraryCheckedAt;
     if (!ZPD_LEVELS[this.settings.zpdLevel]) {
       this.settings.zpdLevel = DEFAULT_SETTINGS.zpdLevel;
     }
@@ -6854,7 +7002,7 @@ class AIChatView extends ItemView {
   async sendMessage() {
     const content = this.inputArea.value.trim();
     if (!content) return;
-    if (!this.plugin.openai) { new Notice('Please set your API key in settings'); return; }
+    if (!this.plugin.hasAIProviderConfigured()) { new Notice(this.plugin.getAIProviderSetupNotice()); return; }
 
     this.inputArea.value = '';
     this.addMessage('user', content);
@@ -6876,8 +7024,8 @@ class AIChatView extends ItemView {
       this.chatMessages.push({ role: 'assistant', content: response });
     } catch (error) {
       loadingDiv.remove();
-      this.addMessage('assistant', this.plugin.getOpenAIErrorMessage(error, 'I could not process your message.'));
-      new Notice(this.plugin.getOpenAIErrorMessage(error, 'Error processing your message'));
+      this.addMessage('assistant', this.plugin.getAIErrorMessage(error, 'I could not process your message.'));
+      new Notice(this.plugin.getAIErrorMessage(error, 'Error processing your message'));
       console.error(error);
     }
   }
@@ -7135,8 +7283,8 @@ class JournalEntryModal extends Modal {
 
   async generatePrompt(button: HTMLButtonElement) {
     if (this.isGeneratingPrompt) return;
-    if (!this.plugin.openai) {
-      new Notice('Please set your API key in settings to generate prompts');
+    if (!this.plugin.hasAIProviderConfigured()) {
+      new Notice(this.plugin.getAIProviderSetupNotice());
       return;
     }
 
@@ -7151,7 +7299,7 @@ class JournalEntryModal extends Modal {
       this.promptUseBtn.disabled = !this.suggestedPrompt;
     } catch (error) {
       this.promptDisplay.setText('Could not generate a prompt right now.');
-      new Notice(this.plugin.getOpenAIErrorMessage(error, 'Error generating journal prompt'));
+      new Notice(this.plugin.getAIErrorMessage(error, 'Error generating journal prompt'));
       console.error(error);
     } finally {
       this.isGeneratingPrompt = false;
@@ -7202,8 +7350,8 @@ ${this.content}
       this.close();
 
       if (analyze) {
-        if (!this.plugin.openai) {
-          new Notice('Please set your API key in settings to analyze');
+        if (!this.plugin.hasAIProviderConfigured()) {
+          new Notice(this.plugin.getAIProviderSetupNotice());
           return;
         }
         try {
@@ -7213,7 +7361,7 @@ ${this.content}
           new AnalysisResultModal(this.app, this.plugin, analysis, journalContent, file).open();
           new Notice('Analysis added to the note');
         } catch (error) {
-          new Notice(this.plugin.getOpenAIErrorMessage(error, 'Error analyzing journal entry'));
+          new Notice(this.plugin.getAIErrorMessage(error, 'Error analyzing journal entry'));
           console.error(error);
         }
       }
@@ -8484,31 +8632,97 @@ class DeleometerSettingTab extends PluginSettingTab {
       .setHeading();
 
     new Setting(containerEl)
-      .setName('API key')
-      .setDesc(this.plugin.settings.openaiApiKey
-        ? 'Your API key is hidden on screen, but it is still stored locally in Obsidian plugin data and may be included in vault backups or sync.'
-        : 'Your API key for AI analysis. It will be hidden on screen after you paste it, but stored locally in Obsidian plugin data.')
-      .addText((text) => {
-        text.inputEl.type = 'password';
-        text.inputEl.autocomplete = 'off';
-        text.inputEl.spellcheck = false;
-        text
-          .setPlaceholder('Paste your API key')
-          .setValue(this.plugin.settings.openaiApiKey)
-          .onChange(async (value) => {
-            this.plugin.settings.openaiApiKey = value;
-            await this.plugin.saveSettings();
-            if (value) this.plugin.initializeOpenAI();
-          });
-      })
-      .addButton((button) => button
-        .setButtonText('Clear key')
-        .onClick(async () => {
-          this.plugin.settings.openaiApiKey = '';
-          this.plugin.openai = null;
+      .setName('AI provider')
+      .setDesc(this.plugin.getAIProviderPrivacyNotice())
+      .addDropdown((dropdown) => dropdown
+        .addOption('openai', 'OpenAI')
+        .addOption('ollama', 'Local Ollama')
+        .setValue(this.plugin.settings.aiProvider)
+        .onChange(async (value) => {
+          this.plugin.settings.aiProvider = value as AIProvider;
+          this.plugin.initializeAIProvider();
           await this.plugin.saveSettings();
           this.display();
         }));
+
+    if (this.plugin.settings.aiProvider === 'openai') {
+      new Setting(containerEl)
+        .setName('OpenAI model')
+        .setDesc('Model used for OpenAI analysis, chat, goals, songs, and prompts.')
+        .addText((text) => text
+          .setPlaceholder(DEFAULT_SETTINGS.openaiModel)
+          .setValue(this.plugin.settings.openaiModel)
+          .onChange(async (value) => {
+            this.plugin.settings.openaiModel = value.trim() || DEFAULT_SETTINGS.openaiModel;
+            await this.plugin.saveSettings();
+          }));
+    }
+
+    if (this.plugin.settings.aiProvider === 'openai') {
+      new Setting(containerEl)
+        .setName('API key')
+        .setDesc(this.plugin.settings.openaiApiKey
+          ? 'Your API key is hidden on screen, but it is still stored locally in Obsidian plugin data and may be included in vault backups or sync.'
+          : 'Your API key for AI analysis. It will be hidden on screen after you paste it, but stored locally in Obsidian plugin data.')
+        .addText((text) => {
+          text.inputEl.type = 'password';
+          text.inputEl.autocomplete = 'off';
+          text.inputEl.spellcheck = false;
+          text
+            .setPlaceholder('Paste your API key')
+            .setValue(this.plugin.settings.openaiApiKey)
+            .onChange(async (value) => {
+              this.plugin.settings.openaiApiKey = value;
+              await this.plugin.saveSettings();
+              if (value) this.plugin.initializeAIProvider();
+            });
+        })
+        .addButton((button) => button
+          .setButtonText('Clear key')
+          .onClick(async () => {
+            this.plugin.settings.openaiApiKey = '';
+            this.plugin.openai = null;
+            await this.plugin.saveSettings();
+            this.display();
+          }));
+    }
+
+    if (this.plugin.settings.aiProvider === 'ollama') {
+      new Setting(containerEl)
+        .setName('Local Ollama endpoint')
+        .setDesc('Local AI mode sends journal and chat context to this endpoint only. The plugin will not fall back to OpenAI.')
+        .addText((text) => text
+          .setPlaceholder(DEFAULT_SETTINGS.localEndpoint)
+          .setValue(this.plugin.settings.localEndpoint)
+          .onChange(async (value) => {
+            this.plugin.settings.localEndpoint = value.trim() || DEFAULT_SETTINGS.localEndpoint;
+            await this.plugin.saveSettings();
+          }));
+
+      new Setting(containerEl)
+        .setName('Local model')
+        .setDesc('The Ollama model name to use, for example llama3.1, mistral, qwen2.5, or gemma2.')
+        .addText((text) => text
+          .setPlaceholder(DEFAULT_SETTINGS.localModel)
+          .setValue(this.plugin.settings.localModel)
+          .onChange(async (value) => {
+            this.plugin.settings.localModel = value.trim() || DEFAULT_SETTINGS.localModel;
+            await this.plugin.saveSettings();
+          }))
+        .addButton((button) => button
+          .setButtonText('Refresh local models')
+          .onClick(async () => {
+            await this.plugin.checkLocalModelLibrary(true);
+            this.display();
+          }));
+
+      const checkedAt = this.plugin.settings.lastLocalModelLibraryCheckedAt
+        ? new Date(this.plugin.settings.lastLocalModelLibraryCheckedAt).toLocaleString()
+        : 'Not checked yet';
+      new Setting(containerEl)
+        .setName('Local model updates')
+        .setDesc(`Last checked: ${checkedAt}. The Deleometer stores the selected model digest and shows a notice when your local Ollama model library changes.`);
+    }
 
     new Setting(containerEl)
       .setName('Redact common sensitive details before AI calls')

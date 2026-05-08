@@ -3,7 +3,7 @@
   "name": "The Deleometer",
   "version": "1.0.2-beta.39",
   "minAppVersion": "1.5.0",
-  "description": "A plugin for deep self-discovery journaling using AI. Use analysis history, and export options. Requires an OpenAI API key.",
+  "description": "A plugin for deep self-discovery journaling using OpenAI or a local Ollama model. Use analysis history and export options.",
   "author": "Michelle G Dyason",
   "authorUrl": "https://github.com/MichelleGDyason",
   "fundingUrl": {
