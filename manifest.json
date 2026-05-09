@@ -1,7 +1,7 @@
 {
   "id": "the-deleometer",
   "name": "The Deleometer",
-  "version": "1.0.2-beta.43",
+  "version": "1.0.2-beta.44",
   "minAppVersion": "1.5.0",
   "description": "A plugin for deep self-discovery journaling using OpenAI or a local Ollama model. Use analysis history and export options.",
   "author": "Michelle G Dyason",

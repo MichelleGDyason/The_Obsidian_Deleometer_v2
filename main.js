@@ -9047,6 +9047,19 @@ ${this.settings.authorMemorySummary.trim()}`);
     }
     throw lastError instanceof Error ? lastError : new Error("Could not parse JSON response");
   }
+  parseJsonObjectOrNull(rawContent) {
+    try {
+      return this.parseJsonObject(rawContent);
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+  stripResponseFences(rawContent) {
+    var _a2, _b;
+    const trimmed = rawContent.trim().replace(/^\uFEFF/, "");
+    return ((_b = (_a2 = trimmed.match(/^```(?:json|markdown|md)?\s*([\s\S]*?)\s*```$/i)) == null ? void 0 : _a2[1]) == null ? void 0 : _b.trim()) || trimmed;
+  }
   normalizePerspectiveLookupKey(value) {
     return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
   }
@@ -9502,7 +9515,13 @@ ${content}`
       ]
     });
     if (!rawContent) return { analysis: "", furtherReadings: [] };
-    const parsed = this.parseJsonObject(rawContent);
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) {
+      return {
+        analysis: this.normalizeGeneratedEnglishUsage(this.stripResponseFences(rawContent)),
+        furtherReadings: []
+      };
+    }
     const analysis = typeof parsed.analysis === "string" ? this.normalizeGeneratedEnglishUsage(parsed.analysis.trim()) : this.normalizeGeneratedEnglishUsage(this.extractPerspectiveAnalysis(parsed, key, perspective));
     const furtherReadings = Array.isArray(parsed.further_readings) ? this.normalizeGeneratedEnglishUsageArray(
       parsed.further_readings.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 5)
@@ -9551,7 +9570,8 @@ ${content}`
       ]
     });
     if (!rawContent) return {};
-    const parsed = this.parseJsonObject(rawContent);
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) return {};
     const parsedFurtherReadings = parsed.further_readings && typeof parsed.further_readings === "object" ? parsed.further_readings : {};
     const furtherReadings = {};
     for (const { key } of perspectives) {
@@ -9610,7 +9630,13 @@ ${content}`
     if (!rawContent) {
       return { philosophicalReaccumulation: "", authorMemorySummary: this.settings.authorMemorySummary };
     }
-    const parsed = this.parseJsonObject(rawContent);
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) {
+      return {
+        philosophicalReaccumulation: this.normalizeGeneratedEnglishUsage(this.stripResponseFences(rawContent)),
+        authorMemorySummary: this.settings.authorMemorySummary
+      };
+    }
     const philosophicalReaccumulation = typeof parsed.philosophical_reaccumulation === "string" ? this.normalizeGeneratedEnglishUsage(parsed.philosophical_reaccumulation.trim()) : "";
     const authorMemorySummary = typeof parsed.author_memory_summary === "string" ? this.normalizeGeneratedEnglishUsage(parsed.author_memory_summary.trim()) : this.settings.authorMemorySummary;
     return { philosophicalReaccumulation, authorMemorySummary };
@@ -9667,7 +9693,8 @@ ${content}`
       ]
     });
     if (!rawContent) return [];
-    const parsed = this.parseJsonObject(rawContent);
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) return [];
     return this.parseGoalSuggestions(parsed.goal_suggestions).slice(0, 3).map((goal) => ({
       ...goal,
       sourceAnalysisPath: goal.sourceAnalysisPath || sourceAnalysisPath

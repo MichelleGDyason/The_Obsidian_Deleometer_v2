@@ -2954,6 +2954,20 @@ export default class DeleometerPlugin extends Plugin {
     throw lastError instanceof Error ? lastError : new Error('Could not parse JSON response');
   }
 
+  parseJsonObjectOrNull(rawContent: string): Record<string, unknown> | null {
+    try {
+      return this.parseJsonObject(rawContent);
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+
+  stripResponseFences(rawContent: string): string {
+    const trimmed = rawContent.trim().replace(/^\uFEFF/, '');
+    return trimmed.match(/^```(?:json|markdown|md)?\s*([\s\S]*?)\s*```$/i)?.[1]?.trim() || trimmed;
+  }
+
   normalizePerspectiveLookupKey(value: string): string {
     return value.toLowerCase().replace(/[^a-z0-9]+/g, '');
   }
@@ -3461,7 +3475,13 @@ export default class DeleometerPlugin extends Plugin {
       ]
     });
     if (!rawContent) return { analysis: '', furtherReadings: [] };
-    const parsed = this.parseJsonObject(rawContent);
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) {
+      return {
+        analysis: this.normalizeGeneratedEnglishUsage(this.stripResponseFences(rawContent)),
+        furtherReadings: []
+      };
+    }
     const analysis = typeof parsed.analysis === 'string'
       ? this.normalizeGeneratedEnglishUsage(parsed.analysis.trim())
       : this.normalizeGeneratedEnglishUsage(this.extractPerspectiveAnalysis(parsed, key, perspective));
@@ -3514,7 +3534,8 @@ export default class DeleometerPlugin extends Plugin {
     });
     if (!rawContent) return {};
 
-    const parsed = this.parseJsonObject(rawContent);
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) return {};
     const parsedFurtherReadings = parsed.further_readings && typeof parsed.further_readings === 'object'
       ? parsed.further_readings as Record<string, unknown>
       : {};
@@ -3579,7 +3600,13 @@ export default class DeleometerPlugin extends Plugin {
       return { philosophicalReaccumulation: '', authorMemorySummary: this.settings.authorMemorySummary };
     }
 
-    const parsed = this.parseJsonObject(rawContent);
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) {
+      return {
+        philosophicalReaccumulation: this.normalizeGeneratedEnglishUsage(this.stripResponseFences(rawContent)),
+        authorMemorySummary: this.settings.authorMemorySummary
+      };
+    }
     const philosophicalReaccumulation = typeof parsed.philosophical_reaccumulation === 'string'
       ? this.normalizeGeneratedEnglishUsage(parsed.philosophical_reaccumulation.trim())
       : '';
@@ -3635,7 +3662,8 @@ export default class DeleometerPlugin extends Plugin {
       ]
     });
     if (!rawContent) return [];
-    const parsed = this.parseJsonObject(rawContent);
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) return [];
     return this.parseGoalSuggestions(parsed.goal_suggestions)
       .slice(0, 3)
       .map((goal) => ({
