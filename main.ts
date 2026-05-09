@@ -2954,6 +2954,56 @@ export default class DeleometerPlugin extends Plugin {
     throw lastError instanceof Error ? lastError : new Error('Could not parse JSON response');
   }
 
+  normalizePerspectiveLookupKey(value: string): string {
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  }
+
+  extractGeneratedText(value: unknown): string {
+    if (typeof value === 'string') return value.trim();
+    if (!value || typeof value !== 'object') return '';
+    const record = value as Record<string, unknown>;
+    for (const field of ['analysis', 'content', 'text', 'response', 'interpretation', 'summary']) {
+      const fieldValue = record[field];
+      if (typeof fieldValue === 'string' && fieldValue.trim()) return fieldValue.trim();
+    }
+    return '';
+  }
+
+  extractPerspectiveAnalysis(
+    source: unknown,
+    key: string,
+    perspective: PerspectiveDefinition
+  ): string {
+    const wanted = new Set([
+      this.normalizePerspectiveLookupKey(key),
+      this.normalizePerspectiveLookupKey(perspective.title)
+    ]);
+
+    if (Array.isArray(source)) {
+      for (const item of source) {
+        if (!item || typeof item !== 'object') continue;
+        const record = item as Record<string, unknown>;
+        const labels = [record.key, record.perspective, record.title, record.name]
+          .filter((label): label is string => typeof label === 'string');
+        if (labels.some((label) => wanted.has(this.normalizePerspectiveLookupKey(label)))) {
+          const text = this.extractGeneratedText(record);
+          if (text) return text;
+        }
+      }
+      return '';
+    }
+
+    if (!source || typeof source !== 'object') return '';
+    const record = source as Record<string, unknown>;
+    for (const [entryKey, value] of Object.entries(record)) {
+      if (wanted.has(this.normalizePerspectiveLookupKey(entryKey))) {
+        const text = this.extractGeneratedText(value);
+        if (text) return text;
+      }
+    }
+    return '';
+  }
+
   closeJsonCandidate(candidate: string): string {
     let result = candidate.trim();
     const stack: string[] = [];
@@ -3184,14 +3234,14 @@ export default class DeleometerPlugin extends Plugin {
 
     const parsed = this.parseJsonObject(rawContent);
     const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === 'object'
-      ? parsed.perspectives as Record<string, unknown>
-      : {};
+      ? parsed.perspectives
+      : parsed;
     const results: Record<string, string> = {};
 
-    for (const { key } of perspectives) {
-      const value = parsedPerspectives[key];
-      if (typeof value === 'string' && value.trim()) {
-        results[key] = value.trim();
+    for (const { key, perspective } of perspectives) {
+      const value = this.extractPerspectiveAnalysis(parsedPerspectives, key, perspective);
+      if (value) {
+        results[key] = value;
       }
     }
 
@@ -3297,14 +3347,14 @@ export default class DeleometerPlugin extends Plugin {
 
     const parsed = this.parseJsonObject(rawContent);
     const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === 'object'
-      ? parsed.perspectives as Record<string, unknown>
-      : {};
+      ? parsed.perspectives
+      : parsed;
     const results: Record<string, string> = {};
 
-    for (const { key } of perspectives) {
-      const value = parsedPerspectives[key];
-      if (typeof value === 'string' && value.trim()) {
-        results[key] = value.trim();
+    for (const { key, perspective } of perspectives) {
+      const value = this.extractPerspectiveAnalysis(parsedPerspectives, key, perspective);
+      if (value) {
+        results[key] = value;
       }
     }
 
@@ -3412,7 +3462,9 @@ export default class DeleometerPlugin extends Plugin {
     });
     if (!rawContent) return { analysis: '', furtherReadings: [] };
     const parsed = this.parseJsonObject(rawContent);
-    const analysis = typeof parsed.analysis === 'string' ? this.normalizeGeneratedEnglishUsage(parsed.analysis.trim()) : '';
+    const analysis = typeof parsed.analysis === 'string'
+      ? this.normalizeGeneratedEnglishUsage(parsed.analysis.trim())
+      : this.normalizeGeneratedEnglishUsage(this.extractPerspectiveAnalysis(parsed, key, perspective));
     const furtherReadings = Array.isArray(parsed.further_readings)
       ? this.normalizeGeneratedEnglishUsageArray(
           parsed.further_readings.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean).slice(0, 5)

@@ -9047,6 +9047,46 @@ ${this.settings.authorMemorySummary.trim()}`);
     }
     throw lastError instanceof Error ? lastError : new Error("Could not parse JSON response");
   }
+  normalizePerspectiveLookupKey(value) {
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+  }
+  extractGeneratedText(value) {
+    if (typeof value === "string") return value.trim();
+    if (!value || typeof value !== "object") return "";
+    const record = value;
+    for (const field of ["analysis", "content", "text", "response", "interpretation", "summary"]) {
+      const fieldValue = record[field];
+      if (typeof fieldValue === "string" && fieldValue.trim()) return fieldValue.trim();
+    }
+    return "";
+  }
+  extractPerspectiveAnalysis(source, key, perspective) {
+    const wanted = /* @__PURE__ */ new Set([
+      this.normalizePerspectiveLookupKey(key),
+      this.normalizePerspectiveLookupKey(perspective.title)
+    ]);
+    if (Array.isArray(source)) {
+      for (const item of source) {
+        if (!item || typeof item !== "object") continue;
+        const record2 = item;
+        const labels = [record2.key, record2.perspective, record2.title, record2.name].filter((label) => typeof label === "string");
+        if (labels.some((label) => wanted.has(this.normalizePerspectiveLookupKey(label)))) {
+          const text = this.extractGeneratedText(record2);
+          if (text) return text;
+        }
+      }
+      return "";
+    }
+    if (!source || typeof source !== "object") return "";
+    const record = source;
+    for (const [entryKey, value] of Object.entries(record)) {
+      if (wanted.has(this.normalizePerspectiveLookupKey(entryKey))) {
+        const text = this.extractGeneratedText(value);
+        if (text) return text;
+      }
+    }
+    return "";
+  }
   closeJsonCandidate(candidate) {
     let result = candidate.trim();
     const stack = [];
@@ -9257,12 +9297,12 @@ ${content}`
     });
     if (!rawContent) throw new Error("No analysis returned");
     const parsed = this.parseJsonObject(rawContent);
-    const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === "object" ? parsed.perspectives : {};
+    const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === "object" ? parsed.perspectives : parsed;
     const results = {};
-    for (const { key } of perspectives) {
-      const value = parsedPerspectives[key];
-      if (typeof value === "string" && value.trim()) {
-        results[key] = value.trim();
+    for (const { key, perspective } of perspectives) {
+      const value = this.extractPerspectiveAnalysis(parsedPerspectives, key, perspective);
+      if (value) {
+        results[key] = value;
       }
     }
     const parsedFurtherReadings = parsed.further_readings && typeof parsed.further_readings === "object" ? parsed.further_readings : {};
@@ -9353,12 +9393,12 @@ ${content}`
     });
     if (!rawContent) throw new Error("No analysis returned");
     const parsed = this.parseJsonObject(rawContent);
-    const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === "object" ? parsed.perspectives : {};
+    const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === "object" ? parsed.perspectives : parsed;
     const results = {};
-    for (const { key } of perspectives) {
-      const value = parsedPerspectives[key];
-      if (typeof value === "string" && value.trim()) {
-        results[key] = value.trim();
+    for (const { key, perspective } of perspectives) {
+      const value = this.extractPerspectiveAnalysis(parsedPerspectives, key, perspective);
+      if (value) {
+        results[key] = value;
       }
     }
     const parsedFurtherReadings = parsed.further_readings && typeof parsed.further_readings === "object" ? parsed.further_readings : {};
@@ -9463,7 +9503,7 @@ ${content}`
     });
     if (!rawContent) return { analysis: "", furtherReadings: [] };
     const parsed = this.parseJsonObject(rawContent);
-    const analysis = typeof parsed.analysis === "string" ? this.normalizeGeneratedEnglishUsage(parsed.analysis.trim()) : "";
+    const analysis = typeof parsed.analysis === "string" ? this.normalizeGeneratedEnglishUsage(parsed.analysis.trim()) : this.normalizeGeneratedEnglishUsage(this.extractPerspectiveAnalysis(parsed, key, perspective));
     const furtherReadings = Array.isArray(parsed.further_readings) ? this.normalizeGeneratedEnglishUsageArray(
       parsed.further_readings.filter((item) => typeof item === "string").map((item) => item.trim()).filter(Boolean).slice(0, 5)
     ) : [];
