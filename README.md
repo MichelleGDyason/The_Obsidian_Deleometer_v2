@@ -2,6 +2,8 @@
 
 AI-powered journaling, multi-perspective analysis, goal generation, and reflective chat for Obsidian.
 
+There's more to life than what psychiatry knows about.
+
 Active repository:
 [github.com/MichelleGDyason/The_Obsidian_Deleometer_v2](https://github.com/MichelleGDyason/The_Obsidian_Deleometer_v2)
 
@@ -49,7 +51,7 @@ The plugin keeps an author memory summary so later analyses can respond as part 
 
 ## Requirements
 
-- Obsidian `1.5.0` or later
+- Obsidian `1.7.2` or later
 - either an OpenAI API key or a local Ollama installation with a downloaded model
 - desktop Obsidian is recommended for the full workflow
 
@@ -182,7 +184,11 @@ These screenshots show The Deleometer in action during beta development. The REA
 
 ## Why This Exists
 
-A short personal note about why the plugin was made would be useful for other people. The Deleometer is unusual because it treats a journal entry as something that can be read through many disciplines, not only as mood tracking or productivity data. Explaining the reason for making it can help users understand that the plugin is designed for reflective agency: the author is meant to argue with the AI, learn from it, reject parts of it, and use the conversation to make their own meanings clearer.
+When I began my undergraduate course at university, I was learning new theories about self and subjectivity and wondered what it would be like if those theories could work as therapy. The Deleometer grew out of that question.
+
+I am not a coder, but with the help of OpenAI's Codex I have been able to build a form of theoretical therapy intended for anyone who wants to think with more than one framework at once. The plugin treats a journal entry as something that can be read through philosophy, psychoanalysis, social theory, religion, cultural studies, and other traditions, not only as mood tracking or productivity data.
+
+The goal is reflective agency. The author is meant to argue with the AI, learn from it, reject parts of it, and use the conversation to make their own meanings clearer.
 
 ## Full Calendar Integration
 
