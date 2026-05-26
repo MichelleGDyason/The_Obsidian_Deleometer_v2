@@ -4,31 +4,1913 @@ import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 const VIEW_TYPE_DASHBOARD = 'deleometer-dashboard';
 const VIEW_TYPE_AI_CHAT = 'deleometer-ai-chat';
+const MYERS_BRIGGS_PERSPECTIVE_KEY = 'myers_briggs_perspective';
 
-const PERSPECTIVES: Record<string, { title: string; description: string }> = {
-  lacanian_perspective: { title: 'Lacanian Psychoanalysis', description: 'Analysis through desire, the Other, and symbolic order' },
-  schizoanalytic_insights: { title: 'Deleuzian Schizoanalysis', description: 'Rhizomatic thinking, lines of flight, and becoming' },
-  irigarayian_perspective: { title: 'Irigarayian Feminine', description: 'Sexual difference and feminine subjectivity' },
-  jungian_perspective: { title: 'Jungian Analysis', description: 'Archetypes, shadow, and individuation' },
-  attachment_theory_perspective: { title: 'Attachment Theory', description: 'Attachment styles and relational patterns' },
-  positive_psychology_perspective: { title: 'Positive Psychology', description: 'Strengths, flourishing, and well-being' },
-  narrative_psychology_perspective: { title: 'Narrative Psychology', description: 'Life stories and meaning-making' },
-  phenomenology_perspective: { title: 'Phenomenology', description: 'Lived experience and consciousness' },
-  existential_perspective: { title: 'Existential Analysis', description: 'Authenticity, freedom, and meaning' },
-  feminist_perspective: { title: 'Feminist Psychology', description: 'Gender, power, and social context' },
-  queer_theory_perspective: { title: 'Queer Theory', description: 'Norms, identity, fluidity, and the politics of desire' },
-  lgbtq_studies_perspective: { title: 'LGBTQ+ Studies', description: 'Queer lives, community, marginalization, resilience, and affirmation' },
-  critical_theory_perspective: { title: 'Critical Theory', description: 'Social critique and emancipation' },
-  posthumanism_perspective: { title: 'Posthumanism', description: 'Beyond human-centered thinking' },
-  buddhist_psychology_perspective: { title: 'Buddhist Psychology', description: 'Mindfulness, suffering, and liberation' },
-  nietzschean_perspective: { title: 'Nietzschean Philosophy', description: 'Will to power, values, and self-overcoming' },
-  gestalt_perspective: { title: 'Gestalt Therapy', description: 'Awareness, wholeness, and present experience' },
-  transpersonal_perspective: { title: 'Transpersonal Psychology', description: 'Spiritual dimensions and peak experiences' },
-  cbt_perspective: { title: 'Cognitive Behavioral', description: 'Thoughts, behaviors, and patterns' },
-  hermeneutics_perspective: { title: 'Hermeneutics', description: 'Interpretation and understanding' },
-  stoicism_perspective: { title: 'Stoic Philosophy', description: 'Virtue, acceptance, and inner peace' },
-  psychiatry_perspective: { title: 'Psychiatric Assessment', description: 'Clinical patterns and mental health' }
+interface PerspectiveGroup {
+  title: string;
+  description: string;
+}
+
+interface PerspectiveDefinition {
+  title: string;
+  description: string;
+  group: string;
+}
+
+interface PerspectiveMetadata {
+  tradition?: string;
+  orientation?: string;
+  lineage?: string;
+  chronology?: string;
+}
+
+interface OutputLanguageOption {
+  label: string;
+  prompt: string;
+}
+
+const PHILOSOPHY_GROUP_KEY = 'philosophy_first_discipline';
+
+const PERSPECTIVE_GROUPS: Record<string, PerspectiveGroup> = {
+  [PHILOSOPHY_GROUP_KEY]: {
+    title: 'Philosophy as First Discipline',
+    description: 'First principles, being, ethics, mind, theology, and metaphysical orientation'
+  },
+  religious_mythic_interpretation: {
+    title: 'Religious, Mythic, and Pagan Interpretations',
+    description: 'Ancient religions, mythic patterns, sacred texts, ritual worlds, divinities, covenant, revelation, and comparative spiritual meaning'
+  },
+  social_spatial_research: {
+    title: 'Social, Spatial, and Research Methods',
+    description: 'Maps, places, social structures, institutions, fieldwork, evidence, positionality, and methods for studying lived worlds'
+  },
+  narrative_media_frame: {
+    title: 'Narrative, Media, and Frame Studies',
+    description: 'Language, signs, story, mediation, public presentation, framing, nonfiction practice, and interaction order'
+  },
+  psychoanalytic_clinical: {
+    title: 'Psychology, Psychiatry, Psychoanalysis, and Clinical Approaches',
+    description: 'Psychological processes, psychiatric diagnosis, psychoanalytic conflict, attachment, personality, cognition, embodiment, and therapeutic interpretation'
+  },
+  family_care_guidance: {
+    title: 'Family, Care, and Guidance Theories',
+    description: 'Parenting, intergenerational care, kinship practice, family pedagogy, social expectation, guidance, and cultural formation'
+  },
+  archeo_genealogical_deconstruction: {
+    title: 'Archeo-Genealogical and Deconstructive Thought',
+    description: 'Power, discourse, difference, ideology, critique, and the recombination of inherited forms'
+  },
+  gender_sexuality_queer: {
+    title: 'Gender, Sexuality, and Queer Studies',
+    description: 'Gendered life, sexualities, lesbian and gay studies, trans studies, and queer norm critique'
+  },
+  race_coloniality_embodiment: {
+    title: 'Race, Coloniality, and Embodiment Studies',
+    description: 'Race, decoloniality, disability, madness, fatness, embodiment, and situated power'
+  },
+  systems_ecology_food: {
+    title: 'Systems, Ecology, and Food Futures',
+    description: 'Actor-networks, food systems, biomimicry, ecopoiesis, resilience, and ecological transition'
+  },
+  strategy_method_organisation: {
+    title: 'Strategy, Method, and Organisation',
+    description: 'Tactical method, risk, feasibility, SWOT, organisations, movements, and transformative futures'
+  }
 };
+
+const PERSPECTIVES: Record<string, PerspectiveDefinition> = {
+  indigenous_australian_philosophy_accumulated: { title: 'Australian Indigenous Philosophy Accumulated', description: 'Country, kinship, custodianship, relational law, story, ceremony, ecological obligation, sovereignty, survival, and living First Nations knowledge', group: PHILOSOPHY_GROUP_KEY },
+  buddhist_psychology_perspective: { title: 'Buddhist Psychology', description: 'Mindfulness, suffering, and liberation', group: PHILOSOPHY_GROUP_KEY },
+  confucianism_analysis: { title: 'Confucianism', description: 'Ritual, relation, cultivation, family obligation, humane conduct, study, governance, virtue, and ethical self-formation through patterned life', group: PHILOSOPHY_GROUP_KEY },
+  platonic_perspective: { title: 'Platonic Philosophy', description: 'Forms, dialectic, eros, education, justice, and ascent toward truth', group: PHILOSOPHY_GROUP_KEY },
+  aristotle_argonic_teachings: { title: "Aristotle's Argonic Teachings", description: 'Rhetoric, demonstration, causes, material conditions, practical judgment, virtue, persuasion, and action', group: PHILOSOPHY_GROUP_KEY },
+  cynics_perspective: { title: "Cynics' Philosophy", description: 'Plain living, shameless truth-telling, social convention, need, freedom, and embodied critique', group: PHILOSOPHY_GROUP_KEY },
+  stoicism_perspective: { title: 'Stoic Philosophy', description: 'Virtue, acceptance, and inner peace', group: PHILOSOPHY_GROUP_KEY },
+  bible_teachings_perspective: { title: 'Bible Teachings', description: 'Wisdom, covenant, prophecy, parable, care, justice, and spiritual discernment', group: PHILOSOPHY_GROUP_KEY },
+  metaphysical_analysis: { title: 'Metaphysical Analysis', description: 'Reality, causality, substance, possibility, identity, and ultimate commitments', group: PHILOSOPHY_GROUP_KEY },
+  ontological_analysis: { title: 'Ontological Analysis', description: 'Modes of being, entities, relations, becoming, and existential structure', group: PHILOSOPHY_GROUP_KEY },
+  ethical_analysis: { title: 'Ethical Analysis', description: 'Obligation, virtue, care, harm, responsibility, and practical judgment', group: PHILOSOPHY_GROUP_KEY },
+  moral_philosophy_analysis: { title: 'Moral Philosophy', description: 'Right action, the good life, virtue, duty, consequence, character, judgment, value conflict, and how one ought to live with others', group: PHILOSOPHY_GROUP_KEY },
+  philosophy_of_mind_perspective: { title: 'Philosophy of Mind', description: 'Consciousness, intention, emotion, agency, selfhood, and mental causation', group: PHILOSOPHY_GROUP_KEY },
+  francis_bacon_empiricism: { title: "Francis Bacon's Experimental Method", description: 'Induction, observation, experiment, idols of the mind, practical inquiry, disciplined method, and knowledge built through organized investigation', group: PHILOSOPHY_GROUP_KEY },
+  descartes_cogito_subject: { title: "René Descartes' Cogito and Subject", description: 'Doubt, certainty, mind-body distinction, thinking substance, inwardness, rational selfhood, and the cogito as a ground of knowledge', group: PHILOSOPHY_GROUP_KEY },
+  spinoza_theologic_ethico_perspective: { title: "Spinoza's Theologic-Ethico Philosophy", description: 'Immanence, affect, necessity, freedom, substance, and ethical life', group: PHILOSOPHY_GROUP_KEY },
+  leibniz_monadology_perspective: { title: "Gottfried Wilhelm Leibniz's Monadology", description: 'Monads, pre-established harmony, sufficient reason, possible worlds, perception, appetite, relation, and rational order', group: PHILOSOPHY_GROUP_KEY },
+  lockean_personal_identity: { title: "John Locke's Personal Identity", description: 'Consciousness, memory, personhood, accountability, continuity, moral responsibility, and the self over time', group: PHILOSOPHY_GROUP_KEY },
+  humean_bundle_self: { title: "David Hume's Bundle Theory of Self", description: 'Impressions, perceptions, habit, continuity, skepticism, identity as fiction, and the self as a bundle of experiences', group: PHILOSOPHY_GROUP_KEY },
+  rousseau_political_thought: { title: "Jean-Jacques Rousseau's Political Thought", description: 'General will, inequality, freedom, education, civic life, corruption, dependence, moral sentiment, and the making of political community', group: PHILOSOPHY_GROUP_KEY },
+  aesthetics_untranslatables: { title: 'Aesthetics', description: 'Aisthesis, sensation, taste, beauty, art, the sensible, judgment, translation, and the contested history of what aesthetics is taken to mean', group: PHILOSOPHY_GROUP_KEY },
+  moral_naturalism_perspective: { title: 'Moral Naturalism', description: 'Moral facts, natural properties, human flourishing, reasons, science, normativity, value, and ethical life without supernatural grounding', group: PHILOSOPHY_GROUP_KEY },
+  metaethics_analysis: { title: 'Metaethics', description: 'Moral truth, realism, anti-realism, reasons, value language, objectivity, motivation, and what it means for an ethical claim to count as true or justified', group: PHILOSOPHY_GROUP_KEY },
+  kantian_transcendental_subject: { title: "Immanuel Kant's Transcendental Subject", description: 'Apperception, categories, autonomy, moral law, conditions of experience, and the self that organizes knowledge', group: PHILOSOPHY_GROUP_KEY },
+  hegelian_recognition_subject: { title: "G.W.F. Hegel's Recognition and Subjectivity", description: 'Recognition, self-consciousness, lordship and bondage, dialectic, social freedom, history, and becoming a subject through others', group: PHILOSOPHY_GROUP_KEY },
+  schelling_nature_philosophy: { title: "F. W. J. Schelling's Nature Philosophy", description: 'Nature as living productivity, freedom, development, polarity, organism, spirit in nature, and the restless dynamism of becoming', group: PHILOSOPHY_GROUP_KEY },
+  kierkegaard_existential_faith: { title: "Søren Kierkegaard's Existential Faith", description: 'Anxiety, despair, subjectivity, inwardness, choice, faith, repetition, the leap, and becoming a self before God and others', group: PHILOSOPHY_GROUP_KEY },
+  schopenhauer_will_representation: { title: "Arthur Schopenhauer's Will and Representation", description: 'Will, suffering, desire, representation, compassion, pessimism, ascetic interruption, and the restless structure of experience', group: PHILOSOPHY_GROUP_KEY },
+  ralph_waldo_emerson_environmental_thought: { title: "Ralph Waldo Emerson's Environmental Thought", description: 'Nature, self-reliance, perception, moral imagination, correspondence, wildness, spiritual ecology, and learning from the more-than-human world', group: PHILOSOPHY_GROUP_KEY },
+  nietzschean_perspective: { title: 'Nietzschean Philosophy', description: 'Will to power, values, and self-overcoming', group: PHILOSOPHY_GROUP_KEY },
+  bergson_duration_creativity: { title: "Henri Bergson's Duration and Creativity", description: 'Duration, intuition, elan vital, memory, novelty, movement, living time, and thought that follows process rather than static abstraction', group: PHILOSOPHY_GROUP_KEY },
+  william_james_pragmatism: { title: "William James' Pragmatism", description: 'Practical consequences, experience, pluralism, stream of consciousness, habit, truth as what works in life, and ideas tested in lived practice', group: PHILOSOPHY_GROUP_KEY },
+  collingwood_historical_imagination: { title: "R. G. Collingwood's Historical Imagination", description: 'Re-enactment of thought, historical consciousness, question-and-answer logic, evidence, context, and understanding action from within its problem-space', group: PHILOSOPHY_GROUP_KEY },
+  logics_analysis: { title: 'Logics Analysis', description: 'Inference, validity, contradiction, entailment, formal structure, argument patterns, and what follows from what', group: PHILOSOPHY_GROUP_KEY },
+  set_theory_analysis: { title: 'Set Theory', description: 'Sets, membership, subset, union, infinity, cardinality, formal relation, abstraction, structure, and how multiplicities can be rigorously organized', group: PHILOSOPHY_GROUP_KEY },
+  epistemology_analysis: { title: 'Epistemology', description: 'Knowledge, belief, evidence, justification, error, testimony, certainty, ignorance, and the conditions under which a claim counts as known', group: PHILOSOPHY_GROUP_KEY },
+  husserlian_phenomenology: { title: "Edmund Husserl's Phenomenology", description: 'Intentionality, epoché, reduction, evidence, lived experience, constitution, time-consciousness, and the structures of appearing', group: PHILOSOPHY_GROUP_KEY },
+  phenomenology_perspective: { title: 'Phenomenology', description: 'Lived experience and consciousness', group: PHILOSOPHY_GROUP_KEY },
+  heideggerian_dasein_analysis: { title: "Martin Heidegger's Dasein Analysis", description: 'Being-in-the-world, thrownness, care, everydayness, authenticity, temporality, and the self as situated existence', group: PHILOSOPHY_GROUP_KEY },
+  levinasian_ethics: { title: "Emmanuel Levinas' Ethics of the Other", description: 'Face-to-face encounter, infinite responsibility, alterity, vulnerability, ethics before ontology, and the demand of the Other', group: PHILOSOPHY_GROUP_KEY },
+  hermeneutics_perspective: { title: 'Hermeneutics', description: 'Interpretation and understanding', group: PHILOSOPHY_GROUP_KEY },
+  existential_perspective: { title: 'Existential Analysis', description: 'Authenticity, freedom, and meaning', group: PHILOSOPHY_GROUP_KEY },
+  sartrean_subjectivity: { title: "Jean-Paul Sartre's Subjectivity", description: 'Freedom, bad faith, nothingness, the look, responsibility, choice, and the self as project rather than essence', group: PHILOSOPHY_GROUP_KEY },
+  de_beauvoir_situated_subject: { title: "Simone de Beauvoir's Situated Subject", description: 'Ambiguity, freedom, oppression, gendered becoming, immanence, transcendence, and the ethical demand to become with others', group: PHILOSOPHY_GROUP_KEY },
+  merleau_ponty_embodied_subject: { title: "Maurice Merleau-Ponty's Embodied Subject", description: 'Embodiment, perception, habit, flesh, motor intentionality, intersubjectivity, and the lived body as subject', group: PHILOSOPHY_GROUP_KEY },
+  enactivism_analysis: { title: 'Enactivism', description: 'Sense-making, embodied cognition, organism-environment coupling, action, autonomy, perception, participation, and knowing as something done in relation', group: PHILOSOPHY_GROUP_KEY },
+  continental_moral_philosophy: { title: 'Continental Moral Philosophy', description: 'Alterity, responsibility, ambiguity, recognition, embodiment, critique, historical life, and ethical thought shaped through lived relations rather than abstract rule alone', group: PHILOSOPHY_GROUP_KEY },
+  feminist_philosophy: { title: 'Feminist Philosophy', description: 'Power, embodiment, knowledge, sex and gender, autonomy, care, justice, difference, critique, and the transformation of inherited philosophical problems', group: PHILOSOPHY_GROUP_KEY },
+  continental_feminist_philosophy: { title: 'Continental Feminist Philosophy', description: 'Sexual difference, embodiment, becoming, critique of phallocentrism, relation, materiality, desire, and feminist thought shaped through continental lineages', group: PHILOSOPHY_GROUP_KEY },
+  feminist_ethics: { title: 'Feminist Ethics', description: 'Care, power, dependency, vulnerability, justice, embodiment, relation, lived inequality, and ethical judgment shaped by concrete social life', group: PHILOSOPHY_GROUP_KEY },
+  whitehead_process_philosophy: { title: "Alfred North Whitehead's Process Philosophy", description: 'Actual occasions, process, relation, creativity, prehension, concrescence, novelty, and reality as event rather than static substance', group: PHILOSOPHY_GROUP_KEY },
+  process_philosophical_analysis: { title: 'Process Philosophical Analysis', description: 'Becoming, relation, event, creativity, temporality, and emergent order', group: PHILOSOPHY_GROUP_KEY },
+  vitalism_analysis: { title: 'Vitalism', description: 'Life force, organismic animation, irreducibility of living processes, growth, self-organization, formative powers, and the question of whether life exceeds mechanism', group: PHILOSOPHY_GROUP_KEY },
+  organicism_analysis: { title: 'Organicism', description: 'Wholes, parts, development, interdependence, living systems, pattern, organization, and understanding entities through their relations within an organismic whole', group: PHILOSOPHY_GROUP_KEY },
+  philosophy_of_language_analysis: { title: 'Philosophy of Language', description: 'Meaning, reference, naming, use, speech acts, interpretation, translation, rule-following, and how language shapes thought and worldhood', group: PHILOSOPHY_GROUP_KEY },
+  wittgenstein_language_games: { title: "Ludwig Wittgenstein's Language Games", description: 'Use, rule-following, forms of life, language games, family resemblance, ordinary language, and the limits of what can be said clearly', group: PHILOSOPHY_GROUP_KEY },
+  jl_austin_speech_acts: { title: "J. L. Austin's Speech Act Philosophy", description: 'Speech acts, performatives, ordinary language, felicity conditions, doing things with words, uptake, force, and how utterances act within shared situations', group: PHILOSOPHY_GROUP_KEY },
+  analytic_moral_philosophy: { title: 'Analytic Moral Philosophy', description: 'Reasons, obligation, normativity, action-guidance, moral language, thought experiments, clarity, and the analysis of what makes a judgment morally defensible', group: PHILOSOPHY_GROUP_KEY },
+  pf_strawson_personhood: { title: "P. F. Strawson's Personhood", description: 'Persons, reactive attitudes, responsibility, ordinary language, embodiment, mutual recognition, and the social grammar of accountability', group: PHILOSOPHY_GROUP_KEY },
+  harry_frankfurt_volitional_self: { title: "Harry Frankfurt's Volitional Self", description: 'Second-order desires, wholeheartedness, identification, free will, care, ambivalence, and what a person wants to want', group: PHILOSOPHY_GROUP_KEY },
+  sydney_shoemaker_self_knowledge: { title: "Sydney Shoemaker's Self-Knowledge", description: 'Self-reference, immunity to error, first-person authority, embodiment, memory, and how one knows oneself as oneself', group: PHILOSOPHY_GROUP_KEY },
+  bernard_williams_personal_identity: { title: "Bernard Williams' Personal Identity", description: 'Bodily continuity, character, practical concern, thought experiments, fear, survival, and identity as lived from the first person', group: PHILOSOPHY_GROUP_KEY },
+  paul_ricoeur_narrative_identity: { title: "Paul Ricoeur's Narrative Identity", description: 'Selfhood, sameness, narrative time, promise, memory, interpretation, and identity as the story one can answer for', group: PHILOSOPHY_GROUP_KEY },
+  derek_parfit_reductionist_identity: { title: "Derek Parfit's Reductionist Identity", description: 'Psychological continuity, connectedness, survival, reductionism, relation R, and why identity may matter less than we think', group: PHILOSOPHY_GROUP_KEY },
+  habermasian_communicative_subject: { title: "Jürgen Habermas' Communicative Subject", description: 'Communicative action, discourse ethics, public reason, validity claims, lifeworld, recognition, and subjectivity formed through dialogue', group: PHILOSOPHY_GROUP_KEY },
+  discourse_ethics_analysis: { title: 'Discourse Ethics', description: 'Reason-giving, reciprocity, validity claims, fair dialogue, mutual justification, accountability, and testing norms through inclusive communication', group: PHILOSOPHY_GROUP_KEY },
+  hannah_arendt_action_plurality: { title: "Hannah Arendt's Action and Plurality", description: 'Action, natality, public space, appearance, plurality, judgment, worldliness, responsibility, and how political life begins when people speak and act together', group: PHILOSOPHY_GROUP_KEY },
+  amartya_sen_capability_approach: { title: "Amartya Sen's Capability Approach", description: 'Capabilities, freedom, justice, public reasoning, wellbeing, development, deprivation, agency, and what people are substantively able to do and be', group: PHILOSOPHY_GROUP_KEY },
+  charles_taylor_sources_self: { title: "Charles Taylor's Sources of the Self", description: 'Moral horizons, strong evaluation, authenticity, recognition, modern identity, and the goods that orient selfhood', group: PHILOSOPHY_GROUP_KEY },
+  macintyre_narrative_self: { title: "Alasdair MacIntyre's Narrative Self", description: 'Virtue, tradition, practices, narrative unity, intelligibility, moral agency, and a life understood as an unfolding story', group: PHILOSOPHY_GROUP_KEY },
+  edith_cowan_civic_reform: { title: "Edith Cowan's Civic Reform", description: 'Education, welfare reform, parliamentary action, women’s civic leadership, social justice, practical institution-building, and public responsibility anchored in lived community needs', group: PHILOSOPHY_GROUP_KEY },
+  diane_ding_dyason_practical_ethics: { title: `Diane "Ding" Dyason's Practical Ethics`, description: 'Everyday judgment, family memory, direct speech, practical care, survival wisdom, social tact, humour, and ethical discernment worked out through ordinary life rather than abstraction', group: PHILOSOPHY_GROUP_KEY },
+  jean_luc_nancy_being_with: { title: "Jean-Luc Nancy's Being-With", description: 'Being singular plural, exposure, community, finitude, co-existence, touch, spacing, and the self as always with others', group: PHILOSOPHY_GROUP_KEY },
+  judith_butler_performativity: { title: "Judith Butler's Performativity and Subjectivation", description: 'Performativity, norms, recognizability, gendered subject formation, repetition, vulnerability, and livable life', group: PHILOSOPHY_GROUP_KEY },
+  catriona_mackenzie_relational_autonomy: { title: "Catriona Mackenzie's Relational Autonomy", description: 'Autonomy, vulnerability, self-trust, social recognition, agency, relational support, and how conditions enable or block self-direction', group: PHILOSOPHY_GROUP_KEY },
+  christine_korsgaard_self_constitution: { title: "Christine Korsgaard's Self-Constitution", description: 'Practical identity, agency, normativity, action, self-legislation, integrity, and making oneself through commitments', group: PHILOSOPHY_GROUP_KEY },
+  marya_schechtman_narrative_self: { title: "Marya Schechtman's Narrative Self", description: 'Person-life view, narrative identity, characterization, memory, social uptake, and what makes a life intelligibly one life', group: PHILOSOPHY_GROUP_KEY },
+  linda_alcoff_visible_identities: { title: "Linda Martín Alcoff's Visible Identities", description: 'Embodied identity, race, gender, social location, visibility, experience, and how selves are politically interpreted', group: PHILOSOPHY_GROUP_KEY },
+  anthony_appiah_identity_ethics: { title: "Kwame Anthony Appiah's Identity Ethics", description: 'Social scripts, individuality, honor, recognition, cosmopolitanism, collective identity, and ethical self-fashioning', group: PHILOSOPHY_GROUP_KEY },
+  adriana_cavarero_relational_uniqueness: { title: "Adriana Cavarero's Relational Uniqueness", description: 'Narratable self, uniqueness, voice, exposure, relationality, birth, and the who that appears through others', group: PHILOSOPHY_GROUP_KEY },
+  dan_zahavi_minimal_self: { title: "Dan Zahavi's Minimal Self", description: 'First-person givenness, pre-reflective self-awareness, phenomenology, embodiment, selfhood, and the minimal structure of experience', group: PHILOSOPHY_GROUP_KEY },
+  shaun_gallagher_embodied_self: { title: "Shaun Gallagher's Embodied Self", description: 'Body schema, agency, ownership, intersubjectivity, cognition, enactivism, and the self as embodied action', group: PHILOSOPHY_GROUP_KEY },
+  gallagher_pattern_theory_self: { title: "Shaun Gallagher's Pattern Theory of Self", description: 'Self-pattern, embodied, experiential, affective, intersubjective, narrative, extended, ecological, and normative dimensions of selfhood as a dynamic configuration', group: PHILOSOPHY_GROUP_KEY },
+  rosi_braidotti_nomadic_subjectivity: { title: "Rosi Braidotti's Nomadic Subjectivity", description: 'Nomadic subject, posthuman feminism, becoming, embodiment, difference, affirmative ethics, and non-unitary selfhood', group: PHILOSOPHY_GROUP_KEY },
+  naturalism_analysis: { title: 'Naturalism', description: 'Nature, lawfulness, continuity, explanation, anti-supernaturalism, human embeddedness, and what it means to explain life and mind without transcendence', group: PHILOSOPHY_GROUP_KEY },
+  philosophy_of_science_analysis: { title: 'Philosophy of Science', description: 'Explanation, theory choice, evidence, experiment, models, realism, falsifiability, underdetermination, and the making of scientific knowledge', group: PHILOSOPHY_GROUP_KEY },
+  philosophy_of_physics_analysis: { title: 'Philosophy of Physics', description: 'Space, time, matter, causation, laws, fields, measurement, scale, and how physical theory frames reality', group: PHILOSOPHY_GROUP_KEY },
+  feyerabend_epistemological_anarchism: { title: "Paul Feyerabend's Epistemological Anarchism", description: 'Methodological pluralism, epistemic dissent, against rigid method, scientific change, heterodoxy, and the politics of knowledge-making', group: PHILOSOPHY_GROUP_KEY },
+  french_philosophy_of_science_relation: { title: 'French Philosophy of Science and Relation', description: 'Historical epistemology, milieu, normativity, relation, concept-formation, science as practice, and French thought linking knowledge, life, and mediation', group: PHILOSOPHY_GROUP_KEY },
+  michel_serres_relations: { title: "Michel Serres' Relations and Parasites", description: 'Noise, parasitism, relation, passage, communication, mediation, contamination, and how systems are transformed by interference', group: PHILOSOPHY_GROUP_KEY },
+  continental_political_aesthetics: { title: 'Continental Political Aesthetics', description: 'Appearance, sensibility, dissensus, spectacle, form, collective feeling, public worlds, and how politics is shaped through what can be seen, felt, and said', group: PHILOSOPHY_GROUP_KEY },
+  jacques_ranciere_politics_aesthetics: { title: "Jacques Rancière's Politics and Aesthetics", description: 'The distribution of the sensible, dissensus, equality, politics, aesthetics, voice, partition, and who gets to appear and be heard', group: PHILOSOPHY_GROUP_KEY },
+  topological_analysis: { title: 'Topological Analysis', description: 'Relations, surfaces, thresholds, folds, nearness, boundaries, and spatial transformations of meaning', group: PHILOSOPHY_GROUP_KEY },
+
+  ancient_religious_interpretation: { title: 'Ancient Religious Interpretation', description: 'Ritual, sacrifice, omen, sacred order, taboo, ancestor, cosmology, and ancient religious imagination', group: 'religious_mythic_interpretation' },
+  ancient_egyptian_interpretation: { title: 'Ancient Egyptian Interpretation', description: "Ma'at, ka, ba, divine kingship, the afterlife, ritual order, cosmic balance, sacred writing, temple worlds, and the moral-spiritual weight of action", group: 'religious_mythic_interpretation' },
+  first_testament_hebrew_interpretation: { title: 'First Testament / Hebrew Interpretation', description: 'Covenant, law, prophecy, lament, wisdom, exile, justice, creation, and faithful argument with God', group: 'religious_mythic_interpretation' },
+  greek_gods_interpretation: { title: 'Greek Gods Interpretation', description: 'Olympian powers, mythic archetypes, fate, hubris, patronage, conflict, desire, and heroic consequence', group: 'religious_mythic_interpretation' },
+  roman_gods_interpretation: { title: 'Roman Gods Interpretation', description: 'Civic religion, household gods, pietas, omen, duty, empire, ritual order, and public virtue', group: 'religious_mythic_interpretation' },
+  druidic_interpretation: { title: 'Druidic Interpretation', description: 'Oral wisdom, trees, land memory, bardic speech, seasonal rites, kinship, sovereignty, and ecological divination', group: 'religious_mythic_interpretation' },
+  celtic_religion_interpretation: { title: 'Celtic Religion Interpretation', description: 'Sacred groves, seasonal rites, sovereignty, kinship, land spirits, oral myth, threshold worlds, and ritual relation to place and ancestry', group: 'religious_mythic_interpretation' },
+  second_testament_christian_interpretation: { title: 'Second Testament / Christian Interpretation', description: 'Gospel, parable, grace, discipleship, incarnation, forgiveness, community, resurrection, and ethical transformation', group: 'religious_mythic_interpretation' },
+  muslim_interpretation: { title: 'Muslim Interpretation', description: 'Tawhid, submission, mercy, intention, justice, prayer, ummah, prophetic example, and disciplined remembrance', group: 'religious_mythic_interpretation' },
+  pagan_interpretation: { title: 'Pagan Interpretation', description: 'Seasonal cycles, polytheism, land, animacy, ritual practice, reciprocity, craft, and embodied sacred life', group: 'religious_mythic_interpretation' },
+  herbalism_analysis: { title: 'Herbalism', description: 'Plant knowledge, remedy, seasonal relation, bodily care, material healing practice, traditional preparation, ecological attention, and medicinal learning from the living world', group: 'religious_mythic_interpretation' },
+  witchcraft_analysis: { title: 'Witchcraft', description: 'Spell, intention, threshold, craft, power, ritual practice, protection, taboo, domestic magic, and contested knowledge outside official authority', group: 'religious_mythic_interpretation' },
+
+  cartographic_analysis: { title: 'Cartographic Analysis', description: 'Maps, scale, projection, legend, boundary-making, orientation, territory, omission, routes, and how mapping turns experience into spatial knowledge', group: 'social_spatial_research' },
+  geography_analysis: { title: 'Geography', description: 'Place, space, landscape, region, mobility, environment, human geography, physical geography, uneven development, and relations between people and land', group: 'social_spatial_research' },
+  anthropology_analysis: { title: 'Anthropology', description: 'Culture, kinship, ritual, exchange, symbolism, fieldwork, everyday practice, comparison, social meaning, and how worlds are made through lived relation', group: 'social_spatial_research' },
+  archaeology_analysis: { title: 'Archaeology', description: 'Material remains, stratigraphy, sites, artefacts, ruins, temporal layers, historical reconstruction, and how the past is read through objects and traces', group: 'social_spatial_research' },
+  sociology_analysis: { title: 'Sociology', description: 'Social structure, institutions, norms, class, status, roles, groups, interaction, social change, power, and the patterning of everyday life', group: 'social_spatial_research' },
+  social_theories_of_deviance: { title: 'Social Theories of Deviance', description: 'Norm violation, labeling, stigma, moral panic, social control, subculture, anomie, criminalization, and how societies define and manage deviance', group: 'social_spatial_research' },
+  discourse_analysis: { title: 'Discourse Analysis', description: 'Speech, text, framing, repetition, genre, institutional language, positioning, rhetoric, and how discourse shapes what can be thought and said', group: 'social_spatial_research' },
+  political_thought: { title: 'Political Thought', description: 'Authority, legitimacy, liberty, power, conflict, order, justice, obligation, and the ideas that shape collective life', group: 'social_spatial_research' },
+  democracy_analysis: { title: 'Democracy', description: 'Representation, participation, equality, deliberation, institutions, dissent, citizenship, accountability, and collective decision-making', group: 'social_spatial_research' },
+  theories_of_world_politics: { title: 'Theories of World Politics', description: 'International order, sovereignty, realism, liberalism, imperialism, interdependence, geopolitics, security, and global power relations', group: 'social_spatial_research' },
+  critique_of_human_rights: { title: 'Critique of Human Rights', description: 'Rights discourse, universality, exclusion, state power, humanitarianism, enforcement gaps, abstraction, and the politics of legal moral claims', group: 'social_spatial_research' },
+  social_policy_analysis: { title: 'Social Policy', description: 'Welfare, care, public provision, inequality, redistribution, institutions, safety nets, governance, and policy impacts on everyday life', group: 'social_spatial_research' },
+  healthy_in_all_policies: { title: 'Health in All Policies for Healthy Communities', description: 'Public health across sectors, prevention, equity, housing, transport, food, community wellbeing, interdepartmental policy, and healthy environments', group: 'social_spatial_research' },
+  public_policy_analytics: { title: 'Public Policy Analytics', description: 'Policy design, implementation, evaluation, metrics, trade-offs, institutional effect, equity, governance, and how public decisions can be assessed in practice', group: 'social_spatial_research' },
+  social_research_methods: { title: 'Social Research Methods', description: 'Research questions, interviews, observation, surveys, sampling, ethics, coding, reflexivity, validity, positionality, and evidence-building in social inquiry', group: 'social_spatial_research' },
+  bourdieu_analysis: { title: "Pierre Bourdieu's Field, Habitus, and Capital", description: 'Habitus, field, capital, distinction, practice, social reproduction, symbolic violence, taste, classed dispositions, and the struggle over legitimacy in social space', group: 'social_spatial_research' },
+
+  linguistic_analysis: { title: 'Linguistic Analysis', description: 'Words, grammar, naming, register, metaphor, speech acts, code-switching, silence, and how language organizes experience', group: 'narrative_media_frame' },
+  semiotic_analysis: { title: 'Semiotic Analysis', description: 'Signs, symbols, signifier and signified, codes, icons, indexes, myths, and how meaning is made and circulated', group: 'narrative_media_frame' },
+  structuralism_analysis: { title: 'Structuralism', description: 'Underlying systems, rules, binaries, code, structure, relation, difference, and how meaning emerges from patterned positions rather than isolated elements', group: 'narrative_media_frame' },
+  argumentation_construction_analysis: { title: 'Argumentation Construction and Analysis', description: 'Claims, warrants, evidence, assumptions, validity, rhetoric, counterargument, inference, and how arguments are built and tested', group: 'narrative_media_frame' },
+  textual_analysis: { title: 'Textual Analysis', description: 'Close reading, diction, syntax, tone, repetition, structure, omission, emphasis, and how a text’s meaning is made through its verbal details', group: 'narrative_media_frame' },
+  narrative_psychology_perspective: { title: 'Narrative Psychology', description: 'Life stories and meaning-making', group: 'narrative_media_frame' },
+  creative_nonfiction_perspective: { title: 'Creative Non-Fiction', description: 'Scene, voice, witness, memory, essaying, and truthful narrative craft', group: 'narrative_media_frame' },
+  music_songwriting_analysis: { title: 'Music Songwriting Analysis', description: 'Melody, lyric, rhythm, refrain, hook, voice, affect, arrangement, genre, performance, and how songs turn feeling into form', group: 'narrative_media_frame' },
+  idiotextual_analysis: { title: 'Idiotextual Analysis', description: 'The singular texture of a text: idiosyncratic voice, private idiom, recurring phrases, and self-made meanings', group: 'narrative_media_frame' },
+  intertextuality_analysis: { title: 'Intertextuality', description: 'Echo, citation, allusion, rewriting, memory of prior texts, genre inheritance, cultural reference, and how a text speaks through other texts', group: 'narrative_media_frame' },
+  frame_analysis: { title: 'Frame Analysis', description: 'Interpretive frames, salience, boundaries, alignment, and meaning organization', group: 'narrative_media_frame' },
+  goffman_frame_analysis: { title: "Erving Goffman's Frame Analysis", description: 'Interaction order, presentation of self, keyed events, footing, and everyday frames', group: 'narrative_media_frame' },
+  media_studies: { title: 'Media Studies', description: 'Platforms, mediation, publics, representation, attention, circulation, and media power', group: 'narrative_media_frame' },
+  baudrillard_analysis: { title: "Jean Baudrillard's Simulacra and Hyperreality", description: 'Simulacra, hyperreality, sign value, simulation, codes, spectacle, consumption, implosion of the social, mediation, and the replacement of lived referents by circulating images', group: 'narrative_media_frame' },
+  poetics_analysis: { title: 'Poetics', description: 'Image, rhythm, metaphor, sound, line, voice, form, compression, resonance, and how language becomes patterned intensity', group: 'narrative_media_frame' },
+  art_theory_analysis: { title: 'Art Theory', description: 'Medium, form, spectatorship, representation, aesthetic judgment, interpretation, image politics, craft, and the work of art in culture', group: 'narrative_media_frame' },
+  susan_sontag_interpretation: { title: "Susan Sontag on Interpretation", description: 'Against over-interpretation, style, sensuous surface, camp, image culture, illness metaphors, and the ethics of looking and reading', group: 'narrative_media_frame' },
+  tessa_laird_cinemal: { title: "Tessa Laird's Cinemal", description: 'Becoming-animal experimental film, sensory cinema, nonhuman perception, more-than-human voices, ecological collapse, and cinematic animality', group: 'narrative_media_frame' },
+
+  freudian_psychoanalysis: { title: 'Freudian Psychoanalysis', description: 'Unconscious conflict, repression, dream-work, sexuality, and symptom formation', group: 'psychoanalytic_clinical' },
+  jungian_perspective: { title: 'Jungian Analysis', description: 'Archetypes, shadow, and individuation', group: 'psychoanalytic_clinical' },
+  lacanian_perspective: { title: 'Lacanian Psychoanalysis', description: 'Analysis through desire, the Other, and symbolic order', group: 'psychoanalytic_clinical' },
+  kristevan_abjection_semiotic: { title: "Julia Kristeva's Abjection and Semiotic", description: 'Psychoanalysis and philosophy through abjection, the semiotic and symbolic, maternal body, borders of self, revolt, intertextuality, foreignness, and subject formation through language and affect', group: 'psychoanalytic_clinical' },
+  psychiatry_perspective: { title: 'Psychiatric Assessment', description: 'Clinical patterns and mental health', group: 'psychoanalytic_clinical' },
+  psychology_analysis: { title: 'Psychology', description: 'Cognition, affect, behaviour, development, motivation, memory, relation, experiment, and how minds and actions are studied across contexts', group: 'psychoanalytic_clinical' },
+  anti_psychiatry_analysis: { title: 'Anti-Psychiatry', description: 'Institutional power, diagnosis critique, coercion, survival, social context, madness, resistance, deinstitutionalization, and questioning psychiatric authority', group: 'psychoanalytic_clinical' },
+  general_practice_diagnosis: { title: 'General Practice Medical Diagnosis', description: 'Primary care, symptoms, differential diagnosis, triage, prevention, continuity of care, practical uncertainty, and health judgment in everyday medicine', group: 'psychoanalytic_clinical' },
+  attachment_theory_perspective: { title: 'Attachment Theory', description: 'Attachment styles and relational patterns', group: 'psychoanalytic_clinical' },
+  gestalt_perspective: { title: 'Gestalt Therapy', description: 'Awareness, wholeness, and present experience', group: 'psychoanalytic_clinical' },
+  transpersonal_perspective: { title: 'Transpersonal Psychology', description: 'Spiritual dimensions and peak experiences', group: 'psychoanalytic_clinical' },
+  maslow_hierarchy_needs: { title: "Maslow's Hierarchy of Needs", description: 'Physiological needs, safety, belonging, esteem, self-actualization, motivation, deprivation, growth, and the conditions that support human flourishing', group: 'psychoanalytic_clinical' },
+  [MYERS_BRIGGS_PERSPECTIVE_KEY]: {
+    title: 'Myers-Briggs analysis',
+    description: 'Personality preferences across introversion/extraversion, sensing/intuition, thinking/feeling, and judging/perceiving',
+    group: 'psychoanalytic_clinical'
+  },
+  cbt_perspective: { title: 'Cognitive Behavioral', description: 'Thoughts, behaviors, and patterns', group: 'psychoanalytic_clinical' },
+  positive_psychology_perspective: { title: 'Positive Psychology', description: 'Strengths, flourishing, and well-being', group: 'psychoanalytic_clinical' },
+  emotional_intelligence_analysis: { title: 'Emotional Intelligence', description: 'Emotion perception, regulation, communication, empathy, reflective skill, conflict navigation, and how feeling can become a practical social intelligence', group: 'psychoanalytic_clinical' },
+
+  montessori_method: { title: 'Montessori Method', description: 'Prepared environment, self-directed activity, sensitive periods, observation, independence, practical life, embodied learning, and respect for the child', group: 'family_care_guidance' },
+  steiner_education: { title: 'Steiner Education', description: 'Waldorf pedagogy, imagination, rhythm, developmental stages, artistic learning, practical activity, holistic education, and teaching the child as body, soul, and spirit', group: 'family_care_guidance' },
+  piaget_developmental_theory: { title: "Jean Piaget's Developmental Theory", description: 'Schemas, assimilation, accommodation, stages of cognitive development, constructivism, play, reasoning, and how children build knowledge', group: 'family_care_guidance' },
+  vygotsky_sociocultural_theory: { title: "Lev Vygotsky's Sociocultural Theory", description: 'Zone of proximal development, scaffolding, language, social learning, cultural tools, mediation, collaboration, and guided development', group: 'family_care_guidance' },
+  freirean_pedagogy: { title: 'Freirean Pedagogy', description: 'Dialogue, conscientization, oppression, praxis, problem-posing education, liberation, critical literacy, and learning that turns reflection into action', group: 'family_care_guidance' },
+  primary_pedagogy: { title: 'Teaching in Primary School', description: 'Foundational learning, play, scaffolding, safety, routine, literacy, numeracy, care, explanation, and teaching for early developmental stages', group: 'family_care_guidance' },
+  secondary_pedagogy: { title: 'Teaching in Secondary School', description: 'Adolescence, identity formation, discipline, motivation, curriculum, peer culture, assessment, transition, and guided independence', group: 'family_care_guidance' },
+  tertiary_pedagogy: { title: 'Teaching in Tertiary Education', description: 'Advanced study, disciplinary method, critical thinking, self-direction, research literacy, academic formation, transition, and adult learning', group: 'family_care_guidance' },
+  trades_pedagogy: { title: 'Trades Pedagogy', description: 'Apprenticeship, practical competence, tacit knowledge, repetition, safety, embodied skill, tools, mentoring, and learning through doing', group: 'family_care_guidance' },
+  asian_japanese_parental_guidance: { title: 'Asian / Japanese Parental Guidance Practices', description: 'Interdependence, family obligation, amae, discipline, social harmony, education, respect, and relational guidance in Japanese and wider Asian contexts', group: 'family_care_guidance' },
+  african_zimbabwean_parental_guidance: { title: 'African / Zimbabwean Parental Guidance Practices', description: 'Ubuntu, extended kinship, respect, communal responsibility, oral teaching, discipline, survival, and intergenerational guidance in Zimbabwean and wider African contexts', group: 'family_care_guidance' },
+  western_parental_guidance: { title: 'Western Parental Guidance Theories', description: 'Attachment, autonomy, authoritative guidance, boundaries, praise, discipline, rights, developmental milestones, and individual self-formation', group: 'family_care_guidance' },
+  advice_from_grandma: { title: 'Advice from Grandma', description: 'Intergenerational wisdom, practical care, household knowledge, caution, humour, memory, everyday ethics, relational guidance, and lived common sense', group: 'family_care_guidance' },
+
+  marxian_analysis: { title: 'Marx and Engels Historical Materialism', description: 'Class, labor, alienation, material conditions, ideology, commodity form, exploitation, social reproduction, historical materialism, and revolutionary change', group: 'archeo_genealogical_deconstruction' },
+  post_structuralism_analysis: { title: 'Post-Structuralism', description: 'Difference, discourse, instability, subject formation, signifying chains, power, critique of fixed meaning, and the undoing of essential categories', group: 'archeo_genealogical_deconstruction' },
+  bataillean_analysis: { title: 'Georges Bataillean Analysis', description: 'Excess, expenditure, transgression, sovereignty, taboo, sacrifice, eroticism, base materialism, and the limits of utility', group: 'archeo_genealogical_deconstruction' },
+  critical_theory_perspective: { title: 'Critical Theory', description: 'Social critique and emancipation', group: 'archeo_genealogical_deconstruction' },
+  frankfurt_school_analysis: { title: 'Frankfurt School Critical Theory', description: 'Culture industry, domination, ideology, authoritarianism, instrumental reason, negative critique, emancipation, and diagnosing modern social pathologies', group: 'archeo_genealogical_deconstruction' },
+  horkheimer_critical_theory: { title: "Max Horkheimer's Critical Theory", description: 'Instrumental reason, domination, emancipation, ideology, capitalism, culture, authoritarian tendencies, and critique aimed at social transformation', group: 'archeo_genealogical_deconstruction' },
+  adorno_negative_dialectics: { title: "Theodor W. Adorno's Negative Dialectics", description: 'Nonidentity, contradiction, damaged life, culture industry, immanent critique, suffering, and thought that resists premature reconciliation', group: 'archeo_genealogical_deconstruction' },
+  althusser_ideology_analysis: { title: "Louis Althusser's Ideology and Apparatuses", description: 'Ideology, interpellation, apparatuses, reproduction, structure, overdetermination, social formation, and how subjects are produced by institutions', group: 'archeo_genealogical_deconstruction' },
+  simondonian_analysis: { title: 'Simondonian Analysis', description: 'Individuation, preindividual fields, technics, relation, and collective becoming', group: 'archeo_genealogical_deconstruction' },
+  foucaultian_analysis: { title: 'Foucaultian Analysis', description: 'Power, discourse, discipline, subject formation, and historical conditions of truth', group: 'archeo_genealogical_deconstruction' },
+  foucauldian_discourse_analysis: { title: 'Foucauldian Discourse Analysis', description: 'Statement, archive, discourse formation, power-knowledge, normalization, subject position, exclusion, and tracing how language organizes what can be said and lived', group: 'archeo_genealogical_deconstruction' },
+  derridian_analysis: { title: 'Derridian Analysis', description: 'Deconstruction, differance, trace, supplement, undecidability, and textual instability', group: 'archeo_genealogical_deconstruction' },
+  schizoanalytic_insights: { title: 'Deleuzian Schizoanalysis', description: 'Rhizomatic thinking, lines of flight, and becoming', group: 'archeo_genealogical_deconstruction' },
+  zizekian_analysis: { title: 'Žižekian Analysis', description: 'Ideology, fantasy, contradiction, enjoyment, subjectivity, and the Real', group: 'archeo_genealogical_deconstruction' },
+  spivak_subaltern_analysis: { title: "Gayatri Chakravorty Spivak's Subaltern Analysis", description: 'Subalternity, representation, epistemic violence, strategic essentialism, imperialism, translation, voice, mediation, and who can speak within dominant discourse', group: 'archeo_genealogical_deconstruction' },
+  posthumanism_perspective: { title: 'Posthumanism', description: 'Beyond human-centered thinking', group: 'archeo_genealogical_deconstruction' },
+
+  feminist_perspective: { title: 'Feminist Psychology', description: 'Gender, power, and social context', group: 'gender_sexuality_queer' },
+  irigarayian_perspective: { title: 'Irigarayian Feminine', description: 'Philosophy and psychoanalysis of sexual difference, feminine subjectivity, language, embodiment, desire, mimicry, and the critique of phallocentric order', group: 'gender_sexuality_queer' },
+  womens_studies: { title: "Women's Studies", description: 'Women’s lives, institutions, labour, history, representation, oppression, resistance, and interdisciplinary study grounded in gendered experience', group: 'gender_sexuality_queer' },
+  feminist_epistemology: { title: 'Feminist Epistemology', description: 'Situated knowledge, standpoint, bias critique, epistemic authority, social location, objectivity, and how power shapes what counts as knowledge', group: 'gender_sexuality_queer' },
+  feminist_methodologies: { title: 'Feminist Methodologies', description: 'Reflexivity, situated method, ethics of relation, participatory inquiry, embodiment, accountability, and research practice shaped by feminist critique', group: 'gender_sexuality_queer' },
+  standpoint_theory: { title: 'Standpoint Theory', description: 'Situated social location, epistemic privilege from the margins, structural position, reflexivity, power, experience, and standpoint as a method of knowledge', group: 'gender_sexuality_queer' },
+  radical_feminism: { title: 'Radical Feminism', description: 'Patriarchy, sex-class, violence, reproductive politics, structural domination, consciousness-raising, and transformative critique of male power', group: 'gender_sexuality_queer' },
+  ecofeminism: { title: 'Ecofeminism', description: 'Gendered domination, ecology, care, extraction, embodiment, environmental justice, relational ethics, and the linked critique of patriarchy and ecological destruction', group: 'gender_sexuality_queer' },
+  lgbtq_studies_perspective: { title: 'Lesbian & Gay Studies', description: 'Lesbian and gay histories, cultures, communities, marginalization, resilience, and affirmation', group: 'gender_sexuality_queer' },
+  sexualities_studies: { title: 'Sexualities Studies', description: 'Sexual cultures, practices, identities, norms, pleasure, stigma, and social regulation', group: 'gender_sexuality_queer' },
+  gender_studies: { title: 'Gender Studies', description: 'Gender systems, identities, embodiment, institutions, power, and everyday life', group: 'gender_sexuality_queer' },
+  queer_theory_perspective: { title: 'Queer Theory', description: 'Norms, identity, fluidity, and the politics of desire', group: 'gender_sexuality_queer' },
+  bell_hooks_love_pedagogy: { title: "bell hooks' Love and Pedagogy", description: 'Love as ethic, engaged pedagogy, domination, liberation, community, care, voice, feminist teaching, and transforming everyday life through critical relation', group: 'gender_sexuality_queer' },
+  trans_studies: { title: 'Trans Studies', description: 'Trans life, embodiment, transition, self-determination, institutions, and gender variance', group: 'gender_sexuality_queer' },
+  identity_politics_analysis: { title: 'Identity Politics', description: 'Collective identification, recognition, coalition, difference, strategic naming, inclusion, exclusion, representation, and the politics of belonging', group: 'gender_sexuality_queer' },
+  elizabeth_grosz_corporeal_feminism: { title: "Elizabeth Grosz's Corporeal Feminism", description: 'Embodiment, sexual difference, becoming, materiality, time, space, animality, and feminist philosophy beyond static identity', group: 'gender_sexuality_queer' },
+  donna_haraway_situated_knowledges: { title: "Donna Haraway's Situated Knowledges", description: 'Situated knowledge, partial perspective, cyborgs, technoscience, kin-making, response-ability, species entanglement, and accountable positioning', group: 'gender_sexuality_queer' },
+
+  critical_race_studies: { title: 'Critical Race Studies', description: 'Racial formation, structural racism, intersectionality, law, culture, and lived experience', group: 'race_coloniality_embodiment' },
+  fanonian_analysis: { title: 'Frantz Fanonian Analysis', description: 'Colonial violence, racialization, alienation, recognition, embodiment, national consciousness, liberation, and the psychic life of colonial power', group: 'race_coloniality_embodiment' },
+  anti_colonial_studies: { title: 'Anti-Colonial Studies', description: 'Empire, resistance, liberation struggle, political education, national self-determination, solidarity, and strategies for refusing colonial domination', group: 'race_coloniality_embodiment' },
+  postcolonial_studies: { title: 'Postcolonial Studies', description: 'Empire afterlives, representation, hybridity, colonial discourse, subjection, worlding, translation, and the uneven cultural effects of colonial history', group: 'race_coloniality_embodiment' },
+  decolonial_studies: { title: 'Decolonial Studies', description: 'Coloniality, land, knowledge, sovereignty, extraction, repair, and pluriversal futures', group: 'race_coloniality_embodiment' },
+  pluriversal_politics: { title: 'Pluriversal Politics', description: 'Many worlds, epistemic plurality, coexistence without reduction to one universal model, autonomy, relation, and political forms adequate to heterogenous ways of life', group: 'race_coloniality_embodiment' },
+  edouard_glissant_relation_poetics: { title: "Edouard Glissant's Poetics of Relation", description: 'Relation, opacity, creolization, archipelagic thought, worlding, memory, colonial fracture, and forms of being that resist transparent capture', group: 'race_coloniality_embodiment' },
+  moten_harney_undercommons: { title: 'Moten and Harney Undercommons', description: 'Fugitive planning, study, black social life, institution refusal, debt, logistics, collectivity, and survival through insurgent relation', group: 'race_coloniality_embodiment' },
+  crip_studies: { title: 'Crip Studies', description: 'Crip politics, disability culture, anti-ableism, interdependence, access, embodiment, norm critique, refusal of compulsory capacity, and reimagining flourishing beyond able-bodied standards', group: 'race_coloniality_embodiment' },
+  fat_studies: { title: 'Fat Studies', description: 'Anti-fat bias, embodiment, health norms, stigma, access, and fat liberation', group: 'race_coloniality_embodiment' },
+  mad_studies: { title: 'Mad Studies', description: 'Psychiatric power, mad knowledge, distress, survival, and alternatives to pathologization', group: 'race_coloniality_embodiment' },
+
+  ecology_perspective: { title: 'Ecology', description: 'Organisms, habitats, interdependence, niches, energy flows, disturbance, adaptation, and relations between living systems and environments', group: 'systems_ecology_food' },
+  traditional_ecological_knowledges: { title: 'Traditional Ecological Knowledges', description: 'Long-term ecological observation, seasonal knowledge, custodianship, species relation, practice-based environmental learning, place memory, reciprocity, and intergenerational survival knowledge', group: 'systems_ecology_food' },
+  james_lovelock_gaia: { title: "James Lovelock's Gaia Theory", description: 'Earth systems, planetary feedback, atmosphere, regulation, biosphere, living planet metaphors, instability, and thinking life and environment as mutually shaping', group: 'systems_ecology_food' },
+  quantum_theory_analysis: { title: 'Quantum Theory Analysis', description: 'Observation, indeterminacy, probability, entanglement, measurement, fields, scale, uncertainty, and the limits of classical causality', group: 'systems_ecology_food' },
+  chaos_theory_analysis: { title: 'Chaos Theory', description: 'Nonlinearity, sensitivity to initial conditions, strange attractors, turbulence, emergence, unpredictability, pattern, and dynamic systems near instability', group: 'systems_ecology_food' },
+  gregory_bateson_ecology_mind: { title: "Gregory Bateson's Ecology of Mind", description: 'Cybernetics, feedback, pattern, communication, double bind, learning levels, mind-in-system, relational ecology, and the pattern that connects', group: 'systems_ecology_food' },
+  science_technology_studies: { title: 'Science and Technology Studies', description: 'Technoscience, laboratories, infrastructures, social construction, expertise, controversy, publics, material practice, and how science and technology are made in society', group: 'systems_ecology_food' },
+  latourian_analysis: { title: 'Latourian Analysis', description: 'Actor-networks, mediation, translation, nonhuman agency, and assembled realities', group: 'systems_ecology_food' },
+  karen_barad_agential_realism: { title: "Karen Barad's Agential Realism", description: 'Intra-action, apparatus, diffraction, mattering, entanglement, ethics, material-discursive practice, and quantum feminist theory', group: 'systems_ecology_food' },
+  isabelle_stengers_cosmopolitics: { title: "Isabelle Stengers' Cosmopolitics", description: 'Cosmopolitics, ecology of practices, slowing down reasoning, speculative pragmatics, obligation, situated knowledge, and composing with heterogeneous worlds', group: 'systems_ecology_food' },
+  new_materialisms: { title: 'New Materialisms', description: 'Matter, agency, relation, vitality, embodiment, assemblage, nonhuman force, material-discursive practice, and the liveliness of the world', group: 'systems_ecology_food' },
+  resilience_analysis: { title: 'Resilience', description: 'Adaptive capacity, recovery, redundancy, stress response, and durable support systems', group: 'systems_ecology_food' },
+  social_ecological_systems_theory: { title: 'Social-Ecological Systems Theory', description: 'Linked human and ecological systems, feedback loops, thresholds, adaptive governance, resilience, institutions, and environmental change', group: 'systems_ecology_food' },
+  critical_food_systems_analysis: { title: 'Critical Food Systems Analysis', description: 'Food justice, supply chains, agriculture, labor, ecology, access, and power', group: 'systems_ecology_food' },
+  food_sovereignty_analysis: { title: 'Food Sovereignty', description: 'Land, seed, peasant knowledge, local control, agroecology, self-determination, food justice, and the politics of who governs nourishment', group: 'systems_ecology_food' },
+  feminist_food_studies: { title: 'Feminist Food Studies', description: 'Care, labor, eating, embodiment, domesticity, agriculture, consumption, food justice, gendered power, and the politics of nourishment', group: 'systems_ecology_food' },
+  biomimicry_perspective: { title: 'Biomimicry', description: 'Learning from living systems, adaptation, form, function, and regenerative design', group: 'systems_ecology_food' },
+  environmental_humanities: { title: 'Environmental Humanities', description: 'Culture, ecology, ethics, story, extinction, more-than-human worlds, environmental justice, and how human meaning is entangled with damaged environments', group: 'systems_ecology_food' },
+  ecopoiesis_perspective: { title: 'Ecopoiesis', description: 'World-making ecologies, habitat creation, planetary repair, and life-supporting systems', group: 'systems_ecology_food' },
+  rewilding_analysis: { title: 'Rewilding', description: 'Ecological restoration, trophic complexity, habitat recovery, nonhuman autonomy, corridor thinking, repair, and allowing damaged systems to regenerate beyond control', group: 'systems_ecology_food' },
+  regenerative_design: { title: 'Regenerative Design', description: 'Whole-systems design, reciprocity, circularity, repair, living systems, long-term flourishing, ecological health, and design that restores rather than merely sustains', group: 'systems_ecology_food' },
+  permaculture: { title: 'Permaculture', description: 'Earth care, people care, fair share, zones, stacking functions, regenerative practice, ecological design, and practical systems for resilient living', group: 'systems_ecology_food' },
+  landscape_design_theory: { title: 'Theory of Landscape Design', description: 'Site, contour, planting, circulation, ecology, aesthetics, maintenance, public use, atmosphere, and designing relations between bodies and land', group: 'systems_ecology_food' },
+  reciprocity_mutual_aid: { title: 'Reciprocity, Mutual Aid, and Sharing Economies', description: 'Reciprocity, commons, mutual aid, solidarity, gifting, sharing economies, survival networks, redistribution, and practical forms of collective support', group: 'systems_ecology_food' },
+  jasper_hoffmeyer_biosemiotics: { title: "Jesper Hoffmeyer's Biosemiotics", description: 'Sign processes in living systems, code duality, semiosis, communication, organism-environment relation, meaning in life processes, and ecological signification', group: 'systems_ecology_food' },
+
+  mechanical_engineering_analysis: { title: 'Mechanical Engineering Analysis', description: 'Forces, loads, constraints, materials, mechanisms, tolerances, failure modes, energy transfer, friction, maintenance, and practical design', group: 'strategy_method_organisation' },
+  electronics_analysis: { title: 'Electronics', description: 'Circuits, signals, components, feedback, power, noise, failure points, sensing, control, and how systems behave through electrical relation', group: 'strategy_method_organisation' },
+  computer_science_analysis: { title: 'Computer Science', description: 'Algorithms, abstraction, data structures, computation, complexity, logic, interfaces, systems, debugging, and how procedures shape outcomes', group: 'strategy_method_organisation' },
+  data_science_analysis: { title: 'Data Science', description: 'Data collection, cleaning, patterning, modeling, prediction, bias, metrics, visualization, uncertainty, and what gets counted as signal', group: 'strategy_method_organisation' },
+  metascience_analysis: { title: 'Metascience', description: 'Research quality, reproducibility, incentives, publication bias, methods review, evidence standards, scientific institutions, and the study of how science works', group: 'strategy_method_organisation' },
+  interdisciplinary_studies: { title: 'Interdisciplinary Studies', description: 'Crossing fields, translation, method blending, concept transfer, boundary work, synthesis, epistemic tension, and how problems exceed one discipline', group: 'strategy_method_organisation' },
+  australian_legal_discourse: { title: 'Australian Legal Discourse', description: 'Common law, statute, precedent, jurisdiction, rights, obligations, evidence, administrative language, settler legality, and institutional reasoning in Australia', group: 'strategy_method_organisation' },
+  architectural_theories: { title: 'Architectural Theories', description: 'Space, form, dwelling, structure, circulation, atmosphere, programme, materiality, design intention, and how built environments shape life', group: 'strategy_method_organisation' },
+  swot_analysis: { title: 'SWOT Analysis', description: 'Strengths, weaknesses, opportunities, threats, and strategic positioning', group: 'strategy_method_organisation' },
+  grounded_theory: { title: 'Grounded Theory', description: 'Open coding, constant comparison, memos, categories, theoretical sampling, emergence, saturation, and theory built from lived data', group: 'strategy_method_organisation' },
+  autoethnography: { title: 'Autoethnography', description: 'Personal experience as cultural evidence, reflexive voice, situated memory, vulnerability, ethics, embodiment, and social interpretation', group: 'strategy_method_organisation' },
+  conflict_management: { title: 'Conflict Management', description: 'Escalation, negotiation, mediation, interests, positions, repair, communication breakdown, power asymmetry, and practical strategies for working through conflict', group: 'strategy_method_organisation' },
+  group_work_theories: { title: 'Group Work Theories', description: 'Roles, coordination, trust, task division, collective process, facilitation, conflict, cohesion, and how groups succeed or fail together', group: 'strategy_method_organisation' },
+  feasibility_analysis: { title: 'Feasibility Analysis', description: 'Practical viability, resources, constraints, dependencies, costs, and implementation readiness', group: 'strategy_method_organisation' },
+  risk_analysis: { title: 'Risk Analysis', description: 'Likelihood, impact, uncertainty, exposure, prevention, mitigation, and contingency', group: 'strategy_method_organisation' },
+  transitional_theory: { title: 'Transitional Theory', description: 'Liminal movement, phased change, rites of passage, continuity, and transformation', group: 'strategy_method_organisation' },
+  socio_technical_transitions_mlp: { title: 'Socio-Technical Transitions and the Multi-Level Perspective', description: 'Niches, regimes, landscape pressures, transition pathways, socio-technical change, sustainability transitions, system lock-in, and long-term transformation', group: 'strategy_method_organisation' },
+  organisational_theories: { title: 'Organisational Theories', description: 'Structures, culture, governance, roles, incentives, coordination, and institutional change', group: 'strategy_method_organisation' },
+  organisational_transformation: { title: 'Organisational Transformation', description: 'Change processes, leadership, culture shift, stakeholder alignment, resistance, capability building, implementation, and sustained institutional renewal', group: 'strategy_method_organisation' },
+  social_movement_theories: { title: 'Theories Growing a Social Movement', description: 'Collective action, mobilization, framing, resources, leadership, and movement ecology', group: 'strategy_method_organisation' },
+  andre_baier_tins_d_analysis: { title: "André Baier's TINS_D Analysis", description: 'Democracy education, sustainability, socio-technical responsibility, engineering ethics, participatory formation, critical reflection, and collective capability-building for ecological futures', group: 'strategy_method_organisation' },
+  tacktical_methodological_analysis: { title: 'Tacktical Methodological Analysis', description: "Louisa Bufardeci's tactical method, situated procedure, constraints, mapping, and action", group: 'strategy_method_organisation' },
+  study_frameworks: { title: 'Study Frameworks', description: 'Scaffolding, revision cycles, note systems, concept mapping, spaced repetition, synthesis, workload design, and structured ways of learning from complex material', group: 'strategy_method_organisation' },
+  transformative_futures: { title: 'Imagining Transformative Futures', description: 'Speculation, prefiguration, scenario imagination, world-building, and emancipatory possibility', group: 'strategy_method_organisation' }
+};
+
+const PERSPECTIVE_HEADING_ALIASES: Record<string, string[]> = {
+  marxian_analysis: ['Marxian Analysis', 'Marx and Engels Historical Materialism', 'Marx and Engels', 'Marx and Engels Perspective'],
+  lgbtq_studies_perspective: ['LGBTQ+ Studies'],
+  feasibility_analysis: ['Feasability Analysis'],
+  tacktical_methodological_analysis: ['Tactical Methodological Analysis'],
+  confucianism_analysis: ['Confucianism', 'Confusionism'],
+  francis_bacon_empiricism: ['Francis Bacon', "Francis Bacon's Experimental Method"],
+  metaethics_analysis: ['Metaethics'],
+  schelling_nature_philosophy: ['Schelling', 'F.W.J. Schelling', "Schelling's Nature Philosophy"],
+  ralph_waldo_emerson_environmental_thought: ['Ralph Waldo Emerson', "Ralph Waldo Emerson's Environmental Thought"],
+  bergson_duration_creativity: ['Bergson', "Henri Bergson's Duration and Creativity"],
+  william_james_pragmatism: ['William James', "William James' Pragmatism"],
+  maslow_hierarchy_needs: ["Marlow's Hierarchy of Needs", "Maslow's Hierarchy of Human Needs"],
+  descartes_cogito_subject: ["Rene Descartes' Cogito and Subject"],
+  hannah_arendt_action_plurality: ['Arendt', "Hannah Arendt's Action and Plurality", "Hannah Arendt's Political Action"],
+  amartya_sen_capability_approach: ['Amartya Sen', "Amartya Sen's Capability Approach"],
+  edith_cowan_civic_reform: ['Edith Cowen', "Edith Cowan's Civic Reform"],
+  diane_ding_dyason_practical_ethics: ['Diane Ding Dyason', `Diane "Ding" Dyason`, `Diane "Ding" Dyason's Practical Ethics`],
+  bernard_williams_personal_identity: ["Barnard Williams' Personal Identity", 'Barnard Williams Personal Identity'],
+  pf_strawson_personhood: ["P.F. Strawson's Personhood", "PF Strawson's Personhood"],
+  jl_austin_speech_acts: ['J.L. Austin', 'JL Austin', 'J. L. Austin', "J. L. Austin's Speech Act Philosophy", "Austin's Speech Act Theory"],
+  analytic_moral_philosophy: ['Analytic Moral Philosophy'],
+  continental_moral_philosophy: ['Continental Moral Philosophy'],
+  moral_philosophy_analysis: ['Moral Philosophy'],
+  feminist_ethics: ['Feminist Ethics'],
+  continental_feminist_philosophy: ['Continental Feminist Philosophy', 'Continental Feminist Philosophy Analysis'],
+  enactivism_analysis: ['Enactivism'],
+  leibniz_monadology_perspective: ["Leibniz's Monadology", 'Leibniz'],
+  levinasian_ethics: ["Levinas' Ethics of the Other", 'Levinasian Ethics'],
+  habermasian_communicative_subject: ["Habermas' Communicative Subject", 'Habermasian Communicative Subject'],
+  discourse_ethics_analysis: ['Discourse Ethics', 'Habermasian Discourse Ethics'],
+  jean_luc_nancy_being_with: ["Jean Luc Nancy's Being-With", 'Jean-Luc Nancy'],
+  fanonian_analysis: ['Franz Fanon Analysis', 'Frantz Fanon Analysis'],
+  kristevan_abjection_semiotic: ["Julia Kristeva's Abjection and the Semiotic", 'Kristevan Analysis', 'Julia Kristeva'],
+  gallagher_pattern_theory_self: ["Gallagher's Pattern Theory of Self", 'A Pattern Theory of Self', 'Pattern Theory of Self'],
+  husserlian_phenomenology: ["Husserl's Phenomenology", 'Edmund Husserl', 'Husserl'],
+  whitehead_process_philosophy: ["Whitehead's Process Philosophy", 'Alfred North Whitehead', 'Whitehead'],
+  aesthetics_untranslatables: ['Aesthetics', 'Aesthetics and the Untranslatable', 'Dictionary of Untranslatables Aesthetics'],
+  celtic_religion_interpretation: ['Celtic Religion', 'Celtic Religion Interpretation'],
+  herbalism_analysis: ['Herbalism'],
+  witchcraft_analysis: ['Witch Craft', 'Witchcraft'],
+  ancient_egyptian_interpretation: ['Ancient Egyptian Interpretation', 'Ancient Egyptian', 'Ancient Egyption', 'Ancient Egyptian Religion'],
+  anthropology_analysis: ['Anthropology'],
+  archaeology_analysis: ['Archeology', 'Archaeology'],
+  public_policy_analytics: ['Public Policy Analytics'],
+  structuralism_analysis: ['Structuralism'],
+  textual_analysis: ['Textual Analysis'],
+  intertextuality_analysis: ['Intertextuality'],
+  psychology_analysis: ['Psychology'],
+  anti_psychiatry_analysis: ['Anti-Psychiatry', 'Anti-Psychiiatry', 'Antipsychiatry'],
+  general_practice_diagnosis: ['General Practice Medical Doctor Practice and Diagnosis', 'General Practice Medical Diagnosis', 'GP Diagnosis'],
+  emotional_intelligence_analysis: ['Emotional Intelligence'],
+  crip_studies: ['Crip', 'Crip Studies', 'Crip Theory'],
+  steiner_education: ['Steiner Education', 'Waldorf Education', 'Rudolf Steiner Education'],
+  freirean_pedagogy: ['Freirean Pedagogy', 'Paulo Freire'],
+  vitalism_analysis: ['Vitalism'],
+  organicism_analysis: ['Organicism'],
+  adorno_negative_dialectics: ['Adorno', "Adorno's Negative Dialectics", 'Negative Dialectics'],
+  althusser_ideology_analysis: ['Althusser', "Althusser's Ideology and Apparatuses"],
+  foucauldian_discourse_analysis: ['Foucauldian Discourse Analysis', 'Foucaultian Discourse Analysis'],
+  womens_studies: ["Women's Studies", 'Womens Studies'],
+  feminist_epistemology: ['Feminist Epistemology'],
+  feminist_methodologies: ['Feminist Methodologies'],
+  anti_colonial_studies: ['Anti-Colonial Studies', 'Anticolonial Studies'],
+  postcolonial_studies: ['Postcolonial', 'Postcolonial Studies'],
+  pluriversal_politics: ['Pluriversal Politics'],
+  edouard_glissant_relation_poetics: ['Edouard Glissant', "Glissant's Poetics of Relation"],
+  moten_harney_undercommons: ['Moten and Harney', 'Moten & Harney', 'Undercommons'],
+  james_lovelock_gaia: ['James Lovelock', "Lovelock's Gaia Theory", 'Gaia Theory'],
+  spivak_subaltern_analysis: ['Gayatry Chacravorty Spivak', 'Gayatri Chakravorty Spivak', "Spivak's Subaltern Analysis"],
+  jasper_hoffmeyer_biosemiotics: ['Jasper Hoffmeyer', 'Jesper Hoffmeyer', "Hoffmeyer's Biosemiotics"],
+  andre_baier_tins_d_analysis: ["André Baier's TINS_D Analysis", "Andre Baier's TINS_D Analysis", 'TINS_D Analysis'],
+  donna_haraway_situated_knowledges: ["Donna Haraway's Situated Knowledges", 'Donna Haraway', 'Situated Knowledges'],
+  socio_technical_transitions_mlp: ['Multi-Level Perspective', 'Socio-Technical Transitions', 'Socio-technical Transitions and the Multi-Level Perspective'],
+  food_sovereignty_analysis: ['Food Sovereignty', 'Food Soverienty'],
+  poetics_analysis: ['Poetry', 'Poetics'],
+  isabelle_stengers_cosmopolitics: ['Isobella Stengers', 'Isabelle Stengers', "Stengers' Cosmopolitics"],
+  metascience_analysis: ['MetaScience', 'Metascience'],
+  french_philosophy_of_science_relation: ['French Philosophy of Science and Relation'],
+  bourdieu_analysis: ['Bourdieu', 'Pierre Bourdieu', 'Bourdieusian Analysis', "Pierre Bourdieu's Theory of Practice"],
+  baudrillard_analysis: ['Baudrillard', 'Jean Baudrillard', 'Baudrillardian Analysis', 'Simulacra and Hyperreality'],
+  continental_political_aesthetics: ['Continental Political Aesthetics'],
+  frankfurt_school_analysis: ['Frankfurt School', 'Frankfurt School Critical Theory', 'Frankfurt School Analysis'],
+  interdisciplinary_studies: ['Interdisciplinary', 'Interdisciplinary Studies'],
+  architectural_theories: ['Architectural Theories', 'Architecture Theory'],
+  electronics_analysis: ['Electronics'],
+  conflict_management: ['Conflict Management'],
+  group_work_theories: ['Group Work Theories'],
+  study_frameworks: ['Study Frameworks'],
+  set_theory_analysis: ['Set Theory', 'Cantorian Set Theory', "Georg Cantor's Set Theory"]
+};
+
+const PERSPECTIVE_CHRONOLOGY: string[] = [
+  'indigenous_australian_philosophy_accumulated',
+  'ancient_religious_interpretation',
+  'ancient_egyptian_interpretation',
+  'first_testament_hebrew_interpretation',
+  'greek_gods_interpretation',
+  'roman_gods_interpretation',
+  'druidic_interpretation',
+  'celtic_religion_interpretation',
+  'buddhist_psychology_perspective',
+  'confucianism_analysis',
+  'second_testament_christian_interpretation',
+  'muslim_interpretation',
+  'pagan_interpretation',
+  'herbalism_analysis',
+  'witchcraft_analysis',
+  'bible_teachings_perspective',
+  'cartographic_analysis',
+  'geography_analysis',
+  'anthropology_analysis',
+  'archaeology_analysis',
+  'platonic_perspective',
+  'aristotle_argonic_teachings',
+  'cynics_perspective',
+  'stoicism_perspective',
+  'metaphysical_analysis',
+  'ontological_analysis',
+  'ethical_analysis',
+  'moral_philosophy_analysis',
+  'philosophy_of_mind_perspective',
+  'francis_bacon_empiricism',
+  'descartes_cogito_subject',
+  'spinoza_theologic_ethico_perspective',
+  'leibniz_monadology_perspective',
+  'lockean_personal_identity',
+  'humean_bundle_self',
+  'rousseau_political_thought',
+  'aesthetics_untranslatables',
+  'kantian_transcendental_subject',
+  'hegelian_recognition_subject',
+  'schelling_nature_philosophy',
+  'kierkegaard_existential_faith',
+  'schopenhauer_will_representation',
+  'ralph_waldo_emerson_environmental_thought',
+  'marxian_analysis',
+  'political_thought',
+  'theories_of_world_politics',
+  'democracy_analysis',
+  'critique_of_human_rights',
+  'healthy_in_all_policies',
+  'social_policy_analysis',
+  'nietzschean_perspective',
+  'bergson_duration_creativity',
+  'william_james_pragmatism',
+  'psychiatry_perspective',
+  'psychology_analysis',
+  'collingwood_historical_imagination',
+  'freudian_psychoanalysis',
+  'jungian_perspective',
+  'logics_analysis',
+  'set_theory_analysis',
+  'epistemology_analysis',
+  'linguistic_analysis',
+  'semiotic_analysis',
+  'structuralism_analysis',
+  'argumentation_construction_analysis',
+  'textual_analysis',
+  'husserlian_phenomenology',
+  'phenomenology_perspective',
+  'heideggerian_dasein_analysis',
+  'whitehead_process_philosophy',
+  'process_philosophical_analysis',
+  'vitalism_analysis',
+  'organicism_analysis',
+  'bataillean_analysis',
+  'levinasian_ethics',
+  'hermeneutics_perspective',
+  'existential_perspective',
+  'sartrean_subjectivity',
+  'de_beauvoir_situated_subject',
+  'merleau_ponty_embodied_subject',
+  'enactivism_analysis',
+  'continental_moral_philosophy',
+  'feminist_philosophy',
+  'continental_feminist_philosophy',
+  'feminist_ethics',
+  'feminist_perspective',
+  'standpoint_theory',
+  'radical_feminism',
+  'ecofeminism',
+  'womens_studies',
+  'feminist_epistemology',
+  'feminist_methodologies',
+  'lacanian_perspective',
+  'kristevan_abjection_semiotic',
+  'intertextuality_analysis',
+  'critical_theory_perspective',
+  'frankfurt_school_analysis',
+  'horkheimer_critical_theory',
+  'adorno_negative_dialectics',
+  'althusser_ideology_analysis',
+  'hannah_arendt_action_plurality',
+  'wittgenstein_language_games',
+  'jl_austin_speech_acts',
+  'analytic_moral_philosophy',
+  'metaethics_analysis',
+  'philosophy_of_language_analysis',
+  'pf_strawson_personhood',
+  'social_theories_of_deviance',
+  'discourse_analysis',
+  'foucauldian_discourse_analysis',
+  'sociology_analysis',
+  'public_policy_analytics',
+  'social_research_methods',
+  'montessori_method',
+  'steiner_education',
+  'piaget_developmental_theory',
+  'vygotsky_sociocultural_theory',
+  'freirean_pedagogy',
+  'primary_pedagogy',
+  'secondary_pedagogy',
+  'tertiary_pedagogy',
+  'trades_pedagogy',
+  'critical_theory_perspective',
+  'bourdieu_analysis',
+  'harry_frankfurt_volitional_self',
+  'sydney_shoemaker_self_knowledge',
+  'bernard_williams_personal_identity',
+  'paul_ricoeur_narrative_identity',
+  'derek_parfit_reductionist_identity',
+  'habermasian_communicative_subject',
+  'discourse_ethics_analysis',
+  'amartya_sen_capability_approach',
+  'charles_taylor_sources_self',
+  'macintyre_narrative_self',
+  'edith_cowan_civic_reform',
+  'diane_ding_dyason_practical_ethics',
+  'jean_luc_nancy_being_with',
+  'irigarayian_perspective',
+  'bell_hooks_love_pedagogy',
+  'elizabeth_grosz_corporeal_feminism',
+  'judith_butler_performativity',
+  'catriona_mackenzie_relational_autonomy',
+  'christine_korsgaard_self_constitution',
+  'marya_schechtman_narrative_self',
+  'linda_alcoff_visible_identities',
+  'anthony_appiah_identity_ethics',
+  'adriana_cavarero_relational_uniqueness',
+  'dan_zahavi_minimal_self',
+  'shaun_gallagher_embodied_self',
+  'gallagher_pattern_theory_self',
+  'donna_haraway_situated_knowledges',
+  'rosi_braidotti_nomadic_subjectivity',
+  'simondonian_analysis',
+  'foucaultian_analysis',
+  'derridian_analysis',
+  'baudrillard_analysis',
+  'post_structuralism_analysis',
+  'schizoanalytic_insights',
+  'continental_political_aesthetics',
+  'jacques_ranciere_politics_aesthetics',
+  'zizekian_analysis',
+  'spivak_subaltern_analysis',
+  'posthumanism_perspective',
+  'topological_analysis',
+  'narrative_psychology_perspective',
+  'creative_nonfiction_perspective',
+  'music_songwriting_analysis',
+  'idiotextual_analysis',
+  'frame_analysis',
+  'goffman_frame_analysis',
+  'media_studies',
+  'poetics_analysis',
+  'art_theory_analysis',
+  'susan_sontag_interpretation',
+  'tessa_laird_cinemal',
+  'attachment_theory_perspective',
+  'anti_psychiatry_analysis',
+  'general_practice_diagnosis',
+  'gestalt_perspective',
+  'transpersonal_perspective',
+  'maslow_hierarchy_needs',
+  MYERS_BRIGGS_PERSPECTIVE_KEY,
+  'cbt_perspective',
+  'positive_psychology_perspective',
+  'emotional_intelligence_analysis',
+  'asian_japanese_parental_guidance',
+  'african_zimbabwean_parental_guidance',
+  'western_parental_guidance',
+  'advice_from_grandma',
+  'lgbtq_studies_perspective',
+  'sexualities_studies',
+  'gender_studies',
+  'queer_theory_perspective',
+  'trans_studies',
+  'identity_politics_analysis',
+  'anti_colonial_studies',
+  'fanonian_analysis',
+  'critical_race_studies',
+  'postcolonial_studies',
+  'decolonial_studies',
+  'pluriversal_politics',
+  'edouard_glissant_relation_poetics',
+  'moten_harney_undercommons',
+  'crip_studies',
+  'fat_studies',
+  'mad_studies',
+  'ecology_perspective',
+  'traditional_ecological_knowledges',
+  'quantum_theory_analysis',
+  'chaos_theory_analysis',
+  'gregory_bateson_ecology_mind',
+  'james_lovelock_gaia',
+  'science_technology_studies',
+  'latourian_analysis',
+  'karen_barad_agential_realism',
+  'isabelle_stengers_cosmopolitics',
+  'new_materialisms',
+  'moral_naturalism_perspective',
+  'naturalism_analysis',
+  'philosophy_of_science_analysis',
+  'philosophy_of_physics_analysis',
+  'feyerabend_epistemological_anarchism',
+  'french_philosophy_of_science_relation',
+  'michel_serres_relations',
+  'resilience_analysis',
+  'social_ecological_systems_theory',
+  'critical_food_systems_analysis',
+  'food_sovereignty_analysis',
+  'feminist_food_studies',
+  'biomimicry_perspective',
+  'environmental_humanities',
+  'ecopoiesis_perspective',
+  'rewilding_analysis',
+  'regenerative_design',
+  'permaculture',
+  'landscape_design_theory',
+  'reciprocity_mutual_aid',
+  'jasper_hoffmeyer_biosemiotics',
+  'mechanical_engineering_analysis',
+  'electronics_analysis',
+  'computer_science_analysis',
+  'data_science_analysis',
+  'metascience_analysis',
+  'interdisciplinary_studies',
+  'australian_legal_discourse',
+  'architectural_theories',
+  'swot_analysis',
+  'grounded_theory',
+  'autoethnography',
+  'conflict_management',
+  'group_work_theories',
+  'feasibility_analysis',
+  'risk_analysis',
+  'transitional_theory',
+  'socio_technical_transitions_mlp',
+  'organisational_theories',
+  'organisational_transformation',
+  'social_movement_theories',
+  'andre_baier_tins_d_analysis',
+  'tacktical_methodological_analysis',
+  'study_frameworks',
+  'transformative_futures'
+];
+
+function getChronologicalPerspectiveKeys(): string[] {
+  const knownPerspectiveKeys = Object.keys(PERSPECTIVES);
+  const seen = new Set<string>();
+  const orderedKeys = PERSPECTIVE_CHRONOLOGY.filter((key) => {
+    if (!PERSPECTIVES[key] || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  for (const key of knownPerspectiveKeys) {
+    if (!seen.has(key)) {
+      orderedKeys.push(key);
+      seen.add(key);
+    }
+  }
+
+  return orderedKeys;
+}
+
+function getChronologicalGroupKeys(): string[] {
+  const seen = new Set<string>();
+  const orderedGroups: string[] = [];
+
+  for (const key of getChronologicalPerspectiveKeys()) {
+    const groupKey = PERSPECTIVES[key]?.group;
+    if (!groupKey || seen.has(groupKey) || !PERSPECTIVE_GROUPS[groupKey]) continue;
+    seen.add(groupKey);
+    orderedGroups.push(groupKey);
+  }
+
+  for (const groupKey of Object.keys(PERSPECTIVE_GROUPS)) {
+    if (!seen.has(groupKey)) {
+      seen.add(groupKey);
+      orderedGroups.push(groupKey);
+    }
+  }
+
+  return orderedGroups;
+}
+
+const SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS = ['linguistic_analysis', 'semiotic_analysis'];
+const PHILOSOPHY_LINEAGE_PERSPECTIVE_KEYS = ['husserlian_phenomenology', 'whitehead_process_philosophy'];
+const ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS = [
+  'indigenous_australian_philosophy_accumulated',
+  'tessa_laird_cinemal',
+  'asian_japanese_parental_guidance',
+  'african_zimbabwean_parental_guidance',
+  'western_parental_guidance',
+  'ecology_perspective',
+  'social_ecological_systems_theory',
+  'mechanical_engineering_analysis',
+  'australian_legal_discourse',
+  'grounded_theory',
+  'autoethnography'
+];
+const SELF_SUBJECTIVITY_PERSPECTIVE_KEYS = [
+  'descartes_cogito_subject',
+  'lockean_personal_identity',
+  'humean_bundle_self',
+  'kantian_transcendental_subject',
+  'hegelian_recognition_subject',
+  'heideggerian_dasein_analysis',
+  'sartrean_subjectivity',
+  'de_beauvoir_situated_subject',
+  'merleau_ponty_embodied_subject',
+  'pf_strawson_personhood',
+  'harry_frankfurt_volitional_self',
+  'sydney_shoemaker_self_knowledge',
+  'bernard_williams_personal_identity',
+  'paul_ricoeur_narrative_identity',
+  'derek_parfit_reductionist_identity',
+  'charles_taylor_sources_self',
+  'macintyre_narrative_self',
+  'judith_butler_performativity',
+  'catriona_mackenzie_relational_autonomy',
+  'christine_korsgaard_self_constitution',
+  'marya_schechtman_narrative_self',
+  'linda_alcoff_visible_identities',
+  'anthony_appiah_identity_ethics',
+  'adriana_cavarero_relational_uniqueness',
+  'dan_zahavi_minimal_self',
+  'shaun_gallagher_embodied_self',
+  'gallagher_pattern_theory_self',
+  'rosi_braidotti_nomadic_subjectivity'
+];
+const MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS = [
+  'leibniz_monadology_perspective',
+  'moral_naturalism_perspective',
+  'levinasian_ethics',
+  'habermasian_communicative_subject',
+  'jean_luc_nancy_being_with',
+  'kristevan_abjection_semiotic',
+  'music_songwriting_analysis',
+  'marxian_analysis',
+  'bataillean_analysis',
+  'fanonian_analysis',
+  'gregory_bateson_ecology_mind',
+  'quantum_theory_analysis',
+  'karen_barad_agential_realism'
+];
+const DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS = [
+  'maslow_hierarchy_needs',
+  'montessori_method',
+  'steiner_education',
+  'piaget_developmental_theory',
+  'vygotsky_sociocultural_theory'
+];
+const ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS = ['organisational_transformation'];
+
+const GROUP_DEFAULT_METADATA: Record<string, PerspectiveMetadata> = {
+  [PHILOSOPHY_GROUP_KEY]: {
+    tradition: 'Philosophy and first-principles inquiry',
+    orientation: 'Mixed across pre-divide, continental, analytic, and bridge traditions',
+    lineage: 'Cross-historical philosophical lineages'
+  },
+  religious_mythic_interpretation: {
+    tradition: 'Religious, mythic, and sacred traditions',
+    orientation: 'Outside the later analytic/continental divide',
+    lineage: 'Ancient and living ritual, textual, and mythic inheritances'
+  },
+  social_spatial_research: {
+    tradition: 'Social science, spatial inquiry, and research method',
+    orientation: 'Methodological rather than analytic/continental',
+    lineage: 'Geographical, sociological, and empirical inquiry traditions'
+  },
+  narrative_media_frame: {
+    tradition: 'Language, poetics, narrative, media, and interaction studies',
+    orientation: 'Mixed humanities and social theory',
+    lineage: 'Rhetoric and poetics, philology, semiotics, structuralism, narrative theory, media studies, and interaction analysis'
+  },
+  psychoanalytic_clinical: {
+    tradition: 'Psychological, psychiatric, psychoanalytic, developmental, and clinical traditions',
+    orientation: 'Mixed clinical and theoretical lineages',
+    lineage: 'Psychiatric, psychological, psychoanalytic, developmental, and therapeutic traditions'
+  },
+  family_care_guidance: {
+    tradition: 'Education, development, and family guidance',
+    orientation: 'Applied developmental and sociocultural traditions',
+    lineage: 'Pedagogical, developmental, and kinship guidance traditions'
+  },
+  archeo_genealogical_deconstruction: {
+    tradition: 'Historical materialist, genealogical, and deconstructive theory',
+    orientation: 'Mostly continental critical theory',
+    lineage: 'Marx -> Nietzsche -> psychoanalytic and post-structural critique'
+  },
+  gender_sexuality_queer: {
+    tradition: 'Women’s studies, feminist, queer, gender, and sexuality studies',
+    orientation: 'Mostly continental and interdisciplinary critical theory',
+    lineage: 'Women’s studies, feminist theory, lesbian and gay studies, queer theory, trans studies, and sexuality studies lineages'
+  },
+  race_coloniality_embodiment: {
+    tradition: 'Critical race, decolonial, and embodiment studies',
+    orientation: 'Interdisciplinary critical traditions',
+    lineage: 'Anticolonial, decolonial, abolitionist, and embodiment critique'
+  },
+  systems_ecology_food: {
+    tradition: 'Ecology, systems, science studies, and food futures',
+    orientation: 'Interdisciplinary systems and ecological traditions',
+    lineage: 'Ecology, cybernetics, STS, resilience, and environmental humanities'
+  },
+  strategy_method_organisation: {
+    tradition: 'Organisation, planning, method, and implementation',
+    orientation: 'Applied strategy and research traditions',
+    lineage: 'Management, design, law, engineering, and movement strategy'
+  }
+};
+
+const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
+  indigenous_australian_philosophy_accumulated: {
+    tradition: 'Australian Indigenous philosophies and sovereign knowledge traditions',
+    orientation: 'Outside the later analytic/continental divide',
+    chronology: 'Ancient and ongoing',
+    lineage: 'Country, kinship, law, story, and custodial continuities'
+  },
+  buddhist_psychology_perspective: {
+    tradition: 'Buddhist philosophy and psychology',
+    orientation: 'Outside the later analytic/continental divide',
+    chronology: 'Ancient and ongoing',
+    lineage: 'Buddhist philosophical and contemplative traditions'
+  },
+  confucianism_analysis: {
+    tradition: 'Confucian philosophy',
+    orientation: 'Outside the later analytic/continental divide',
+    chronology: 'Ancient and ongoing',
+    lineage: 'Classical Chinese thought -> Confucius, Mencius, Xunzi, and later Neo-Confucian traditions'
+  },
+  platonic_perspective: {
+    tradition: 'Classical Greek philosophy',
+    orientation: 'Pre-divide',
+    chronology: 'Classical antiquity',
+    lineage: 'Socratic -> Platonic'
+  },
+  aristotle_argonic_teachings: {
+    tradition: 'Classical Greek philosophy',
+    orientation: 'Pre-divide',
+    chronology: 'Classical antiquity',
+    lineage: 'Platonic Academy -> Aristotle -> rhetoric, ethics, logic'
+  },
+  cynics_perspective: {
+    tradition: 'Hellenistic philosophy',
+    orientation: 'Pre-divide',
+    chronology: 'Classical and Hellenistic antiquity',
+    lineage: 'Socratic and Cynic lineages'
+  },
+  stoicism_perspective: {
+    tradition: 'Hellenistic philosophy',
+    orientation: 'Pre-divide',
+    chronology: 'Hellenistic and Roman antiquity',
+    lineage: 'Cynic and Stoic ethical lineages'
+  },
+  descartes_cogito_subject: {
+    tradition: 'Early modern rationalism',
+    orientation: 'Pre-divide',
+    chronology: '17th century',
+    lineage: 'Rationalist philosophy -> modern subjectivity debates'
+  },
+  spinoza_theologic_ethico_perspective: {
+    tradition: 'Early modern rationalism and immanence',
+    orientation: 'Pre-divide',
+    chronology: '17th century',
+    lineage: 'Rationalism -> immanence -> later materialist and affect theory'
+  },
+  leibniz_monadology_perspective: {
+    tradition: 'Early modern rationalism and metaphysics',
+    orientation: 'Pre-divide',
+    chronology: '17th to early 18th century',
+    lineage: 'Rationalist metaphysics -> idealist and systems lineages'
+  },
+  lockean_personal_identity: {
+    tradition: 'Early modern empiricism and political philosophy',
+    orientation: 'Pre-divide',
+    chronology: '17th century',
+    lineage: 'Empiricism -> personal identity debates'
+  },
+  humean_bundle_self: {
+    tradition: 'Empiricism and skepticism',
+    orientation: 'Pre-divide',
+    chronology: '18th century',
+    lineage: 'British empiricism -> skepticism -> later analytic debates'
+  },
+  moral_philosophy_analysis: {
+    tradition: 'Moral philosophy',
+    orientation: 'Mixed across pre-divide, analytic, and continental traditions',
+    chronology: 'Ancient to contemporary',
+    lineage: 'Greek ethics -> religious moral reflection -> modern moral theory -> contemporary normative debate'
+  },
+  francis_bacon_empiricism: {
+    tradition: 'Early modern empiricism and scientific method',
+    orientation: 'Pre-divide',
+    chronology: '16th and 17th century',
+    lineage: 'Renaissance natural philosophy -> Bacon -> experimental method and scientific inquiry'
+  },
+  moral_naturalism_perspective: {
+    tradition: 'Ethics and metaethics',
+    orientation: 'Mostly analytic',
+    chronology: 'Modern and contemporary',
+    lineage: 'Aristotle and naturalist ethics -> contemporary metaethics'
+  },
+  metaethics_analysis: {
+    tradition: 'Metaethics',
+    orientation: 'Mostly analytic with some bridge traditions',
+    chronology: '20th and 21st century',
+    lineage: 'Hume, Moore, Stevenson, Hare, Blackburn, Korsgaard, Scanlon, and contemporary debates about moral truth and reasons'
+  },
+  kantian_transcendental_subject: {
+    tradition: 'German idealism and transcendental philosophy',
+    orientation: 'Pre-divide',
+    chronology: '18th century',
+    lineage: 'Kant -> idealism, phenomenology, and analytic moral philosophy'
+  },
+  hegelian_recognition_subject: {
+    tradition: 'German idealism',
+    orientation: 'Pre-divide to continental lineage',
+    chronology: '19th century',
+    lineage: 'Kant -> Hegel -> Marx, existentialism, recognition theory'
+  },
+  schelling_nature_philosophy: {
+    tradition: 'German idealism and Naturphilosophie',
+    orientation: 'Pre-divide',
+    chronology: 'Late 18th and early 19th century',
+    lineage: 'Kant -> Schelling -> romantic science, nature philosophy, and later ecological and process thought'
+  },
+  marxian_analysis: {
+    tradition: 'Marxism and historical materialism',
+    orientation: 'Pre-divide to continental critical lineage',
+    chronology: '19th century',
+    lineage: 'Hegel -> Marx and Engels -> critical theory, cultural materialism, ideology critique'
+  },
+  nietzschean_perspective: {
+    tradition: 'Genealogical philosophy and critique of values',
+    orientation: 'Pre-divide to continental lineage',
+    chronology: '19th century',
+    lineage: 'Nietzsche -> Freud, Foucault, Deleuze, genealogy'
+  },
+  ralph_waldo_emerson_environmental_thought: {
+    tradition: 'Transcendentalism and environmental thought',
+    orientation: 'Pre-divide',
+    chronology: '19th century',
+    lineage: 'Romanticism and American transcendentalism -> Emerson -> environmental ethics and literary nature writing'
+  },
+  bergson_duration_creativity: {
+    tradition: 'Philosophy of life and process thought',
+    orientation: 'Pre-divide to continental lineage',
+    chronology: 'Late 19th and early 20th century',
+    lineage: 'Vitalism, psychology, and French spiritualism -> Bergson -> Deleuze, process thought, and theories of creativity'
+  },
+  william_james_pragmatism: {
+    tradition: 'Pragmatism and psychology',
+    orientation: 'Bridge across philosophy and psychology',
+    chronology: 'Late 19th and early 20th century',
+    lineage: 'American pragmatism and psychology -> James -> pluralism, radical empiricism, and framing traditions'
+  },
+  husserlian_phenomenology: {
+    tradition: 'Phenomenology',
+    orientation: 'Pre-divide to continental lineage',
+    chronology: 'Late 19th to early 20th century',
+    lineage: 'Brentano -> Husserl -> Heidegger, Sartre, de Beauvoir, Merleau-Ponty, Zahavi, Gallagher'
+  },
+  phenomenology_perspective: {
+    tradition: 'Phenomenology',
+    orientation: 'Mostly continental',
+    chronology: '20th century onward',
+    lineage: 'Husserl -> existential, hermeneutic, embodied, and postphenomenological currents'
+  },
+  heideggerian_dasein_analysis: {
+    tradition: 'Phenomenology and existential ontology',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Husserl -> Heidegger -> existentialism, hermeneutics, deconstruction'
+  },
+  hermeneutics_perspective: {
+    tradition: 'Hermeneutics',
+    orientation: 'Mostly continental',
+    chronology: '19th and 20th century onward',
+    lineage: 'Schleiermacher and Dilthey -> Heidegger -> Gadamer and Ricoeur'
+  },
+  existential_perspective: {
+    tradition: 'Existentialism and existential phenomenology',
+    orientation: 'Continental',
+    chronology: '19th and 20th century',
+    lineage: 'Kierkegaard and Nietzsche -> Heidegger -> Sartre, de Beauvoir, Merleau-Ponty'
+  },
+  sartrean_subjectivity: {
+    tradition: 'Existentialism and existential phenomenology',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Husserl and Heidegger -> Sartre -> postwar existentialism'
+  },
+  de_beauvoir_situated_subject: {
+    tradition: 'Existentialism, feminist philosophy, and situated freedom',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Hegel and existential phenomenology -> de Beauvoir -> feminist existential lineages'
+  },
+  merleau_ponty_embodied_subject: {
+    tradition: 'Phenomenology and existential phenomenology',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Husserl -> Merleau-Ponty -> embodiment, perception, postphenomenology'
+  },
+  enactivism_analysis: {
+    tradition: 'Enactivism and embodied cognition',
+    orientation: 'Bridge across continental phenomenology and cognitive science',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Phenomenology, biology, cybernetics, and cognitive science -> Varela, Thompson, Rosch -> enactive mind'
+  },
+  levinasian_ethics: {
+    tradition: 'Phenomenology and ethics',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Husserl and Heidegger -> Levinas -> ethics of alterity'
+  },
+  continental_moral_philosophy: {
+    tradition: 'Continental moral philosophy',
+    orientation: 'Continental',
+    chronology: '19th and 20th century onward',
+    lineage: 'Hegel, Kierkegaard, Nietzsche, phenomenology, existentialism, and critical theory -> continental ethics'
+  },
+  whitehead_process_philosophy: {
+    tradition: 'Process philosophy',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '20th century',
+    lineage: 'Mathematics and metaphysics -> Whitehead -> process thought, theology, ecology'
+  },
+  process_philosophical_analysis: {
+    tradition: 'Process philosophy',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '20th century onward',
+    lineage: 'Whitehead -> process philosophy, process theology, ecological and relational thought'
+  },
+  vitalism_analysis: {
+    tradition: 'Vitalism and philosophy of life',
+    orientation: 'Pre-divide to mixed modern reception',
+    chronology: '18th to 20th century',
+    lineage: 'Life-force debates -> vitalism -> Bergson, philosophy of biology, and organismic thought'
+  },
+  organicism_analysis: {
+    tradition: 'Organicism and philosophy of biology',
+    orientation: 'Bridge across philosophy and life sciences',
+    chronology: '19th and 20th century',
+    lineage: 'Aristotelian organism, romantic science, biology, systems thought -> organicism'
+  },
+  pf_strawson_personhood: {
+    tradition: 'Ordinary language philosophy and analytic metaphysics',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Analytic philosophy -> personhood and reactive attitudes debates'
+  },
+  harry_frankfurt_volitional_self: {
+    tradition: 'Analytic action theory and moral psychology',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Analytic philosophy of action -> autonomy and second-order desire debates'
+  },
+  sydney_shoemaker_self_knowledge: {
+    tradition: 'Analytic philosophy of mind',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Analytic philosophy of language and mind -> self-knowledge debates'
+  },
+  bernard_williams_personal_identity: {
+    tradition: 'Analytic ethics and philosophy of mind',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Analytic personal identity debates with historical depth'
+  },
+  paul_ricoeur_narrative_identity: {
+    tradition: 'Hermeneutics and phenomenology',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Hermeneutics and phenomenology -> Ricoeur -> narrative identity'
+  },
+  derek_parfit_reductionist_identity: {
+    tradition: 'Analytic ethics and personal identity',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Analytic reductionist identity debates'
+  },
+  habermasian_communicative_subject: {
+    tradition: 'Critical theory and communicative action',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Frankfurt School -> Habermas -> discourse ethics and deliberation'
+  },
+  discourse_ethics_analysis: {
+    tradition: 'Critical theory and practical philosophy',
+    orientation: 'Continental',
+    chronology: 'Late 20th century',
+    lineage: 'Apel and Habermas -> discourse ethics, deliberative legitimacy, and reciprocal norm justification'
+  },
+  hannah_arendt_action_plurality: {
+    tradition: 'Continental political philosophy',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Greek political thought, phenomenology, and anti-totalitarian reflection -> Arendt'
+  },
+  amartya_sen_capability_approach: {
+    tradition: 'Political philosophy and development ethics',
+    orientation: 'Bridge across analytic, political, and applied traditions',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Welfare economics, public reasoning, and moral philosophy -> Sen -> capability and justice debates'
+  },
+  charles_taylor_sources_self: {
+    tradition: 'Political philosophy and hermeneutic moral philosophy',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '20th and 21st century',
+    lineage: 'Hegelian and hermeneutic currents -> Taylor'
+  },
+  macintyre_narrative_self: {
+    tradition: 'Virtue ethics and tradition-constituted reasoning',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '20th and 21st century',
+    lineage: 'Aristotle and Marx -> MacIntyre -> practices and narrative unity'
+  },
+  edith_cowan_civic_reform: {
+    tradition: 'Civic reform, public ethics, and social policy',
+    orientation: 'Applied public philosophy and reform tradition',
+    chronology: 'Late 19th and early 20th century',
+    lineage: 'Women’s political leadership, education reform, and welfare advocacy in public life -> Edith Cowan'
+  },
+  diane_ding_dyason_practical_ethics: {
+    tradition: 'Everyday practical ethics and lived wisdom',
+    orientation: 'Personal and applied ethical tradition',
+    chronology: '20th and 21st century lived tradition',
+    lineage: 'Family guidance, practical judgment, and intergenerational common sense -> Diane "Ding" Dyason'
+  },
+  jean_luc_nancy_being_with: {
+    tradition: 'Post-Heideggerian continental philosophy',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Heidegger and deconstruction -> Nancy'
+  },
+  judith_butler_performativity: {
+    tradition: 'Gender theory, post-structuralism, and feminist philosophy',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Hegel, Foucault, psychoanalysis -> Butler'
+  },
+  catriona_mackenzie_relational_autonomy: {
+    tradition: 'Feminist ethics and relational autonomy',
+    orientation: 'Mostly analytic with interdisciplinary feminist lineages',
+    chronology: '21st century',
+    lineage: 'Feminist ethics and autonomy debates -> relational autonomy'
+  },
+  christine_korsgaard_self_constitution: {
+    tradition: 'Kantian ethics and analytic moral philosophy',
+    orientation: 'Analytic',
+    chronology: '20th and 21st century',
+    lineage: 'Kant -> analytic moral philosophy -> constitutive agency'
+  },
+  marya_schechtman_narrative_self: {
+    tradition: 'Analytic personal identity and narrative theory',
+    orientation: 'Analytic',
+    chronology: '20th and 21st century',
+    lineage: 'Analytic identity debates -> narrative self'
+  },
+  linda_alcoff_visible_identities: {
+    tradition: 'Feminist philosophy, race theory, and phenomenology',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Phenomenology, feminism, and race theory -> Alcoff'
+  },
+  anthony_appiah_identity_ethics: {
+    tradition: 'Ethics, social philosophy, and cosmopolitanism',
+    orientation: 'Analytic and bridge traditions',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Analytic ethics and social identity debates -> Appiah'
+  },
+  adriana_cavarero_relational_uniqueness: {
+    tradition: 'Continental feminist philosophy',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Arendtian and feminist lineages -> Cavarero'
+  },
+  dan_zahavi_minimal_self: {
+    tradition: 'Phenomenology and philosophy of mind',
+    orientation: 'Continental with analytic dialogue',
+    chronology: '21st century',
+    lineage: 'Husserl -> Zahavi -> self-awareness debates'
+  },
+  shaun_gallagher_embodied_self: {
+    tradition: 'Phenomenology, cognitive science, and philosophy of mind',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '21st century',
+    lineage: 'Husserl and Merleau-Ponty -> enactivism and embodied cognition'
+  },
+  gallagher_pattern_theory_self: {
+    tradition: 'Phenomenology, enactivism, and interdisciplinary self theory',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '21st century',
+    lineage: 'Phenomenology, cognitive science, narrative theory -> Gallagher'
+  },
+  rosi_braidotti_nomadic_subjectivity: {
+    tradition: 'Continental feminist and posthuman philosophy',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Deleuze, feminism, and posthuman thought -> Braidotti'
+  },
+  topological_analysis: {
+    tradition: 'Topology-inflected continental and spatial theory',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Contemporary',
+    lineage: 'Phenomenology, Deleuze, spatial and relational theory'
+  },
+  kristevan_abjection_semiotic: {
+    tradition: 'Psychoanalysis, semiotics, and post-structuralism',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Freud, Lacan, semiotics, and feminism -> Kristeva'
+  },
+  psychiatry_perspective: {
+    tradition: 'Psychiatry and clinical diagnosis',
+    orientation: 'Medical-clinical tradition',
+    chronology: '19th century onward',
+    lineage: 'Medical observation, psychiatric nosology, phenomenological psychiatry, community psychiatry, and contemporary diagnostic practice'
+  },
+  psychology_analysis: {
+    tradition: 'Psychology',
+    orientation: 'Bridge across scientific, humanistic, and clinical traditions',
+    chronology: '19th century onward',
+    lineage: 'Experimental psychology, pragmatism, psychoanalysis, behaviourism, cognitive science, and social psychology'
+  },
+  freudian_psychoanalysis: {
+    tradition: 'Psychoanalysis',
+    orientation: 'Pre-divide to mixed modern reception',
+    chronology: 'Late 19th and early 20th century',
+    lineage: 'Freud -> psychoanalytic traditions'
+  },
+  jungian_perspective: {
+    tradition: 'Analytical psychology',
+    orientation: 'Outside the analytic/continental divide in a strict sense',
+    chronology: '20th century',
+    lineage: 'Freud -> Jungian depth psychology'
+  },
+  lacanian_perspective: {
+    tradition: 'Psychoanalysis and structuralism',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Freud -> Lacan -> post-structural and Žižekian lineages'
+  },
+  anti_psychiatry_analysis: {
+    tradition: 'Anti-psychiatry and mad critique',
+    orientation: 'Interdisciplinary critical and clinical counter-tradition',
+    chronology: 'Mid-20th century onward',
+    lineage: 'Existential psychiatry, institutional critique, survivor knowledge, and mad studies -> anti-psychiatry'
+  },
+  general_practice_diagnosis: {
+    tradition: 'General practice and primary care medicine',
+    orientation: 'Medical-clinical tradition',
+    chronology: '20th and 21st century',
+    lineage: 'Primary care, family medicine, differential diagnosis, and continuity-of-care practice'
+  },
+  critical_theory_perspective: {
+    tradition: 'Critical theory',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Marx -> Frankfurt School -> critique of modernity'
+  },
+  adorno_negative_dialectics: {
+    tradition: 'Frankfurt School critical theory',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Hegel, Marx, Freud -> Adorno -> negative dialectics, immanent critique, and culture industry analysis'
+  },
+  althusser_ideology_analysis: {
+    tradition: 'Structural Marxism and ideology critique',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Marx, Spinoza, structuralism, psychoanalysis -> Althusser -> ideology critique and reproduction theory'
+  },
+  simondonian_analysis: {
+    tradition: 'Continental philosophy of technics and individuation',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Postwar French philosophy -> Simondon -> Deleuze and technics studies'
+  },
+  foucaultian_analysis: {
+    tradition: 'Genealogy and post-structuralism',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Nietzsche -> Foucault -> genealogy, discourse, governmentality'
+  },
+  foucauldian_discourse_analysis: {
+    tradition: 'Foucauldian discourse analysis',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th century onward',
+    lineage: 'Nietzsche -> Foucault -> archaeology, genealogy, discourse studies, and critical policy analysis'
+  },
+  derridian_analysis: {
+    tradition: 'Deconstruction',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Phenomenology and structuralism -> Derrida -> deconstruction'
+  },
+  schizoanalytic_insights: {
+    tradition: 'Deleuzian and Guattarian schizoanalysis',
+    orientation: 'Continental',
+    chronology: 'Late 20th century',
+    lineage: 'Nietzsche, Marx, Freud -> Deleuze and Guattari'
+  },
+  zizekian_analysis: {
+    tradition: 'Lacanian Hegelian ideology critique',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Hegel, Marx, Lacan -> Žižek'
+  },
+  posthumanism_perspective: {
+    tradition: 'Posthumanism',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Nietzsche, feminism, STS, and ecological thought'
+  },
+  quantum_theory_analysis: {
+    tradition: 'Physics and philosophy of science',
+    orientation: 'Outside the analytic/continental divide in a strict sense',
+    chronology: '20th century onward',
+    lineage: 'Modern physics -> philosophy of science and material-discursive interpretation'
+  },
+  gregory_bateson_ecology_mind: {
+    tradition: 'Cybernetics, systems theory, and ecology of mind',
+    orientation: 'Bridge across philosophy, anthropology, and systems thought',
+    chronology: '20th century',
+    lineage: 'Cybernetics and anthropology -> Bateson -> systems ecology'
+  },
+  latourian_analysis: {
+    tradition: 'Science and technology studies',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'STS -> actor-network theory -> Latour'
+  },
+  bourdieu_analysis: {
+    tradition: 'Sociology and theory of practice',
+    orientation: 'Interdisciplinary social theory with continental and anthropological lineages',
+    chronology: 'Late 20th century',
+    lineage: 'Marx, Weber, Durkheim, structuralism, and anthropology -> Bourdieu -> practice theory, class, and cultural reproduction'
+  },
+  baudrillard_analysis: {
+    tradition: 'Media theory, social theory, and post-structural critique',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th century',
+    lineage: 'Marx, semiotics, structuralism, and media critique -> Baudrillard -> simulation, sign value, and hyperreality debates'
+  },
+  karen_barad_agential_realism: {
+    tradition: 'Feminist science studies and new materialism',
+    orientation: 'Continental and interdisciplinary',
+    chronology: '21st century',
+    lineage: 'Bohr, feminist theory, STS -> Barad'
+  },
+  rousseau_political_thought: {
+    tradition: 'Modern political philosophy and education',
+    orientation: 'Pre-divide',
+    chronology: '18th century',
+    lineage: 'Republican and social contract traditions -> Rousseau -> democracy and education'
+  },
+  aesthetics_untranslatables: {
+    tradition: 'Aesthetics and philosophical lexicon',
+    orientation: 'Pre-divide to contemporary contested field',
+    chronology: 'Ancient Greek roots, 18th century disciplinary crystallization, and contemporary translation debates',
+    lineage: 'Aisthesis -> Baumgarten and Kant -> aesthetics, art theory, Ranciere, Sontag, and debates on the sensible and the untranslatable'
+  },
+  kierkegaard_existential_faith: {
+    tradition: 'Existential Christianity and philosophy',
+    orientation: 'Pre-divide to continental lineage',
+    chronology: '19th century',
+    lineage: 'Christian existential thought -> Kierkegaard -> existentialism'
+  },
+  schopenhauer_will_representation: {
+    tradition: 'Post-Kantian philosophy',
+    orientation: 'Pre-divide',
+    chronology: '19th century',
+    lineage: 'Kant -> Schopenhauer -> Nietzsche and pessimism debates'
+  },
+  collingwood_historical_imagination: {
+    tradition: 'Philosophy of history and idealism',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '20th century',
+    lineage: 'British idealism and historical method -> Collingwood'
+  },
+  logics_analysis: {
+    tradition: 'Logic',
+    orientation: 'Pre-divide to analytic reception',
+    chronology: 'Ancient to contemporary',
+    lineage: 'Aristotle -> symbolic logic -> analytic method'
+  },
+  set_theory_analysis: {
+    tradition: 'Mathematical logic and foundations of mathematics',
+    orientation: 'Pre-divide to analytic and formal traditions',
+    chronology: 'Late 19th and 20th century onward',
+    lineage: 'Cantor -> Frege, Russell, Zermelo-Fraenkel, mathematical logic, and formal ontology'
+  },
+  epistemology_analysis: {
+    tradition: 'Epistemology',
+    orientation: 'Mixed across pre-divide, analytic, and continental traditions',
+    chronology: 'Ancient to contemporary',
+    lineage: 'Plato and Aristotle -> empiricism and rationalism -> contemporary epistemology'
+  },
+  feminist_philosophy: {
+    tradition: 'Feminist philosophy',
+    orientation: 'Mixed across analytic and continental feminist traditions',
+    chronology: '20th and 21st century',
+    lineage: 'de Beauvoir, Irigaray, hooks, Butler, Mackenzie, Grosz, Haraway, and feminist epistemology'
+  },
+  continental_feminist_philosophy: {
+    tradition: 'Continental feminist philosophy',
+    orientation: 'Continental',
+    chronology: '20th and 21st century',
+    lineage: 'Phenomenology, psychoanalysis, deconstruction, and sexual-difference feminism -> de Beauvoir, Irigaray, Kristeva, Cixous, Grosz, Butler'
+  },
+  feminist_ethics: {
+    tradition: 'Feminist ethics',
+    orientation: 'Mixed analytic, continental, and interdisciplinary feminist traditions',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Care ethics, feminist philosophy, Black feminism, and relational autonomy debates -> feminist ethics'
+  },
+  philosophy_of_language_analysis: {
+    tradition: 'Philosophy of language',
+    orientation: 'Mostly analytic with broader linguistic and hermeneutic dialogue',
+    chronology: '20th century onward',
+    lineage: 'Frege, Wittgenstein, ordinary language philosophy, speech-act theory'
+  },
+  wittgenstein_language_games: {
+    tradition: 'Ordinary language philosophy and analytic philosophy',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Analytic philosophy -> Wittgenstein -> ordinary language and rule-following debates'
+  },
+  jl_austin_speech_acts: {
+    tradition: 'Ordinary language philosophy and speech act theory',
+    orientation: 'Analytic',
+    chronology: '20th century',
+    lineage: 'Ordinary language philosophy -> Austin -> speech act theory, pragmatics, and social philosophy of language'
+  },
+  analytic_moral_philosophy: {
+    tradition: 'Analytic moral philosophy',
+    orientation: 'Analytic',
+    chronology: '20th and 21st century',
+    lineage: 'Moore, Ross, Hare, Foot, Williams, Korsgaard, Scanlon, and contemporary normativity debates'
+  },
+  naturalism_analysis: {
+    tradition: 'Naturalism',
+    orientation: 'Mostly analytic with broader philosophical uptake',
+    chronology: '19th century onward',
+    lineage: 'Scientific naturalism and immanent explanation traditions'
+  },
+  philosophy_of_science_analysis: {
+    tradition: 'Philosophy of science',
+    orientation: 'Mostly analytic with interdisciplinary dialogue',
+    chronology: '20th century onward',
+    lineage: 'Philosophy of science, scientific realism debates, and methodology'
+  },
+  philosophy_of_physics_analysis: {
+    tradition: 'Philosophy of physics',
+    orientation: 'Mostly analytic with scientific dialogue',
+    chronology: '20th century onward',
+    lineage: 'Modern physics -> philosophy of time, causation, and laws'
+  },
+  feyerabend_epistemological_anarchism: {
+    tradition: 'Philosophy of science',
+    orientation: 'Bridge across analytic and continental reception',
+    chronology: '20th century',
+    lineage: 'Philosophy of science -> Feyerabend -> methodological pluralism'
+  },
+  french_philosophy_of_science_relation: {
+    tradition: 'French philosophy of science and relation',
+    orientation: 'Continental and interdisciplinary',
+    chronology: '20th century onward',
+    lineage: 'Bachelard, Canguilhem, Simondon, Serres, and Stengers -> historical epistemology, relation, and milieus of knowledge'
+  },
+  michel_serres_relations: {
+    tradition: 'Continental philosophy of relation and science',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'French philosophy of science and relation -> Serres'
+  },
+  continental_political_aesthetics: {
+    tradition: 'Continental political aesthetics',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Aesthetics, phenomenology, Marxism, and post-Althusserian thought -> politics of appearance, sensation, and dissensus'
+  },
+  jacques_ranciere_politics_aesthetics: {
+    tradition: 'Continental political aesthetics',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Post-Althusserian thought -> Rancière -> dissensus and aesthetics'
+  },
+  frankfurt_school_analysis: {
+    tradition: 'Frankfurt School critical theory',
+    orientation: 'Continental and interdisciplinary critical theory',
+    chronology: '20th century',
+    lineage: 'Marx, Lukacs, Freud, Weber -> Horkheimer, Adorno, Benjamin, Marcuse, Fromm, Habermas -> critique of domination and modernity'
+  },
+  horkheimer_critical_theory: {
+    tradition: 'Frankfurt School critical theory',
+    orientation: 'Continental',
+    chronology: '20th century',
+    lineage: 'Marx -> Horkheimer -> critical theory and critique of instrumental reason'
+  },
+  post_structuralism_analysis: {
+    tradition: 'Post-structuralism',
+    orientation: 'Continental',
+    chronology: 'Late 20th century',
+    lineage: 'Structuralism and phenomenology -> Foucault, Derrida, Deleuze, Kristeva, Butler, Spivak'
+  },
+  spivak_subaltern_analysis: {
+    tradition: 'Postcolonial theory and deconstruction',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Marxism, deconstruction, feminism -> Spivak'
+  },
+  standpoint_theory: {
+    tradition: 'Feminist epistemology',
+    orientation: 'Mixed analytic, continental, and interdisciplinary feminist traditions',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Feminist epistemology -> standpoint theory -> situated knowledge debates'
+  },
+  womens_studies: {
+    tradition: 'Women’s studies',
+    orientation: 'Interdisciplinary feminist tradition',
+    chronology: 'Late 20th century onward',
+    lineage: 'Second-wave feminism, women’s history, and interdisciplinary gender critique -> women’s studies'
+  },
+  feminist_epistemology: {
+    tradition: 'Feminist epistemology',
+    orientation: 'Mixed analytic, continental, and interdisciplinary feminist traditions',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Standpoint theory, science studies, and feminist philosophy -> feminist epistemology'
+  },
+  feminist_methodologies: {
+    tradition: 'Feminist methodologies',
+    orientation: 'Interdisciplinary feminist tradition',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Feminist research ethics, standpoint theory, participatory inquiry, and reflexive method -> feminist methodologies'
+  },
+  radical_feminism: {
+    tradition: 'Radical feminism',
+    orientation: 'Interdisciplinary feminist tradition',
+    chronology: 'Late 20th century onward',
+    lineage: 'Second-wave feminism -> radical feminist critique of patriarchy and sex-class -> later disputes with liberal, queer, and transfeminist approaches'
+  },
+  bell_hooks_love_pedagogy: {
+    tradition: 'Black feminist thought and critical pedagogy',
+    orientation: 'Interdisciplinary critical tradition',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Black feminism and Freirean pedagogy -> bell hooks'
+  },
+  elizabeth_grosz_corporeal_feminism: {
+    tradition: 'Continental feminist philosophy',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Deleuze, Bergson, feminism -> Grosz'
+  },
+  donna_haraway_situated_knowledges: {
+    tradition: 'Feminist science studies and technoscience',
+    orientation: 'Interdisciplinary critical tradition',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Feminist epistemology, STS, posthuman thought -> Haraway'
+  },
+  science_technology_studies: {
+    tradition: 'Science and Technology Studies',
+    orientation: 'Interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'History and sociology of science and technology -> STS -> Latour, Haraway, Barad'
+  },
+  isabelle_stengers_cosmopolitics: {
+    tradition: 'Continental philosophy of science and cosmopolitics',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Philosophy of science, Whitehead, STS -> Stengers'
+  },
+  socio_technical_transitions_mlp: {
+    tradition: 'Socio-technical transitions research',
+    orientation: 'Interdisciplinary systems and innovation studies',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Innovation studies, sociology of technology, sustainability transitions -> Multi-Level Perspective'
+  },
+  interdisciplinary_studies: {
+    tradition: 'Interdisciplinary studies',
+    orientation: 'Interdisciplinary',
+    chronology: '20th and 21st century',
+    lineage: 'Boundary-crossing research, area studies, cultural studies, and integrative method -> interdisciplinary studies'
+  },
+  metascience_analysis: {
+    tradition: 'Metascience and research evaluation',
+    orientation: 'Interdisciplinary methodological tradition',
+    chronology: '21st century',
+    lineage: 'Philosophy of science, statistics, research methodology -> metascience'
+  },
+  andre_baier_tins_d_analysis: {
+    tradition: 'Critical sustainability education and democracy education',
+    orientation: 'Applied interdisciplinary pedagogy',
+    chronology: '21st century',
+    lineage: 'Engineering responsibility, sustainability education, democratic pedagogy -> André Baier and TINS_D'
+  },
+  celtic_religion_interpretation: {
+    tradition: 'Celtic religion and mythic traditions',
+    orientation: 'Outside the later analytic/continental divide',
+    chronology: 'Ancient and reconstructed historical traditions',
+    lineage: 'Celtic ritual worlds, oral myth, sovereignty traditions, and later reconstructionist practice'
+  },
+  herbalism_analysis: {
+    tradition: 'Herbalism and traditional healing practice',
+    orientation: 'Practical and ritual knowledge tradition',
+    chronology: 'Ancient and ongoing',
+    lineage: 'Plant lore, domestic medicine, apothecary traditions, and land-based healing practice'
+  },
+  witchcraft_analysis: {
+    tradition: 'Witchcraft and magical practice',
+    orientation: 'Outside the later analytic/continental divide',
+    chronology: 'Ancient to contemporary',
+    lineage: 'Folk magic, ritual craft, occult knowledge, persecuted practice, and contemporary witchcraft traditions'
+  },
+  anthropology_analysis: {
+    tradition: 'Anthropology',
+    orientation: 'Interdisciplinary social science',
+    chronology: '19th century onward',
+    lineage: 'Ethnography, kinship studies, symbolic anthropology, political anthropology, and material culture analysis'
+  },
+  archaeology_analysis: {
+    tradition: 'Archaeology',
+    orientation: 'Historical and material research tradition',
+    chronology: '19th century onward',
+    lineage: 'Antiquarian study, stratigraphy, material culture analysis, and archaeological interpretation'
+  },
+  public_policy_analytics: {
+    tradition: 'Public policy analysis',
+    orientation: 'Applied policy and social research tradition',
+    chronology: '20th and 21st century',
+    lineage: 'Policy studies, public administration, evaluation research, and institutional analysis'
+  },
+  structuralism_analysis: {
+    tradition: 'Structuralism',
+    orientation: 'Continental and interdisciplinary',
+    chronology: '20th century',
+    lineage: 'Saussurean linguistics, anthropology, literary theory, and psychoanalysis -> structuralism'
+  },
+  textual_analysis: {
+    tradition: 'Textual criticism and close reading',
+    orientation: 'Humanities interpretive tradition',
+    chronology: 'Ancient rhetoric to contemporary criticism',
+    lineage: 'Rhetoric, philology, literary criticism, close reading, and textual scholarship'
+  },
+  narrative_psychology_perspective: {
+    tradition: 'Narrative psychology and hermeneutic social science',
+    orientation: 'Interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Bruner, Ricoeur, McAdams, and life-story research -> narrative psychology'
+  },
+  music_songwriting_analysis: {
+    tradition: 'Song studies, poetics, and composition',
+    orientation: 'Interdisciplinary artistic tradition',
+    chronology: 'Ancient to contemporary',
+    lineage: 'Poetics, oral song, lyric writing, music theory, and contemporary songwriting craft'
+  },
+  idiotextual_analysis: {
+    tradition: 'Textual singularity and media philosophy',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Literary textuality, singular inscription, and Bernard Stiegler’s idiotext -> idiosyncratic textual worlds'
+  },
+  intertextuality_analysis: {
+    tradition: 'Intertextuality and literary theory',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th century onward',
+    lineage: 'Bakhtin, Kristeva, Barthes, and literary theory of textual relation -> intertextuality'
+  },
+  frame_analysis: {
+    tradition: 'Frame analysis and interpretive sociology',
+    orientation: 'Interdisciplinary social theory',
+    chronology: '20th century onward',
+    lineage: 'Pragmatism, Bateson, symbolic interactionism, and social movement framing -> frame analysis'
+  },
+  goffman_frame_analysis: {
+    tradition: 'Interactionist sociology and frame analysis',
+    orientation: 'Interdisciplinary social theory',
+    chronology: '20th century',
+    lineage: 'William James, pragmatism, Bateson, symbolic interactionism -> Goffman -> frame analysis'
+  },
+  media_studies: {
+    tradition: 'Media and cultural studies',
+    orientation: 'Interdisciplinary humanities and social theory',
+    chronology: '20th century onward',
+    lineage: 'Rhetoric, poetics, film theory, semiotics, political economy, and cultural studies -> media studies'
+  },
+  poetics_analysis: {
+    tradition: 'Poetics and literary theory',
+    orientation: 'Humanities interpretive tradition',
+    chronology: 'Ancient to contemporary',
+    lineage: 'Plato and Aristotle -> rhetoric, literary theory, structuralism, and contemporary poetics'
+  },
+  irigarayian_perspective: {
+    tradition: 'Continental feminist philosophy and Lacanian psychoanalysis',
+    orientation: 'Continental',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Freud -> Lacan -> Irigaray -> sexual-difference feminism and critique of phallocentrism'
+  },
+  freirean_pedagogy: {
+    tradition: 'Critical pedagogy',
+    orientation: 'Interdisciplinary emancipatory tradition',
+    chronology: '20th century onward',
+    lineage: 'Liberation pedagogy, anti-oppressive education, and dialogical method -> Paulo Freire'
+  },
+  anti_colonial_studies: {
+    tradition: 'Anti-colonial thought',
+    orientation: 'Interdisciplinary critical tradition',
+    chronology: '20th century onward',
+    lineage: 'Liberation struggle, anti-imperial theory, and decolonization movements -> anti-colonial thought'
+  },
+  postcolonial_studies: {
+    tradition: 'Postcolonial studies',
+    orientation: 'Interdisciplinary critical tradition',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Anticolonial thought, literary theory, feminism, and discourse analysis -> postcolonial studies'
+  },
+  pluriversal_politics: {
+    tradition: 'Decolonial and pluriversal politics',
+    orientation: 'Interdisciplinary critical tradition',
+    chronology: '21st century',
+    lineage: 'Indigenous, decolonial, and relational political thought -> pluriversal politics'
+  },
+  edouard_glissant_relation_poetics: {
+    tradition: 'Poetics of relation and postcolonial thought',
+    orientation: 'Continental and interdisciplinary',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Caribbean thought, decolonial poetics, and relation philosophy -> Glissant'
+  },
+  moten_harney_undercommons: {
+    tradition: 'Black study and fugitive social thought',
+    orientation: 'Interdisciplinary critical tradition',
+    chronology: '21st century',
+    lineage: 'Black radical tradition, critical university studies, and insurgent collectivity -> Moten and Harney'
+  },
+  traditional_ecological_knowledges: {
+    tradition: 'Traditional ecological knowledges and Indigenous environmental knowledge',
+    orientation: 'Land-based and custodial knowledge traditions',
+    chronology: 'Ancient and ongoing',
+    lineage: 'Indigenous custodial knowledge, seasonal observation, relational land practice, and intergenerational ecological teaching'
+  },
+  james_lovelock_gaia: {
+    tradition: 'Earth systems theory and ecological thought',
+    orientation: 'Interdisciplinary scientific tradition',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Earth system science, atmospheric chemistry, and planetary feedback thought -> Lovelock and Gaia theory'
+  },
+  food_sovereignty_analysis: {
+    tradition: 'Food sovereignty and agrarian politics',
+    orientation: 'Interdisciplinary ecological and political tradition',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Peasant movements, agrarian justice, Indigenous food systems, and agroecology -> food sovereignty'
+  },
+  electronics_analysis: {
+    tradition: 'Electronics and systems engineering',
+    orientation: 'Technical and applied tradition',
+    chronology: '20th and 21st century',
+    lineage: 'Electrical engineering, signal theory, control systems, and practical electronics'
+  },
+  architectural_theories: {
+    tradition: 'Architectural theory',
+    orientation: 'Interdisciplinary design tradition',
+    chronology: 'Ancient to contemporary',
+    lineage: 'Vitruvius, modernism, phenomenology of space, urban theory, and contemporary architectural criticism'
+  },
+  conflict_management: {
+    tradition: 'Conflict management and mediation studies',
+    orientation: 'Applied interdisciplinary tradition',
+    chronology: '20th and 21st century',
+    lineage: 'Negotiation theory, mediation practice, peace studies, and organizational conflict research'
+  },
+  group_work_theories: {
+    tradition: 'Group dynamics and collaborative practice',
+    orientation: 'Applied interdisciplinary tradition',
+    chronology: '20th and 21st century',
+    lineage: 'Social psychology, organizational behaviour, facilitation studies, and group development theory'
+  },
+  study_frameworks: {
+    tradition: 'Learning science and study skills',
+    orientation: 'Applied educational tradition',
+    chronology: '20th and 21st century',
+    lineage: 'Educational psychology, cognitive science, pedagogy, and self-regulated learning frameworks'
+  },
+  emotional_intelligence_analysis: {
+    tradition: 'Emotional intelligence and socio-emotional learning',
+    orientation: 'Applied psychological tradition',
+    chronology: 'Late 20th and 21st century',
+    lineage: 'Affect studies, social psychology, SEL, and organizational psychology -> emotional intelligence'
+  }
+};
+
+function getPerspectiveMetadata(key: string, perspective: PerspectiveDefinition): PerspectiveMetadata {
+  return {
+    ...(GROUP_DEFAULT_METADATA[perspective.group] || {}),
+    ...(PERSPECTIVE_METADATA[key] || {})
+  };
+}
+
+function buildPerspectiveHistoryLabel(key: string, perspective: PerspectiveDefinition): string {
+  const metadata = getPerspectiveMetadata(key, perspective);
+  const parts = [
+    metadata.tradition ? `Tradition: ${metadata.tradition}` : '',
+    metadata.orientation ? `Placement: ${metadata.orientation}` : '',
+    metadata.chronology ? `Chronology: ${metadata.chronology}` : '',
+    metadata.lineage ? `Lineage: ${metadata.lineage}` : ''
+  ].filter(Boolean);
+
+  return parts.join(' | ');
+}
+
+function buildPerspectivePromptDescriptor(key: string, perspective: PerspectiveDefinition): string {
+  const groupTitle = PERSPECTIVE_GROUPS[perspective.group]?.title || perspective.group;
+  const historyLabel = buildPerspectiveHistoryLabel(key, perspective);
+  return `${key}: ${perspective.title} [${groupTitle}] - ${perspective.description}${historyLabel ? ` | ${historyLabel}` : ''}`;
+}
+
+const PRE_HIERARCHY_PERSPECTIVE_KEYS = [
+  'lacanian_perspective',
+  'schizoanalytic_insights',
+  'irigarayian_perspective',
+  'jungian_perspective',
+  'attachment_theory_perspective',
+  'positive_psychology_perspective',
+  'narrative_psychology_perspective',
+  'phenomenology_perspective',
+  'existential_perspective',
+  'feminist_perspective',
+  'queer_theory_perspective',
+  'lgbtq_studies_perspective',
+  'critical_theory_perspective',
+  'posthumanism_perspective',
+  'buddhist_psychology_perspective',
+  'nietzschean_perspective',
+  'gestalt_perspective',
+  'transpersonal_perspective',
+  'cbt_perspective',
+  'hermeneutics_perspective',
+  'stoicism_perspective',
+  'psychiatry_perspective',
+  MYERS_BRIGGS_PERSPECTIVE_KEY
+];
 
 const ASSESSMENT_QUESTIONS = [
   { trait: 'openness', question: 'I enjoy exploring new ideas and concepts, even if they seem unconventional.', reverse: false },
@@ -48,6 +1930,30 @@ const ASSESSMENT_QUESTIONS = [
   { trait: 'neuroticism', question: 'My emotions tend to fluctuate significantly throughout the day.', reverse: false }
 ];
 
+const MYERS_BRIGGS_QUESTIONS = [
+  { dimension: 'ei', prompt: 'After a demanding week, what restores you more?', leftLabel: 'Quiet time alone', rightLabel: 'Time with other people' },
+  { dimension: 'ei', prompt: 'In a new group, what feels more natural?', leftLabel: 'Observe first', rightLabel: 'Jump in and interact' },
+  { dimension: 'sn', prompt: 'When learning something new, what do you trust more first?', leftLabel: 'Concrete facts', rightLabel: 'Patterns and possibilities' },
+  { dimension: 'sn', prompt: 'What kind of conversation holds you longer?', leftLabel: 'Practical detail', rightLabel: 'Future ideas' },
+  { dimension: 'tf', prompt: 'When making a hard decision, what usually leads?', leftLabel: 'Logic and consistency', rightLabel: 'Values and people impact' },
+  { dimension: 'tf', prompt: 'What criticism are you more likely to accept?', leftLabel: 'It is not efficient', rightLabel: 'It felt hurtful' },
+  { dimension: 'jp', prompt: 'What makes you calmer?', leftLabel: 'A settled plan', rightLabel: 'Room to adapt' },
+  { dimension: 'jp', prompt: 'How do you tend to handle deadlines?', leftLabel: 'Finish early or on schedule', rightLabel: 'Work flexibly close to the deadline' }
+] as const;
+
+const MASLOW_QUESTIONS = [
+  { need: 'physiological', question: 'My basic sleep, food, hydration, and rest needs feel reasonably met lately.', reverse: false },
+  { need: 'physiological', question: 'Physical exhaustion or neglect of my body has been getting in the way.', reverse: true },
+  { need: 'safety', question: 'I feel materially and emotionally safe enough to think beyond immediate survival.', reverse: false },
+  { need: 'safety', question: 'Instability, uncertainty, or threat often dominates my attention.', reverse: true },
+  { need: 'belonging', question: 'I feel meaningfully connected to other people, groups, or communities.', reverse: false },
+  { need: 'belonging', question: 'Loneliness or disconnection has been shaping my daily life.', reverse: true },
+  { need: 'esteem', question: 'I have a workable sense of self-respect and belief in my capacities.', reverse: false },
+  { need: 'esteem', question: 'Self-doubt or lack of recognition often blocks me from acting.', reverse: true },
+  { need: 'self_actualization', question: 'I have some space to pursue purpose, creativity, growth, or deeper meaning.', reverse: false },
+  { need: 'self_actualization', question: 'My life feels too constrained for me to develop in the directions that matter to me.', reverse: true }
+] as const;
+
 const SCALE_LABELS = ['Strongly Disagree', 'Disagree', 'Slightly Disagree', 'Neutral', 'Slightly Agree', 'Agree', 'Strongly Agree'];
 
 const GOAL_CATEGORIES: Record<string, string> = {
@@ -60,11 +1966,114 @@ const ENTRY_TYPES: Record<string, string> = {
   breakthrough_moment: 'Breakthrough moment', free_form: 'Free form'
 };
 
+const SAFETY_DISCLAIMER = 'The Deleometer is a reflective conversation and journaling tool, not a medical device, diagnosis, treatment, or substitute for medication, therapy, crisis support, or professional care. AI can make mistakes and can sound more certain than it is. Treat responses as invitations to think with, question, revise, and discuss, not as truth to absorb undiluted.';
+const PRIVACY_SECURITY_NOTICE = 'AI analysis sends journal, chat, goal, and context text to the AI provider selected in settings. OpenAI mode sends context to OpenAI. Local Ollama mode sends context only to the configured local endpoint and never falls back to OpenAI automatically. Saved analyses, chats, goals, author memory, and plugin settings are stored as local Obsidian data or Markdown, not encrypted by The Deleometer. Other installed Obsidian plugins, vault sync tools, backups, or anyone with device access may be able to read them.';
+
+const ZPD_LEVELS: Record<string, { label: string; prompt: string }> = {
+  primary_year_5: {
+    label: 'Grade 5 primary student',
+    prompt: 'Write for a curious Grade 5 primary student. Use plain everyday language, explain every key term, and gently stretch the reader one step beyond what a beginner would know.'
+  },
+  secondary_year_5: {
+    label: 'Year 5 secondary student',
+    prompt: 'Write for a Year 5 secondary student. Use clear school-level explanations, define specialist terms, and connect abstractions to concrete examples from the journal entry.'
+  },
+  tertiary_year_2: {
+    label: 'Second-year tertiary student',
+    prompt: 'Write for a second-year tertiary student. Teach the frame carefully, define key terms in context, and show how the interpretation was built from details in the journal entry.'
+  },
+  postgraduate: {
+    label: 'Postgraduate',
+    prompt: 'Write for a postgraduate reader. Use disciplinary vocabulary, but still gloss key terms and make the interpretive method explicit.'
+  },
+  postdoc: {
+    label: 'Postdoc',
+    prompt: 'Write for a postdoctoral reader. Permit technical nuance and methodological density while still explaining how each claim follows from the journal entry.'
+  },
+  professor: {
+    label: 'Professor',
+    prompt: 'Write for a professor. Use advanced theoretical language, but avoid name-dropping without interpretation and make the transdisciplinary stakes explicit.'
+  }
+};
+
+const OUTPUT_LANGUAGES: Record<string, OutputLanguageOption> = {
+  english: {
+    label: 'English',
+    prompt: 'Write all user-facing generated prose in English.'
+  },
+  french: {
+    label: 'French',
+    prompt: 'Write all user-facing generated prose in French. Keep proper names, exact perspective keys, required JSON keys, and original work titles when translating them would be misleading.'
+  },
+  german: {
+    label: 'German',
+    prompt: 'Write all user-facing generated prose in German. Keep proper names, exact perspective keys, required JSON keys, and original work titles when translating them would be misleading.'
+  }
+};
+
+const DICTIONARY_MODES: Record<string, { label: string; prompt: string }> = {
+  engage: {
+    label: 'Engage the dictionary',
+    prompt: 'When a perspective draws on a dictionary or lexicon, treat it as a living conceptual resource to interpret with rather than something to quote or mimic mechanically.'
+  },
+  copy: {
+    label: 'Copy the dictionary style',
+    prompt: 'When a perspective draws on a dictionary or lexicon, you may echo dictionary-like definitional phrasing and lexical contrast more closely, while still interpreting the journal entry rather than copying source text.'
+  }
+};
+
 interface BigFiveScores { openness: number; conscientiousness: number; extraversion: number; agreeableness: number; neuroticism: number; }
-interface PersonalityProfile { big_five_scores: BigFiveScores; assessment_date: string; dominant_traits: string[]; psychological_type: string; growth_areas: string[]; }
+interface PersonalityProfile { theory: string; big_five_scores: BigFiveScores; assessment_date: string; dominant_traits: string[]; psychological_type: string; growth_areas: string[]; }
+interface MyersBriggsDimensions { ei: number; sn: number; tf: number; jp: number; }
+interface MyersBriggsProfile {
+  theory: string;
+  assessment_date: string;
+  type_code: string;
+  dimension_scores: MyersBriggsDimensions;
+  summary: string;
+  strengths: string[];
+  growth_areas: string[];
+}
+interface MaslowNeedsScores {
+  physiological: number;
+  safety: number;
+  belonging: number;
+  esteem: number;
+  self_actualization: number;
+}
+interface MaslowProfile {
+  theory: string;
+  assessment_date: string;
+  needs_scores: MaslowNeedsScores;
+  strongest_needs: string[];
+  growth_areas: string[];
+  summary: string;
+}
 interface Milestone { title: string; completed: boolean; completion_date?: string; }
 interface GoalSuggestion { title: string; description: string; category: string; targetDate?: string; milestones: string[]; sourcePerspectives: string[]; sourceAnalysisPath?: string; }
-interface AnalysisPayload { perspectives: Record<string, string>; authorMemorySummary: string; goalSuggestions: GoalSuggestion[]; }
+interface InspirationalSong {
+  title: string;
+  rationale: string;
+  mood: string;
+  tempoBpm: number;
+  keyCenter: string;
+  scaleMode: 'major' | 'minor';
+  chordProgression: string[];
+  motifDegrees: number[];
+  hookLine: string;
+  lyrics: string;
+  audioFilePath?: string;
+}
+interface AnalysisPayload {
+  perspectives: Record<string, string>;
+  furtherReadings: Record<string, string[]>;
+  groupSyntheses: Record<string, string>;
+  philosophicalReaccumulation: string;
+  inspirationalSong: InspirationalSong | null;
+  authorMemorySummary: string;
+  goalSuggestions: GoalSuggestion[];
+  analysisWarnings: string[];
+}
 interface GoalFileData {
   file: TFile;
   title: string;
@@ -87,32 +2096,106 @@ interface GoalMergeDraft {
   mergedSourceAnalysisPath?: string;
   mergedSourcePerspectives: string[];
 }
+interface MilestoneFileData {
+  file: TFile;
+  title: string;
+  description: string;
+  targetDate?: string;
+  goalPath?: string;
+  goalTitle?: string;
+  milestoneIndex?: number;
+  status: string;
+  created: string;
+  sourceAnalysisPath?: string;
+  sourcePerspectives: string[];
+}
+interface MilestoneMergeDraft {
+  sourceMilestones: MilestoneFileData[];
+  mergedTitle: string;
+  mergedDescription: string;
+  mergedTargetDate?: string;
+  mergedGoalPaths: string[];
+  mergedGoalTitles: string[];
+  mergedSourceAnalysisPath?: string;
+  mergedSourcePerspectives: string[];
+}
 
 interface DeleometerSettings {
+  aiProvider: AIProvider;
   openaiApiKey: string;
+  openaiModel: string;
+  localEndpoint: string;
+  localModel: string;
+  localModelToInstall: string;
+  lastLocalModelNames: string[];
+  lastLocalModelDigest: string;
+  lastLocalModelLibrarySignature: string;
+  lastLocalModelLibraryCheckedAt: string;
   journalFolder: string;
   goalsFolder: string;
+  milestonesFolder: string;
+  songsFolder: string;
   chatsFolder: string;
   fullCalendarFolder: string;
   autoSyncGoalsToFullCalendar: boolean;
+  generateInspirationalSong: boolean;
+  redactSensitiveDataBeforeAI: boolean;
+  enableAuthorMemory: boolean;
+  includeAuthorMemoryInAI: boolean;
+  includePersonalityProfileInAI: boolean;
+  sendFullJournalToChat: boolean;
   selectedPerspectives: string[];
+  zpdLevel: string;
+  outputLanguage: string;
+  dictionaryMode: string;
   personalityProfile: PersonalityProfile | null;
+  myersBriggsProfile: MyersBriggsProfile | null;
+  maslowProfile: MaslowProfile | null;
   authorMemorySummary: string;
 }
 
 const DEFAULT_SETTINGS: DeleometerSettings = {
-  openaiApiKey: '', journalFolder: 'Deleometer/Journal', goalsFolder: 'Deleometer/Goals',
-  chatsFolder: 'Deleometer/Chats', fullCalendarFolder: 'Deleometer', autoSyncGoalsToFullCalendar: true,
-  selectedPerspectives: Object.keys(PERSPECTIVES),
+  aiProvider: 'openai',
+  openaiApiKey: '',
+  openaiModel: 'gpt-4o-mini',
+  localEndpoint: 'http://localhost:11434',
+  localModel: 'llama3.1',
+  localModelToInstall: 'llama3.1',
+  lastLocalModelNames: [],
+  lastLocalModelDigest: '',
+  lastLocalModelLibrarySignature: '',
+  lastLocalModelLibraryCheckedAt: '',
+  journalFolder: 'Deleometer/Journal', goalsFolder: 'Deleometer/Goals',
+  milestonesFolder: 'Deleometer/Milestones', songsFolder: 'Deleometer/Songs', chatsFolder: 'Deleometer/Chats', fullCalendarFolder: 'Deleometer/Calendar', autoSyncGoalsToFullCalendar: true,
+  generateInspirationalSong: true,
+  redactSensitiveDataBeforeAI: true, enableAuthorMemory: true, includeAuthorMemoryInAI: true,
+  includePersonalityProfileInAI: true, sendFullJournalToChat: false,
+  selectedPerspectives: getChronologicalPerspectiveKeys(), zpdLevel: 'tertiary_year_2', outputLanguage: 'english', dictionaryMode: 'engage',
   personalityProfile: null,
+  myersBriggsProfile: null,
+  maslowProfile: null,
   authorMemorySummary: ''
 };
 
+const RECOMMENDED_LOCAL_MODELS: Record<string, string> = {
+  'llama3.1': 'General-purpose starter model',
+  'qwen2.5': 'Strong general reasoning model',
+  'mistral': 'Smaller general-purpose model',
+  'gemma2': 'Compact general-purpose model'
+};
+const OLLAMA_DOWNLOAD_URL = 'https://ollama.com/download';
+const GPT_4O_MINI_INPUT_USD_PER_1M = 0.15;
+const GPT_4O_MINI_OUTPUT_USD_PER_1M = 0.60;
+
 interface ChatContext {
+  chatKind?: 'perspective' | 'group_synthesis';
   perspective: string;
   journalContent: string;
   initialAnalysis: string;
   sourceFilePath?: string;
+  sourceGroupKey?: string;
+  sourceTitle?: string;
+  sourceDescription?: string;
 }
 
 interface ConversationMessage {
@@ -120,14 +2203,36 @@ interface ConversationMessage {
   content: string;
 }
 
+type AnalysisProgressCallback = (message: string) => void | Promise<void>;
+type AIProvider = 'openai' | 'ollama';
+type AIMessage = ChatCompletionMessageParam;
+type AIResponseFormat = { type: 'json_object' };
+
+interface AIChatCompletionRequest {
+  messages: AIMessage[];
+  max_tokens?: number;
+  response_format?: AIResponseFormat;
+  temperature?: number;
+}
+
+interface LocalModelInfo {
+  name: string;
+  model?: string;
+  modified_at?: string;
+  digest?: string;
+  size?: number;
+}
+
 export default class DeleometerPlugin extends Plugin {
   settings: DeleometerSettings;
   openai: OpenAI | null = null;
   pendingChatContext: ChatContext | null = null;
+  activeAnalysisJobs: Map<string, { filePath: string; fileLabel: string; status: string; startedAt: number }> = new Map();
+  authorMemoryUpdateQueue: Promise<void> = Promise.resolve();
 
   async onload() {
     await this.loadSettings();
-    if (this.settings.openaiApiKey) this.initializeOpenAI();
+    this.initializeAIProvider();
 
     this.registerView(VIEW_TYPE_DASHBOARD, (leaf) => new DashboardView(leaf, this));
     this.registerView(VIEW_TYPE_AI_CHAT, (leaf) => new AIChatView(leaf, this));
@@ -146,10 +2251,17 @@ export default class DeleometerPlugin extends Plugin {
     this.addCommand({ id: 'personality-assessment', name: 'Take personality assessment', callback: () => this.openPersonalityAssessment() });
     this.addCommand({ id: 'backfill-analysis-chat-links', name: 'Backfill analysis chat links for current note', callback: async () => this.backfillAnalysisChatLinksForActiveFile() });
     this.addCommand({ id: 'sync-goals-to-full-calendar', name: 'Sync goals to calendar', callback: async () => this.syncAllGoalsToFullCalendar(true) });
+    this.addCommand({ id: 'sync-milestones-to-folder', name: 'Sync milestones to folder', callback: async () => this.syncAllGoalMilestonesToFolder(true) });
     this.addCommand({ id: 'consolidate-similar-goals', name: 'Consolidate similar goals', callback: async () => this.openGoalConsolidationModal() });
+    this.addCommand({ id: 'consolidate-similar-milestones', name: 'Consolidate similar milestones', callback: async () => this.openMilestoneConsolidationModal() });
     this.addCommand({ id: 'repair-goal-frontmatter', name: 'Repair goal note frontmatter', callback: async () => this.repairAllGoalFrontmatter(true) });
 
     this.addSettingTab(new DeleometerSettingTab(this.app, this));
+    this.registerEvent(this.app.vault.on('delete', (file) => {
+      if (!(file instanceof TFile)) return;
+      if (!this.isManagedGoalPath(file.path)) return;
+      void this.handleGoalFileDeleted(file.path);
+    }));
     this.registerMarkdownPostProcessor((element) => {
       element.querySelectorAll('a[href^="deleometer://chat?"]').forEach((linkEl) => {
         const link = linkEl as HTMLAnchorElement;
@@ -158,14 +2270,41 @@ export default class DeleometerPlugin extends Plugin {
           try {
             const url = new URL(link.href);
             const perspective = url.searchParams.get('perspective') || '';
+            const group = url.searchParams.get('group') || '';
             const source = url.searchParams.get('source') || '';
-            if (!perspective || !source) {
-              new Notice('Missing chat link context');
+            if (!this.getVaultMarkdownFile(source)) {
+              new Notice('Invalid or unsafe chat link context');
               return;
             }
-            await this.openChatFromSourceNote(source, perspective);
+            if (perspective && PERSPECTIVES[perspective]) {
+              await this.openChatFromSourceNote(source, perspective);
+              return;
+            }
+            if (group && PERSPECTIVE_GROUPS[group]) {
+              await this.openGroupChatFromSourceNote(source, group);
+              return;
+            }
+            new Notice('Invalid or unsafe chat link context');
           } catch (error) {
             new Notice('Could not open chat from note link');
+            console.error(error);
+          }
+        };
+      });
+      element.querySelectorAll('a[href^="deleometer://goals?"]').forEach((linkEl) => {
+        const link = linkEl as HTMLAnchorElement;
+        link.onclick = async (event) => {
+          event.preventDefault();
+          try {
+            const url = new URL(link.href);
+            const source = url.searchParams.get('source') || '';
+            if (!this.getVaultMarkdownFile(source)) {
+              new Notice('Invalid or unsafe goal draft context');
+              return;
+            }
+            await this.openGoalDraftsFromSourceNote(source);
+          } catch (error) {
+            new Notice('Could not open goal drafts from note link');
             console.error(error);
           }
         };
@@ -181,13 +2320,280 @@ export default class DeleometerPlugin extends Plugin {
     });
   }
 
+  initializeAIProvider() {
+    if (this.settings.aiProvider === 'openai' && this.settings.openaiApiKey) {
+      this.initializeOpenAI();
+      return;
+    }
+    this.openai = null;
+    if (this.settings.aiProvider === 'ollama') {
+      void this.checkLocalModelLibrary(false);
+    }
+  }
+
+  hasAIProviderConfigured(): boolean {
+    if (this.settings.aiProvider === 'openai') return !!this.settings.openaiApiKey.trim();
+    if (this.settings.aiProvider === 'ollama') return !!this.settings.localEndpoint.trim() && !!this.settings.localModel.trim();
+    return false;
+  }
+
+  getAIProviderSetupNotice(): string {
+    if (this.settings.aiProvider === 'ollama') {
+      return 'Configure a local Ollama endpoint and model in settings before using AI features';
+    }
+    return 'Please set your OpenAI API key in settings';
+  }
+
+  getAIProviderPrivacyNotice(): string {
+    if (this.settings.aiProvider === 'ollama') {
+      return `Local AI mode: journal and chat context is sent only to ${this.settings.localEndpoint || 'your local endpoint'}. The Deleometer will not fall back to OpenAI automatically.`;
+    }
+    return 'OpenAI mode: journal and chat context is sent to OpenAI when you use AI features.';
+  }
+
+  async createAIChatCompletion(request: AIChatCompletionRequest): Promise<string> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+
+    if (this.settings.aiProvider === 'ollama') {
+      return this.createOllamaChatCompletion(request);
+    }
+
+    if (!this.openai) this.initializeOpenAI();
+    const openai = this.openai;
+    if (!openai) throw new Error('OpenAI not initialized');
+    const response = await openai.chat.completions.create({
+      model: this.settings.openaiModel || DEFAULT_SETTINGS.openaiModel,
+      response_format: request.response_format,
+      max_tokens: request.max_tokens,
+      temperature: request.temperature,
+      messages: request.messages
+    });
+    return response.choices[0]?.message?.content || '';
+  }
+
+  async createOllamaChatCompletion(request: AIChatCompletionRequest): Promise<string> {
+    const endpoint = this.settings.localEndpoint.replace(/\/+$/, '');
+    const response = await fetch(`${endpoint}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: this.settings.localModel,
+        messages: request.messages.map((message) => ({
+          role: message.role,
+          content: typeof message.content === 'string' ? message.content : JSON.stringify(message.content)
+        })),
+        stream: false,
+        format: request.response_format?.type === 'json_object' ? 'json' : undefined,
+        options: {
+          temperature: request.temperature,
+          num_predict: request.max_tokens
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Local Ollama request failed (${response.status}). Check that Ollama is running and model "${this.settings.localModel}" is installed.`);
+    }
+
+    const data = await response.json() as { message?: { content?: string }; error?: string };
+    if (data.error) throw new Error(data.error);
+    return data.message?.content || '';
+  }
+
+  async fetchLocalModels(): Promise<LocalModelInfo[]> {
+    const endpoint = this.settings.localEndpoint.replace(/\/+$/, '');
+    const response = await fetch(`${endpoint}/api/tags`);
+    if (!response.ok) {
+      throw new Error(`Could not read local model library (${response.status})`);
+    }
+    const data = await response.json() as { models?: LocalModelInfo[] };
+    return Array.isArray(data.models) ? data.models : [];
+  }
+
+  async installLocalModel(modelName: string): Promise<void> {
+    const name = modelName.trim();
+    if (!name) throw new Error('Choose or type a model name to download into Ollama.');
+    const endpoint = this.settings.localEndpoint.replace(/\/+$/, '');
+    const response = await fetch(`${endpoint}/api/pull`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, stream: false })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Could not download "${name}" into Ollama (${response.status}). Check that Ollama is running and the model name is valid.`);
+    }
+
+    const data = await response.json() as { error?: string; status?: string };
+    if (data.error) throw new Error(data.error);
+    this.settings.localModel = name;
+    this.settings.localModelToInstall = name;
+    await this.saveSettings();
+    await this.checkLocalModelLibrary(false);
+  }
+
+  getLocalModelName(model: LocalModelInfo): string {
+    return model.name || model.model || '';
+  }
+
+  getLocalModelNames(models: LocalModelInfo[]): string[] {
+    return models
+      .map((model) => this.getLocalModelName(model).trim())
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
+  }
+
+  getLocalModelSetupHelp(): string {
+    return [
+      'Local Ollama mode requires the Ollama app/server to be installed and running on this computer.',
+      'The Deleometer cannot use a local model until at least one model has been downloaded in Ollama.',
+      'Recommended starter commands: ollama pull llama3.1, ollama pull qwen2.5, or ollama pull mistral.'
+    ].join(' ');
+  }
+
+  getLocalModelLibrarySignature(models: LocalModelInfo[]): string {
+    return models
+      .map((model) => `${model.name}|${model.digest || ''}|${model.modified_at || ''}|${model.size || ''}`)
+      .sort()
+      .join('\n');
+  }
+
+  async checkLocalModelLibrary(showNotice: boolean = true): Promise<void> {
+    if (this.settings.aiProvider !== 'ollama') return;
+    try {
+      const models = await this.fetchLocalModels();
+      const signature = this.getLocalModelLibrarySignature(models);
+      const modelNames = this.getLocalModelNames(models);
+      const previousSignature = this.settings.lastLocalModelLibrarySignature;
+      const previousDigest = this.settings.lastLocalModelDigest;
+      const selectedModelName = modelNames.includes(this.settings.localModel)
+        ? this.settings.localModel
+        : modelNames[0] || this.settings.localModel;
+      const selectedModel = models.find((model) => model.name === selectedModelName || model.model === selectedModelName);
+      const nextDigest = selectedModel?.digest || '';
+
+      this.settings.lastLocalModelLibrarySignature = signature;
+      this.settings.lastLocalModelNames = modelNames;
+      this.settings.lastLocalModelDigest = nextDigest;
+      this.settings.lastLocalModelLibraryCheckedAt = new Date().toISOString();
+      this.settings.localModel = selectedModelName;
+      await this.saveSettings();
+
+      if (modelNames.length === 0 && showNotice) {
+        new Notice('Ollama is running, but no local models are installed. Download one in Ollama, then refresh local models again.', 12000);
+      } else if (previousDigest && nextDigest && previousDigest !== nextDigest) {
+        new Notice(`Your selected local model "${this.settings.localModel}" has been updated locally.`, 12000);
+      } else if (previousSignature && previousSignature !== signature) {
+        new Notice('Your local Ollama model library has changed. Review the selected model in The Deleometer settings.', 12000);
+      } else if (showNotice) {
+        new Notice(`Local model library checked. ${models.length} model${models.length === 1 ? '' : 's'} available.`);
+      }
+    } catch (error) {
+      if (showNotice) new Notice(this.getAIErrorMessage(error, 'Could not check local model library'));
+      console.error(error);
+    }
+  }
+
   async ensureFolder(path: string) {
-    const parts = path.split('/');
+    const normalizedPath = path.split('/').map((part) => part.trim()).filter(Boolean).join('/');
+    if (!normalizedPath) return;
+    const parts = normalizedPath.split('/');
     let currentPath = '';
     for (const part of parts) {
       currentPath = currentPath ? `${currentPath}/${part}` : part;
       if (!this.app.vault.getAbstractFileByPath(currentPath)) await this.app.vault.createFolder(currentPath);
     }
+  }
+
+  redactSensitiveData(text: string): string {
+    return text
+      .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[redacted email]')
+      .replace(/\b(?:https?:\/\/|www\.)\S+/gi, '[redacted url]')
+      .replace(/\b(?:\+?\d[\d\s().-]{7,}\d)\b/g, '[redacted phone]')
+      .replace(/\b\d{1,5}\s+[A-Za-z0-9.'-]+(?:\s+[A-Za-z0-9.'-]+){0,4}\s+(?:Street|St|Road|Rd|Avenue|Ave|Boulevard|Blvd|Drive|Dr|Court|Ct|Place|Pl|Lane|Ln|Way|Terrace|Tce)\b/gi, '[redacted address]');
+  }
+
+  prepareTextForAI(text: string): string {
+    return this.settings.redactSensitiveDataBeforeAI ? this.redactSensitiveData(text) : text;
+  }
+
+  getPersonalityContextForAI(): string {
+    if (!this.settings.includePersonalityProfileInAI) {
+      return 'Personality profile: unavailable or not shared with AI';
+    }
+
+    const parts: string[] = [];
+    const profile = this.settings.personalityProfile;
+    if (profile) {
+      const theory = profile.theory || 'Five-Factor Model (Big Five) reflective profile';
+      parts.push(
+        `Big Five / Five-Factor Model:\n- Theory: ${theory}\n- Type: ${profile.psychological_type}\n- Dominant traits: ${profile.dominant_traits.join(', ')}\n- Growth areas: ${profile.growth_areas.join(', ')}`
+      );
+    }
+    const mbti = this.settings.myersBriggsProfile;
+    if (mbti) {
+      parts.push(
+        `Myers-Briggs reflective profile:\n- Theory: ${mbti.theory}\n- Type: ${mbti.type_code}\n- Summary: ${mbti.summary}\n- Strengths: ${mbti.strengths.join(', ')}\n- Growth areas: ${mbti.growth_areas.join(', ')}`
+      );
+    }
+    const maslow = this.settings.maslowProfile;
+    if (maslow) {
+      parts.push(
+        `Maslow needs profile:\n- Theory: ${maslow.theory}\n- Strongest needs currently supported: ${maslow.strongest_needs.join(', ')}\n- Growth areas: ${maslow.growth_areas.join(', ')}\n- Summary: ${maslow.summary}`
+      );
+    }
+
+    if (parts.length === 0) {
+      return 'Personality profile: unavailable or not shared with AI';
+    }
+
+    return this.prepareTextForAI(`Reflective assessment profiles:\n${parts.join('\n\n')}`);
+  }
+
+  getAuthorMemoryContextForAI(): string {
+    if (!this.settings.enableAuthorMemory) {
+      return 'Existing author memory summary: disabled by user settings';
+    }
+    if (!this.settings.includeAuthorMemoryInAI) {
+      return 'Existing author memory summary: stored locally but not shared with AI by user settings';
+    }
+    if (!this.settings.authorMemorySummary.trim()) {
+      return 'Existing author memory summary: none yet';
+    }
+
+    return this.prepareTextForAI(`Existing author memory summary:\n${this.settings.authorMemorySummary.trim()}`);
+  }
+
+  getChatJournalContextForAI(journalContent: string): string {
+    const prepared = this.prepareTextForAI(journalContent);
+    if (this.settings.sendFullJournalToChat || prepared.length <= 4000) {
+      return prepared;
+    }
+
+    return [
+      'Journal entry excerpted for chat privacy. Full journal sharing is off in settings.',
+      '',
+      'Opening excerpt:',
+      prepared.slice(0, 2000),
+      '',
+      'Closing excerpt:',
+      prepared.slice(-2000)
+    ].join('\n');
+  }
+
+  isSafeVaultMarkdownPath(path: string): boolean {
+    return !!path
+      && !path.startsWith('/')
+      && !path.includes('\\')
+      && !path.split('/').some((part) => part === '..')
+      && path.toLowerCase().endsWith('.md');
+  }
+
+  getVaultMarkdownFile(path: string): TFile | null {
+    if (!this.isSafeVaultMarkdownPath(path)) return null;
+    const abstractFile = this.app.vault.getAbstractFileByPath(path);
+    if (!(abstractFile instanceof TFile) || abstractFile.extension !== 'md') return null;
+    return abstractFile;
   }
 
   openJournalModal() { new JournalEntryModal(this.app, this).open(); }
@@ -219,15 +2625,99 @@ export default class DeleometerPlugin extends Plugin {
   }
 
   async analyzeCurrentNote(editor: Editor) {
-    if (!this.openai) { new Notice('Please set your API key in settings'); return; }
+    if (!this.hasAIProviderConfigured()) { new Notice(this.getAIProviderSetupNotice()); return; }
     const content = editor.getValue();
-    new Notice('Analyzing emotions with multiple perspectives...');
+    const sourceFile = this.app.workspace.getActiveFile();
+    const estimateText = this.getAnalysisEstimateText(content);
+    new Notice(`Analyzing emotions with multiple perspectives. ${estimateText}`, 15000);
     try {
-      const analysis = await this.getMultiPerspectiveAnalysis(content);
-      new AnalysisResultModal(this.app, this, analysis, content).open();
+      const analysis = await this.getMultiPerspectiveAnalysis(content, (message) => {
+        new Notice(message);
+      });
+      new AnalysisResultModal(this.app, this, analysis, content, sourceFile).open();
     } catch (error) {
-      new Notice(this.getOpenAIErrorMessage(error, 'Error analyzing emotions'));
+      new Notice(this.getAIErrorMessage(error, 'Error analyzing emotions'));
       console.error(error);
+    }
+  }
+
+  isAnalysisRunningForFile(filePath: string): boolean {
+    return Array.from(this.activeAnalysisJobs.values()).some((job) => job.filePath === filePath);
+  }
+
+  beginAnalysisJob(sourceFile: TFile): string {
+    const jobId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    this.activeAnalysisJobs.set(jobId, {
+      filePath: sourceFile.path,
+      fileLabel: sourceFile.basename,
+      status: 'Queued',
+      startedAt: Date.now()
+    });
+    return jobId;
+  }
+
+  updateAnalysisJobStatus(jobId: string, status: string) {
+    const job = this.activeAnalysisJobs.get(jobId);
+    if (!job) return;
+    job.status = status;
+    this.activeAnalysisJobs.set(jobId, job);
+  }
+
+  finishAnalysisJob(jobId: string) {
+    this.activeAnalysisJobs.delete(jobId);
+  }
+
+  getActiveAnalysisJobCount(): number {
+    return this.activeAnalysisJobs.size;
+  }
+
+  async queueAuthorMemorySummaryUpdate(authorMemorySummary: string) {
+    if (!this.settings.enableAuthorMemory || !authorMemorySummary) return;
+
+    this.authorMemoryUpdateQueue = this.authorMemoryUpdateQueue
+      .catch(() => {})
+      .then(async () => {
+        if (authorMemorySummary === this.settings.authorMemorySummary) return;
+        this.settings.authorMemorySummary = authorMemorySummary;
+        await this.saveSettings();
+      });
+
+    await this.authorMemoryUpdateQueue;
+  }
+
+  async runJournalAnalysisForFile(sourceFile: TFile, journalContent: string): Promise<AnalysisPayload> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+    if (this.isAnalysisRunningForFile(sourceFile.path)) {
+      throw new Error('An analysis is already running for this note');
+    }
+
+    const estimateText = this.getAnalysisEstimateText(journalContent);
+    const jobId = this.beginAnalysisJob(sourceFile);
+    const activeCount = this.getActiveAnalysisJobCount();
+    new Notice(
+      activeCount > 1
+        ? `Analysis started for ${sourceFile.basename}. ${activeCount} analyses are now running in parallel.`
+        : `Analyzing with multiple perspectives. ${estimateText}`,
+      15000
+    );
+
+    try {
+      this.updateAnalysisJobStatus(jobId, `Analysis started. ${estimateText}`);
+      await this.writeAnalysisStatusToFile(sourceFile, `Analysis started. ${estimateText}`);
+      const analysis = await this.getMultiPerspectiveAnalysis(journalContent, async (message) => {
+        this.updateAnalysisJobStatus(jobId, message);
+        new Notice(message);
+        await this.writeAnalysisStatusToFile(sourceFile, message);
+      });
+      await this.appendAnalysisToFile(sourceFile, analysis);
+      this.updateAnalysisJobStatus(jobId, 'Completed');
+      return analysis;
+    } catch (error) {
+      this.updateAnalysisJobStatus(jobId, `Failed: ${this.getErrorMessage(error)}`);
+      await this.writeAnalysisStatusToFile(sourceFile, `Analysis could not be completed: ${this.getErrorMessage(error)}`);
+      throw error;
+    } finally {
+      this.finishAnalysisJob(jobId);
     }
   }
 
@@ -260,71 +2750,67 @@ export default class DeleometerPlugin extends Plugin {
     }
   }
 
-  async getMultiPerspectiveAnalysis(content: string): Promise<AnalysisPayload> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
-    const perspectives = this.settings.selectedPerspectives
+  async getMultiPerspectiveAnalysis(content: string, onProgress?: AnalysisProgressCallback): Promise<AnalysisPayload> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+    const selectedPerspectiveKeys = new Set(this.settings.selectedPerspectives);
+    const perspectives = getChronologicalPerspectiveKeys()
+      .filter((key) => selectedPerspectiveKeys.has(key))
       .map((key) => ({ key, perspective: PERSPECTIVES[key] }))
       .filter((item) => item.perspective);
 
     if (perspectives.length === 0) {
       return {
         perspectives: {},
-        authorMemorySummary: this.settings.authorMemorySummary,
-        goalSuggestions: []
+        furtherReadings: {},
+        groupSyntheses: {},
+        philosophicalReaccumulation: '',
+        inspirationalSong: null,
+        authorMemorySummary: this.settings.enableAuthorMemory ? this.settings.authorMemorySummary : '',
+        goalSuggestions: [],
+        analysisWarnings: []
       };
     }
 
-    const perspectiveList = perspectives
-      .map(({ key, perspective }) => `- ${key}: ${perspective.title} - ${perspective.description}`)
-      .join('\n');
-
-    const personalityContext = this.settings.personalityProfile
-      ? `Personality profile:\n- Type: ${this.settings.personalityProfile.psychological_type}\n- Dominant traits: ${this.settings.personalityProfile.dominant_traits.join(', ')}\n- Growth areas: ${this.settings.personalityProfile.growth_areas.join(', ')}`
-      : 'Personality profile: unavailable';
-
-    const authorMemoryContext = this.settings.authorMemorySummary
-      ? `Existing author memory summary:\n${this.settings.authorMemorySummary}`
-      : 'Existing author memory summary: none yet';
-
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      response_format: { type: 'json_object' },
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You are an empathetic psychological analysis assistant. Return valid JSON only. ' +
-            'Produce concise, useful outputs that can be shown directly in an app.'
-        },
-        {
-          role: 'user',
-          content:
-            `Analyze the following journal entry from each requested perspective.\n\n` +
-            `Return JSON with exactly these top-level keys:\n` +
-            `- perspectives: an object where each key is the exact perspective key and each value is a string under 200 words with insight, emotional interpretation, and one practical next step.\n` +
-            `- author_memory_summary: a compact summary under 180 words describing enduring patterns, recurring concerns, strengths, values, and helpful supports for the journal author. Update the existing memory rather than repeating temporary details.\n` +
-            `- goal_suggestions: an array of 0-5 objects with keys title, description, category, targetDate, milestones, sourcePerspectives. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(', ')}. milestones must be an array of short strings. sourcePerspectives must be an array of the perspective keys that informed the goal.\n\n` +
-            `${personalityContext}\n\n` +
-            `${authorMemoryContext}\n\n` +
-            `Requested perspectives:\n${perspectiveList}\n\n` +
-            `Journal entry:\n${content}`
-        }
-      ]
-    });
-
-    const rawContent = response.choices[0]?.message?.content;
-    if (!rawContent) throw new Error('No analysis returned');
-
-    const parsed = JSON.parse(rawContent) as Record<string, unknown>;
-    const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === 'object'
-      ? parsed.perspectives as Record<string, unknown>
-      : {};
+    const analysisContent = await this.prepareJournalContentForAnalysis(this.prepareTextForAI(content), onProgress);
+    const selectedGroupKeys = [...new Set(perspectives.map(({ perspective }) => perspective.group))]
+      .filter((groupKey) => PERSPECTIVE_GROUPS[groupKey]);
+    const personalityContext = this.getPersonalityContextForAI();
+    const authorMemoryContext = this.getAuthorMemoryContextForAI();
+    const readerContext = this.getReaderContextPrompt();
+    const dateContext = this.getLocalDateContext();
     const results: Record<string, string> = {};
+    const furtherReadings: Record<string, string[]> = {};
+    const groupSyntheses: Record<string, string> = {};
+    const analysisWarnings: string[] = [];
+    const chronologicalBatchSize = perspectives.length > 180 ? 3 : 4;
+    const chronologicalChunks = this.chunkArray(perspectives, chronologicalBatchSize);
 
-    for (const { key } of perspectives) {
-      const value = parsedPerspectives[key];
-      if (typeof value === 'string' && value.trim()) {
-        results[key] = value.trim();
+    for (let chunkIndex = 0; chunkIndex < chronologicalChunks.length; chunkIndex += 1) {
+      const chunk = chronologicalChunks[chunkIndex];
+
+      try {
+        await onProgress?.(`Analyzing chronological sequence, batch ${chunkIndex + 1}/${chronologicalChunks.length}...`);
+        const batchResult = await this.getChronologicalPerspectiveAnalysis(analysisContent, chunk, personalityContext, authorMemoryContext, readerContext);
+        Object.assign(results, batchResult.perspectives);
+        Object.assign(furtherReadings, batchResult.furtherReadings);
+      } catch (error) {
+        const warning = `Chronological batch ${chunkIndex + 1} could not be generated: ${this.getErrorMessage(error)}`;
+        analysisWarnings.push(warning);
+        console.error(error);
+      }
+
+      const missingPerspectives = chunk.filter(({ key }) => !results[key]);
+      for (const item of missingPerspectives) {
+        try {
+          await onProgress?.(`Recovering omitted perspective: ${item.perspective.title}...`);
+          const fallback = await this.getSingleGeneratedPerspectiveAnalysis(analysisContent, item.key, item.perspective, personalityContext, authorMemoryContext, readerContext);
+          if (fallback.analysis) results[item.key] = fallback.analysis;
+          if (fallback.furtherReadings.length > 0) furtherReadings[item.key] = fallback.furtherReadings;
+        } catch (error) {
+          const warning = `${item.perspective.title} could not be generated: ${this.getErrorMessage(error)}`;
+          analysisWarnings.push(warning);
+          console.error(error);
+        }
       }
     }
 
@@ -332,27 +2818,957 @@ export default class DeleometerPlugin extends Plugin {
       throw new Error('Analysis response did not include any usable perspectives');
     }
 
+    const missingFurtherReadings = perspectives.filter(({ key }) => results[key] && (furtherReadings[key]?.length || 0) < 3);
+    const furtherReadingBatchSize = perspectives.length > 180 ? 6 : 8;
+    const furtherReadingChunks = this.chunkArray(missingFurtherReadings, furtherReadingBatchSize);
+    for (let chunkIndex = 0; chunkIndex < furtherReadingChunks.length; chunkIndex += 1) {
+      const chunk = furtherReadingChunks[chunkIndex];
+      if (chunk.length === 0) continue;
+
+      try {
+        await onProgress?.(`Backfilling further readings, batch ${chunkIndex + 1}/${furtherReadingChunks.length}...`);
+        const batchReadings = await this.getPerspectiveFurtherReadingsBatch(
+          analysisContent,
+          chunk,
+          results,
+          personalityContext,
+          authorMemoryContext,
+          readerContext
+        );
+        for (const { key } of chunk) {
+          if (batchReadings[key]?.length) {
+            furtherReadings[key] = batchReadings[key];
+          }
+        }
+      } catch (error) {
+        const warning = `Further reading batch ${chunkIndex + 1} could not be generated: ${this.getErrorMessage(error)}`;
+        analysisWarnings.push(warning);
+        console.error(error);
+      }
+    }
+
+    for (let groupIndex = 0; groupIndex < selectedGroupKeys.length; groupIndex += 1) {
+      const groupKey = selectedGroupKeys[groupIndex];
+      const group = PERSPECTIVE_GROUPS[groupKey];
+      const groupPerspectiveKeys = perspectives
+        .filter(({ key, perspective }) => perspective.group === groupKey && !!results[key])
+        .map(({ key }) => key);
+
+      if (groupPerspectiveKeys.length === 0) continue;
+
+      try {
+        await onProgress?.(`Synthesizing ${group?.title || groupKey} lineage (${groupIndex + 1}/${selectedGroupKeys.length})...`);
+        const groupSynthesis = await this.getLineageGroupSynthesis(analysisContent, groupKey, groupPerspectiveKeys, results, personalityContext, authorMemoryContext, readerContext);
+        if (groupSynthesis) {
+          groupSyntheses[groupKey] = groupSynthesis;
+        }
+      } catch (error) {
+        const warning = `${group?.title || groupKey} lineage synthesis could not be generated: ${this.getErrorMessage(error)}`;
+        analysisWarnings.push(warning);
+        console.error(error);
+      }
+    }
+
+    await onProgress?.('Synthesizing the full analysis and three proposed goals...');
+    const synthesis = await this.getWholeAnalysisSynthesis(analysisContent, selectedGroupKeys, results, groupSyntheses, personalityContext, authorMemoryContext, readerContext, dateContext);
+    let inspirationalSong: InspirationalSong | null = null;
+    if (this.settings.generateInspirationalSong) {
+      try {
+        await onProgress?.('Composing an inspirational song sketch...');
+        const songResult = await this.getInspirationalSong(
+          analysisContent,
+          results,
+          groupSyntheses,
+          synthesis.philosophicalReaccumulation,
+          personalityContext,
+          authorMemoryContext,
+          readerContext
+        );
+        inspirationalSong = songResult.song;
+        if (songResult.warning) {
+          analysisWarnings.push(songResult.warning);
+        }
+      } catch (error) {
+        const warning = `Inspirational song could not be generated: ${this.getErrorMessage(error)}`;
+        analysisWarnings.push(warning);
+        console.error(error);
+      }
+    }
+    const authorMemorySummary = this.settings.enableAuthorMemory
+      ? synthesis.authorMemorySummary || this.settings.authorMemorySummary
+      : '';
+
+    if (this.settings.enableAuthorMemory && authorMemorySummary) {
+      await this.queueAuthorMemorySummaryUpdate(authorMemorySummary);
+    }
+
+    return {
+      perspectives: results,
+      furtherReadings,
+      groupSyntheses,
+      philosophicalReaccumulation: synthesis.philosophicalReaccumulation,
+      inspirationalSong,
+      authorMemorySummary,
+      goalSuggestions: [],
+      analysisWarnings
+    };
+  }
+
+  chunkArray<T>(items: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+    for (let index = 0; index < items.length; index += size) {
+      chunks.push(items.slice(index, index + size));
+    }
+    return chunks;
+  }
+
+  parseJsonObject(rawContent: string): Record<string, unknown> {
+    const trimmed = rawContent.trim().replace(/^\uFEFF/, '');
+    const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i)?.[1]?.trim() || trimmed;
+    const objectStart = fenced.indexOf('{');
+    const objectEnd = fenced.lastIndexOf('}');
+    const extracted = objectStart !== -1 && objectEnd > objectStart
+      ? fenced.slice(objectStart, objectEnd + 1)
+      : fenced;
+    const withoutTrailingCommas = extracted.replace(/,\s*([}\]])/g, '$1');
+    const quotedBareKeys = withoutTrailingCommas.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)(\s*:)/g, '$1"$2"$3');
+    const inferredMissingCommas = quotedBareKeys.replace(
+      /(\}|\]|\btrue\b|\bfalse\b|\bnull\b|"[^"]*"|-?\d+(?:\.\d+)?)(\s*)("[A-Za-z_][A-Za-z0-9_-]*"\s*:)/g,
+      '$1,$2$3'
+    );
+    const closedJson = this.closeJsonCandidate(inferredMissingCommas).replace(/,\s*([}\]])/g, '$1');
+    const candidates = [trimmed, fenced, extracted, withoutTrailingCommas, quotedBareKeys, inferredMissingCommas, closedJson];
+    let lastError: unknown = null;
+
+    for (const candidate of candidates) {
+      try {
+        const parsed = JSON.parse(candidate) as unknown;
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return parsed as Record<string, unknown>;
+        }
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error('Could not parse JSON response');
+  }
+
+  parseJsonObjectOrNull(rawContent: string): Record<string, unknown> | null {
+    try {
+      return this.parseJsonObject(rawContent);
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+
+  stripResponseFences(rawContent: string): string {
+    const trimmed = rawContent.trim().replace(/^\uFEFF/, '');
+    return trimmed.match(/^```(?:json|markdown|md)?\s*([\s\S]*?)\s*```$/i)?.[1]?.trim() || trimmed;
+  }
+
+  normalizePerspectiveLookupKey(value: string): string {
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  }
+
+  extractGeneratedText(value: unknown): string {
+    if (typeof value === 'string') return value.trim();
+    if (!value || typeof value !== 'object') return '';
+    const record = value as Record<string, unknown>;
+    for (const field of ['analysis', 'content', 'text', 'response', 'interpretation', 'summary']) {
+      const fieldValue = record[field];
+      if (typeof fieldValue === 'string' && fieldValue.trim()) return fieldValue.trim();
+    }
+    return '';
+  }
+
+  extractPerspectiveAnalysis(
+    source: unknown,
+    key: string,
+    perspective: PerspectiveDefinition
+  ): string {
+    const wanted = new Set([
+      this.normalizePerspectiveLookupKey(key),
+      this.normalizePerspectiveLookupKey(perspective.title)
+    ]);
+
+    if (Array.isArray(source)) {
+      for (const item of source) {
+        if (!item || typeof item !== 'object') continue;
+        const record = item as Record<string, unknown>;
+        const labels = [record.key, record.perspective, record.title, record.name]
+          .filter((label): label is string => typeof label === 'string');
+        if (labels.some((label) => wanted.has(this.normalizePerspectiveLookupKey(label)))) {
+          const text = this.extractGeneratedText(record);
+          if (text) return text;
+        }
+      }
+      return '';
+    }
+
+    if (!source || typeof source !== 'object') return '';
+    const record = source as Record<string, unknown>;
+    for (const [entryKey, value] of Object.entries(record)) {
+      if (wanted.has(this.normalizePerspectiveLookupKey(entryKey))) {
+        const text = this.extractGeneratedText(value);
+        if (text) return text;
+      }
+    }
+    return '';
+  }
+
+  closeJsonCandidate(candidate: string): string {
+    let result = candidate.trim();
+    const stack: string[] = [];
+    let inString = false;
+    let escaped = false;
+
+    for (const char of result) {
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (char === '\\') {
+          escaped = true;
+        } else if (char === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        inString = true;
+      } else if (char === '{' || char === '[') {
+        stack.push(char);
+      } else if (char === '}' && stack[stack.length - 1] === '{') {
+        stack.pop();
+      } else if (char === ']' && stack[stack.length - 1] === '[') {
+        stack.pop();
+      }
+    }
+
+    if (inString) {
+      result += '"';
+    }
+
+    for (let index = stack.length - 1; index >= 0; index -= 1) {
+      result += stack[index] === '{' ? '}' : ']';
+    }
+
+    return result;
+  }
+
+  async prepareJournalContentForAnalysis(content: string, onProgress?: AnalysisProgressCallback): Promise<string> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+    const maxDirectAnalysisChars = 12000;
+    if (content.length <= maxDirectAnalysisChars) return content;
+
+    await onProgress?.('Creating a compact analysis brief for this long journal entry...');
+    try {
+      const rawContent = await this.createAIChatCompletion({
+        response_format: { type: 'json_object' },
+        max_tokens: 2500,
+        messages: [
+          {
+            role: 'system',
+            content: 'You prepare faithful analysis briefs for long journal entries. Return valid JSON only.'
+          },
+          {
+            role: 'user',
+            content:
+              `Create a compact but specific analysis brief for the journal entry below.\n\n` +
+              `Return JSON with key analysis_brief. The brief must preserve concrete events, images, emotional turns, voice, repeated phrases, conflicts, questions, material conditions, relationships, and possible stakes. Do not diagnose. Do not flatten the author's style.\n\n` +
+              `Journal entry:\n${content}`
+          }
+        ]
+      });
+      if (!rawContent) throw new Error('No analysis brief returned');
+      const parsed = this.parseJsonObject(rawContent);
+      const brief = typeof parsed.analysis_brief === 'string' ? parsed.analysis_brief.trim() : '';
+      if (!brief) throw new Error('Analysis brief was empty');
+
+      return [
+        'Long journal entry analysis brief:',
+        brief,
+        '',
+        'Opening excerpt from the original entry:',
+        content.slice(0, 3000),
+        '',
+        'Closing excerpt from the original entry:',
+        content.slice(-3000)
+      ].join('\n');
+    } catch (error) {
+      console.error(error);
+      await onProgress?.('Could not create a long-entry brief; analyzing opening and closing excerpts instead...');
+      return [
+        'Long journal entry excerpted for analysis because compact briefing failed.',
+        '',
+        'Opening excerpt:',
+        content.slice(0, 6000),
+        '',
+        'Closing excerpt:',
+        content.slice(-6000)
+      ].join('\n');
+    }
+  }
+
+  getReaderContextPrompt(): string {
+    const level = ZPD_LEVELS[this.settings.zpdLevel] || ZPD_LEVELS.tertiary_year_2;
+    return `Reader zone of proximal development: ${level.label}. ${level.prompt}`;
+  }
+
+  getDictionaryModePrompt(): string {
+    const mode = DICTIONARY_MODES[this.settings.dictionaryMode] || DICTIONARY_MODES.engage;
+    return `Dictionary mode: ${mode.label}. ${mode.prompt}`;
+  }
+
+  getOutputLanguagePrompt(): string {
+    const language = OUTPUT_LANGUAGES[this.settings.outputLanguage] || OUTPUT_LANGUAGES.english;
+    return [
+      `Output language: ${language.label}. ${language.prompt}`,
+      this.settings.outputLanguage === 'english'
+        ? "Use Australian/British English preference where relevant. For the past tense of 'learn', use 'learnt', not 'learned'."
+        : '',
+      'Keep required JSON property names, enum values, exact perspective keys, file paths, and Markdown link targets exactly as requested by the app.'
+    ].filter(Boolean).join(' ');
+  }
+
+  normalizeGeneratedEnglishUsage(text: string): string {
+    if (!text || this.settings.outputLanguage !== 'english') return text;
+    return text.replace(/\blearned\b/g, (match) => {
+      if (match === 'LEARNED') return 'LEARNT';
+      if (match === 'Learned') return 'Learnt';
+      return 'learnt';
+    });
+  }
+
+  normalizeGeneratedEnglishUsageArray(values: string[]): string[] {
+    return values.map((value) => this.normalizeGeneratedEnglishUsage(value));
+  }
+
+  normalizeGeneratedEnglishUsageRecord(values: Record<string, string>): Record<string, string> {
+    return Object.fromEntries(
+      Object.entries(values).map(([key, value]) => [key, this.normalizeGeneratedEnglishUsage(value)])
+    );
+  }
+
+  normalizeGeneratedFurtherReadings(values: Record<string, string[]>): Record<string, string[]> {
+    return Object.fromEntries(
+      Object.entries(values).map(([key, entries]) => [key, this.normalizeGeneratedEnglishUsageArray(entries)])
+    );
+  }
+
+  getLocalDateContext(): string {
+    const now = new Date();
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'local timezone';
+    return [
+      `Current local date: ${this.formatDateOnly(now)}`,
+      `Current local date and time: ${now.toLocaleString()}`,
+      `User timezone: ${timezone}`,
+      'All generated goal targetDate values must be in YYYY-MM-DD format and must be today or a future date in the user timezone. Do not use dates before the current local date.'
+    ].join('\n');
+  }
+
+  async getGroupPerspectiveAnalysis(
+    content: string,
+    groupKey: string,
+    perspectives: { key: string; perspective: PerspectiveDefinition }[],
+    personalityContext: string,
+    authorMemoryContext: string,
+    readerContext: string
+  ): Promise<{ perspectives: Record<string, string>; furtherReadings: Record<string, string[]>; groupSynthesis: string }> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+    const group = PERSPECTIVE_GROUPS[groupKey];
+    const perspectiveList = perspectives
+      .map(({ key, perspective }) => `- ${buildPerspectivePromptDescriptor(key, perspective)}`)
+      .join('\n');
+
+    const rawContent = await this.createAIChatCompletion({
+      response_format: { type: 'json_object' },
+      max_tokens: 12000,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are an empathetic interdisciplinary analysis assistant. Return valid JSON only. ' +
+            'Teach the analytic frame instead of name-dropping it. Produce useful outputs that can be shown directly in an app.'
+        },
+        {
+          role: 'user',
+          content:
+            `Analyze the journal entry from every requested perspective in this group.\n\n` +
+            `Return JSON with exactly these top-level keys:\n` +
+            `- perspectives: an object where each key is the exact perspective key and each value is a string of 220-360 words.\n` +
+            `- further_readings: an object where each key is the exact perspective key and each value is an array of 3-5 reading suggestions. Each suggestion should name an author and work, then briefly say why it helps with this frame.\n` +
+            `- group_synthesis: a string of 260-420 words that synthesizes this group's individual analyses after they have all been explicated.\n\n` +
+            `For each perspective:\n` +
+            `- preserve the requested order. The order is intentionally arranged as a rough chronology, moving from earlier traditions toward more recent theories so the reader can see a progression in thought.\n` +
+            `- create a synthetic interpretation of the entry through that frame, not a generic psychological reading.\n` +
+            `- explain key terms in reader-friendly language and show how the interpretation was built from details, voice, images, tensions, or omissions in the entry.\n` +
+            `- include interpretation, implication, likely outcome if the pattern continues, and a precise next step.\n` +
+            `- empower the author, but also offer a fair critique where the frame warrants it.\n` +
+            `- when a phrase like "pathway", "practice", "boundary", or "agency" appears, explain what it means materially and practically.\n` +
+            `- use the supplied tradition, placement, chronology, and lineage markers as situating cues. They are guides to philosophical history, not rigid ownership claims.\n` +
+            `- for Aristotle, include Rhetoric where relevant: ethos, pathos, logos, audience, persuasion, demonstration, causes, practical judgment, material conditions, and action.\n` +
+            `- for Plato, avoid broad Platonism; show the specific dialectical movement, image, desire, education, appearance, or form being used.\n` +
+            `- for self and subjectivity philosophers, distinguish self, person, subject, identity, agency, embodiment, autonomy, continuity, recognition, and responsibility. Teach the philosopher's method through the journal entry rather than turning every frame into ordinary psychology.\n` +
+            `- for Gallagher's Pattern Theory of Self, map the entry across embodied, experiential, affective, intersubjective, narrative, extended, ecological, and normative dimensions without reducing the self to one single essence.\n` +
+            `- for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.\n` +
+            `- for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.\n` +
+            `- for Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation you have just given.\n` +
+            `- for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.\n` +
+            `- for Julia Kristeva, include both her psychoanalysis and her philosophy. Explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, revolt, and subject formation through concrete details in the entry.\n` +
+            `- for Luce Irigaray, include both her philosophy and her psychoanalysis. Explain sexual difference, desire, embodiment, mimicry, speech, maternal relation, and the critique of phallocentric language through concrete details in the entry.\n` +
+            `- distinguish psychiatry, psychology, and psychoanalysis. Do not treat psychiatry as derived from psychoanalysis; make their different histories, institutions, evidence, and aims visible when those frames appear.\n` +
+            `- for Idiotextual Analysis, attend to singular wording, recurring idiosyncratic phrases, self-made idiom, and if relevant the idea of the idiotext as a uniquely inscribed textual world rather than generic style commentary.\n` +
+            `- for Maslow, Montessori, Piaget, and Vygotsky, interpret needs, development, learning, environment, scaffolding, independence, play, and social support as practical conditions, not abstract labels.\n` +
+            `- for organisational transformation, connect culture, structure, leadership, resistance, capability, implementation, and sustained change to specific patterns in the entry.\n` +
+            `- for Gregory Bateson, interpret communication, feedback loops, learning levels, double binds, relational patterns, and ecology of mind as systems that shape the entry's situation.\n` +
+            `- for music songwriting, interpret the entry as potential song material: voice, rhythm, image, emotional arc, refrain, lyric tension, possible structure, and what a listener could feel.\n` +
+            `- for Aesthetics, treat the term as contested rather than fixed. Explain whether the frame is operating through sensation (aisthesis), beauty, art, taste, judgment, or the distribution of the sensible, and why that sense fits this entry.\n` +
+            `- for quantum theory and Barad, avoid fake scientific certainty. Use quantum concepts carefully as analytic models for measurement, relation, indeterminacy, apparatus, entanglement, and mattering.\n` +
+            `- for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.\n` +
+            `- for cartography and geography, interpret place, scale, orientation, borders, movement, landscape, and omission. Explain how maps and spatial thinking make some relations visible while hiding others.\n` +
+            `- for sociology and social research methods, identify social structures, institutions, norms, groups, roles, evidence, ethics, positionality, fieldwork, and what kind of inquiry could test or deepen the interpretation.\n` +
+            `- for parental guidance practices, avoid stereotypes. Explain each cultural frame as a situated set of practices and expectations, and compare guidance, care, discipline, autonomy, obligation, kinship, and social belonging materially.\n` +
+            `- for legal, engineering, ecological, social-ecological, grounded theory, and autoethnographic frames, make the method visible: show what counts as evidence, what the frame notices, what it misses, and what practical consequence follows.\n` +
+            `- avoid stopping early. Return one complete individual analysis for every requested key.\n\n` +
+            `${personalityContext}\n\n` +
+            `${authorMemoryContext}\n\n` +
+            `${readerContext}\n\n` +
+            `${this.getDictionaryModePrompt()}\n\n` +
+            `${this.getOutputLanguagePrompt()}\n\n` +
+            `Perspective group: ${groupKey}: ${group?.title || groupKey} - ${group?.description || ''}\n\n` +
+            `Requested perspectives in this group:\n${perspectiveList}\n\n` +
+            `Journal entry:\n${content}`
+        }
+      ]
+    });
+    if (!rawContent) throw new Error('No analysis returned');
+
+    const parsed = this.parseJsonObject(rawContent);
+    const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === 'object'
+      ? parsed.perspectives
+      : parsed;
+    const results: Record<string, string> = {};
+
+    for (const { key, perspective } of perspectives) {
+      const value = this.extractPerspectiveAnalysis(parsedPerspectives, key, perspective);
+      if (value) {
+        results[key] = value;
+      }
+    }
+
+    const parsedFurtherReadings = parsed.further_readings && typeof parsed.further_readings === 'object'
+      ? parsed.further_readings as Record<string, unknown>
+      : {};
+    const furtherReadings: Record<string, string[]> = {};
+
+    for (const { key } of perspectives) {
+      const value = parsedFurtherReadings[key];
+      if (Array.isArray(value)) {
+        furtherReadings[key] = value
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .slice(0, 5);
+      }
+    }
+
+    const groupSynthesis = typeof parsed.group_synthesis === 'string'
+      ? this.normalizeGeneratedEnglishUsage(parsed.group_synthesis.trim())
+      : '';
+
+    return {
+      perspectives: this.normalizeGeneratedEnglishUsageRecord(results),
+      furtherReadings: this.normalizeGeneratedFurtherReadings(furtherReadings),
+      groupSynthesis
+    };
+  }
+
+  async getChronologicalPerspectiveAnalysis(
+    content: string,
+    perspectives: { key: string; perspective: PerspectiveDefinition }[],
+    personalityContext: string,
+    authorMemoryContext: string,
+    readerContext: string
+  ): Promise<{ perspectives: Record<string, string>; furtherReadings: Record<string, string[]> }> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+    const perspectiveList = perspectives
+      .map(({ key, perspective }) => `- ${buildPerspectivePromptDescriptor(key, perspective)}`)
+      .join('\n');
+
+    const rawContent = await this.createAIChatCompletion({
+      response_format: { type: 'json_object' },
+      max_tokens: 11000,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are an empathetic interdisciplinary analysis assistant. Return valid JSON only. ' +
+            'Teach each analytic frame instead of name-dropping it. Produce useful outputs that can be shown directly in an app.'
+        },
+        {
+          role: 'user',
+          content:
+            `Analyze the journal entry from every requested perspective in this chronological batch.\n\n` +
+            `Return JSON with exactly these top-level keys:\n` +
+            `- perspectives: an object where each key is the exact perspective key and each value is a string of 220-360 words.\n` +
+            `- further_readings: an object where each key is the exact perspective key and each value is an array of 3-5 reading suggestions. Each suggestion should name an author and work, then briefly say why it helps with this frame.\n\n` +
+            `The requested order is strict chronology. Preserve the sequence exactly, even when adjacent perspectives come from different groups. Treat each group title as a lineage marker, not as the primary order.\n\n` +
+            `For each perspective:\n` +
+            `- create a synthetic interpretation of the entry through that frame, not a generic psychological reading.\n` +
+            `- explain key terms in reader-friendly language and show how the interpretation was built from details, voice, images, tensions, or omissions in the entry.\n` +
+            `- include interpretation, implication, likely outcome if the pattern continues, and a precise next step.\n` +
+            `- empower the author, but also offer a fair critique where the frame warrants it.\n` +
+            `- when a phrase like "pathway", "practice", "boundary", or "agency" appears, explain what it means materially and practically.\n` +
+            `- for Aristotle, include Rhetoric where relevant: ethos, pathos, logos, audience, persuasion, demonstration, causes, practical judgment, material conditions, and action.\n` +
+            `- for Plato, avoid broad Platonism; show the specific dialectical movement, image, desire, education, appearance, or form being used.\n` +
+            `- for self and subjectivity philosophers, distinguish self, person, subject, identity, agency, embodiment, autonomy, continuity, recognition, and responsibility. Teach the philosopher's method through the journal entry rather than turning every frame into ordinary psychology.\n` +
+            `- use the supplied tradition, placement, chronology, and lineage markers as situating cues. They are guides to philosophical history, not rigid ownership claims.\n` +
+            `- for Gallagher's Pattern Theory of Self, map the entry across embodied, experiential, affective, intersubjective, narrative, extended, ecological, and normative dimensions without reducing the self to one single essence.\n` +
+            `- for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.\n` +
+            `- for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.\n` +
+            `- for Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation you have just given.\n` +
+            `- for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.\n` +
+            `- for Julia Kristeva, include both her psychoanalysis and her philosophy. Explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, revolt, and subject formation through concrete details in the entry.\n` +
+            `- for Luce Irigaray, include both her philosophy and her psychoanalysis. Explain sexual difference, desire, embodiment, mimicry, speech, maternal relation, and the critique of phallocentric language through concrete details in the entry.\n` +
+            `- distinguish psychiatry, psychology, and psychoanalysis. Do not treat psychiatry as derived from psychoanalysis; make their different histories, institutions, evidence, and aims visible when those frames appear.\n` +
+            `- for Idiotextual Analysis, attend to singular wording, recurring idiosyncratic phrases, self-made idiom, and if relevant the idea of the idiotext as a uniquely inscribed textual world rather than generic style commentary.\n` +
+            `- for Maslow, Montessori, Piaget, and Vygotsky, interpret needs, development, learning, environment, scaffolding, independence, play, and social support as practical conditions, not abstract labels.\n` +
+            `- for organisational transformation, connect culture, structure, leadership, resistance, capability, implementation, and sustained change to specific patterns in the entry.\n` +
+            `- for Gregory Bateson, interpret communication, feedback loops, learning levels, double binds, relational patterns, and ecology of mind as systems that shape the entry's situation.\n` +
+            `- for music songwriting, interpret the entry as potential song material: voice, rhythm, image, emotional arc, refrain, lyric tension, possible structure, and what a listener could feel.\n` +
+            `- for Aesthetics, treat the term as contested rather than fixed. Explain whether the frame is operating through sensation (aisthesis), beauty, art, taste, judgment, or the distribution of the sensible, and why that sense fits this entry.\n` +
+            `- for quantum theory and Barad, avoid fake scientific certainty. Use quantum concepts carefully as analytic models for measurement, relation, indeterminacy, apparatus, entanglement, and mattering.\n` +
+            `- for Tessa Laird's Cinemal, read the entry through becoming-animal experimental film, sensory perception, nonhuman movement, colour, sound, voice, and more-than-human ecological imagination.\n` +
+            `- for cartography and geography, interpret place, scale, orientation, borders, movement, landscape, and omission. Explain how maps and spatial thinking make some relations visible while hiding others.\n` +
+            `- for sociology and social research methods, identify social structures, institutions, norms, groups, roles, evidence, ethics, positionality, fieldwork, and what kind of inquiry could test or deepen the interpretation.\n` +
+            `- for parental guidance practices, avoid stereotypes. Explain each cultural frame as a situated set of practices and expectations, and compare guidance, care, discipline, autonomy, obligation, kinship, and social belonging materially.\n` +
+            `- for legal, engineering, ecological, social-ecological, grounded theory, and autoethnographic frames, make the method visible: show what counts as evidence, what the frame notices, what it misses, and what practical consequence follows.\n` +
+            `- avoid stopping early. Return one complete individual analysis for every requested key.\n\n` +
+            `${personalityContext}\n\n` +
+            `${authorMemoryContext}\n\n` +
+            `${readerContext}\n\n` +
+            `${this.getDictionaryModePrompt()}\n\n` +
+            `${this.getOutputLanguagePrompt()}\n\n` +
+            `Requested perspectives in strict chronological order:\n${perspectiveList}\n\n` +
+            `Journal entry:\n${content}`
+        }
+      ]
+    });
+    if (!rawContent) throw new Error('No analysis returned');
+
+    const parsed = this.parseJsonObject(rawContent);
+    const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === 'object'
+      ? parsed.perspectives
+      : parsed;
+    const results: Record<string, string> = {};
+
+    for (const { key, perspective } of perspectives) {
+      const value = this.extractPerspectiveAnalysis(parsedPerspectives, key, perspective);
+      if (value) {
+        results[key] = value;
+      }
+    }
+
+    const parsedFurtherReadings = parsed.further_readings && typeof parsed.further_readings === 'object'
+      ? parsed.further_readings as Record<string, unknown>
+      : {};
+    const furtherReadings: Record<string, string[]> = {};
+
+    for (const { key } of perspectives) {
+      const value = parsedFurtherReadings[key];
+      if (Array.isArray(value)) {
+        furtherReadings[key] = value
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .slice(0, 5);
+      }
+    }
+
+    return {
+      perspectives: this.normalizeGeneratedEnglishUsageRecord(results),
+      furtherReadings: this.normalizeGeneratedFurtherReadings(furtherReadings)
+    };
+  }
+
+  async getLineageGroupSynthesis(
+    content: string,
+    groupKey: string,
+    perspectiveKeys: string[],
+    perspectiveAnalyses: Record<string, string>,
+    personalityContext: string,
+    authorMemoryContext: string,
+    readerContext: string
+  ): Promise<string> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+    const group = PERSPECTIVE_GROUPS[groupKey];
+    const analysisList = perspectiveKeys
+      .map((key) => {
+        const title = PERSPECTIVES[key]?.title || key;
+        const excerpt = (perspectiveAnalyses[key] || '').slice(0, 650);
+        return `- ${title} (${key}): ${excerpt}`;
+      })
+      .join('\n');
+
+    const rawContent = await this.createAIChatCompletion({
+      max_tokens: 1200,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are an empathetic interdisciplinary analysis assistant. Write directly and do not include a heading.'
+        },
+        {
+          role: 'user',
+          content:
+            `Synthesize this lineage group after the individual analyses have already been explicated.\n\n` +
+            `Write 260-420 words. Chronology is the primary order of the whole analysis; this synthesis should use the group as a secondary lineage marker. Show how the perspectives in this group speak to one another, what they collectively reveal about the journal entry, where they disagree, what they make visible, what they miss, and what practical next movement follows.\n\n` +
+            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${this.getOutputLanguagePrompt()}\n\n` +
+            `Group: ${groupKey}: ${group?.title || groupKey} - ${group?.description || ''}\n\n` +
+            `Individual analysis excerpts from this group:\n${analysisList}\n\n` +
+            `Journal entry:\n${content.slice(0, 6000)}`
+        }
+      ]
+    });
+
+    return this.normalizeGeneratedEnglishUsage(rawContent.trim());
+  }
+
+  async getSingleGeneratedPerspectiveAnalysis(
+    content: string,
+    key: string,
+    perspective: PerspectiveDefinition,
+    personalityContext: string,
+    authorMemoryContext: string,
+    readerContext: string
+  ): Promise<{ analysis: string; furtherReadings: string[] }> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+    const rawContent = await this.createAIChatCompletion({
+      response_format: { type: 'json_object' },
+      max_tokens: 2500,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an empathetic interdisciplinary analysis assistant. Return valid JSON only.'
+        },
+        {
+          role: 'user',
+          content:
+            `The previous batch omitted this perspective. Analyze the journal entry through this exact frame.\n\n` +
+            `Return JSON with keys analysis and further_readings.\n` +
+            `- analysis must be 220-360 words, teach the frame, explain key terms, interpret the entry, show implications, predict likely outcomes, and give a precise next step.\n` +
+            `- further_readings must be an array of 3-5 strings naming author/work and why it helps.\n\n` +
+            `If the frame is Aesthetics, treat the term as contested rather than fixed. Explain whether the interpretation turns on sensation, beauty, art, taste, judgment, or the sensible, and why.\n\n` +
+            `If the frame is Julia Kristeva, include both her psychoanalysis and her philosophy.\n` +
+            `If the frame is Luce Irigaray, include both her philosophy and her psychoanalysis.\n\n` +
+            `Distinguish psychiatry, psychology, and psychoanalysis. Do not treat psychiatry as derived from psychoanalysis.\n` +
+            `If the frame is Idiotextual Analysis, attend to singular wording, recurring idiosyncratic phrases, self-made idiom, and if relevant the idea of the idiotext as a uniquely inscribed textual world rather than generic style commentary.\n\n` +
+            `If the frame is Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation.\n\n` +
+            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n` +
+            `${this.getDictionaryModePrompt()}\n\n${this.getOutputLanguagePrompt()}\n\n` +
+            `Perspective: ${buildPerspectivePromptDescriptor(key, perspective)}\n\n` +
+            `Journal entry:\n${content}`
+        }
+      ]
+    });
+    if (!rawContent) return { analysis: '', furtherReadings: [] };
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) {
+      return {
+        analysis: this.normalizeGeneratedEnglishUsage(this.stripResponseFences(rawContent)),
+        furtherReadings: []
+      };
+    }
+    const analysis = typeof parsed.analysis === 'string'
+      ? this.normalizeGeneratedEnglishUsage(parsed.analysis.trim())
+      : this.normalizeGeneratedEnglishUsage(this.extractPerspectiveAnalysis(parsed, key, perspective));
+    const furtherReadings = Array.isArray(parsed.further_readings)
+      ? this.normalizeGeneratedEnglishUsageArray(
+          parsed.further_readings.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean).slice(0, 5)
+        )
+      : [];
+    return { analysis, furtherReadings };
+  }
+
+  async getPerspectiveFurtherReadingsBatch(
+    content: string,
+    perspectives: { key: string; perspective: PerspectiveDefinition }[],
+    perspectiveAnalyses: Record<string, string>,
+    personalityContext: string,
+    authorMemoryContext: string,
+    readerContext: string
+  ): Promise<Record<string, string[]>> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+    const perspectiveList = perspectives
+      .map(({ key, perspective }) => {
+        const analysisExcerpt = (perspectiveAnalyses[key] || '').slice(0, 800);
+        return `- ${buildPerspectivePromptDescriptor(key, perspective)}\n  Existing analysis excerpt: ${analysisExcerpt}`;
+      })
+      .join('\n');
+
+    const rawContent = await this.createAIChatCompletion({
+      response_format: { type: 'json_object' },
+      max_tokens: 5000,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an interdisciplinary reading guide. Return valid JSON only.'
+        },
+        {
+          role: 'user',
+          content:
+            `Generate only the missing further reading suggestions for these already-completed analyses.\n\n` +
+            `Return JSON with exactly one top-level key: further_readings.\n` +
+            `- further_readings must be an object where each key is the exact perspective key and each value is an array of 3-5 reading suggestions.\n` +
+            `- Each suggestion should name an author and work, then briefly say why it helps with this frame.\n` +
+            `- Make the readings specific to the exact analytic frame, not general theory reading.\n` +
+            `- Use the existing analysis excerpt to infer which canonical or especially useful texts fit that lens.\n\n` +
+            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${this.getOutputLanguagePrompt()}\n\n` +
+            `Requested perspectives needing further readings:\n${perspectiveList}\n\n` +
+            `Journal entry:\n${content}`
+        }
+      ]
+    });
+    if (!rawContent) return {};
+
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) return {};
+    const parsedFurtherReadings = parsed.further_readings && typeof parsed.further_readings === 'object'
+      ? parsed.further_readings as Record<string, unknown>
+      : {};
+    const furtherReadings: Record<string, string[]> = {};
+
+    for (const { key } of perspectives) {
+      const value = parsedFurtherReadings[key];
+      if (Array.isArray(value)) {
+        furtherReadings[key] = value
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .slice(0, 5);
+      }
+    }
+
+    return this.normalizeGeneratedFurtherReadings(furtherReadings);
+  }
+
+  async getWholeAnalysisSynthesis(
+    content: string,
+    selectedGroupKeys: string[],
+    perspectives: Record<string, string>,
+    groupSyntheses: Record<string, string>,
+    personalityContext: string,
+    authorMemoryContext: string,
+    readerContext: string,
+    dateContext: string
+  ): Promise<{ philosophicalReaccumulation: string; authorMemorySummary: string }> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+    const groupList = selectedGroupKeys
+      .map((groupKey) => `- ${groupKey}: ${PERSPECTIVE_GROUPS[groupKey]?.title || groupKey}\n${groupSyntheses[groupKey] || 'No group synthesis returned.'}`)
+      .join('\n\n');
+    const perspectiveSummaries = Object.entries(perspectives)
+      .map(([key, value]) => `- ${key}: ${value.slice(0, 700)}`)
+      .join('\n');
+
+    const rawContent = await this.createAIChatCompletion({
+      response_format: { type: 'json_object' },
+      max_tokens: 4500,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an empathetic interdisciplinary analysis assistant. Return valid JSON only.'
+        },
+        {
+          role: 'user',
+          content:
+            `Synthesize the completed individual and group analyses of a journal entry.\n\n` +
+            `Return JSON with exactly these keys:\n` +
+            `- philosophical_reaccumulation: 360-520 words. Iteratively recombine the group syntheses into Philosophy as the first discipline. Treat this as an archeo-genealogical recombination of subdisciplines, theories, and analyses into an overarching philosophical orientation. Include interpretation, critique, implications, likely outcomes, further steps, and imaginative futures.\n` +
+            `- author_memory_summary: under 220 words, updating enduring patterns, strengths, values, risks, supports, and recurring concerns.\n\n` +
+            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${dateContext}\n\n` +
+            `${this.getOutputLanguagePrompt()}\n\n` +
+            `Group syntheses:\n${groupList}\n\n` +
+            `Individual analysis excerpts:\n${perspectiveSummaries}\n\n` +
+            `Journal entry:\n${content}`
+        }
+      ]
+    });
+    if (!rawContent) {
+      return { philosophicalReaccumulation: '', authorMemorySummary: this.settings.authorMemorySummary };
+    }
+
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) {
+      return {
+        philosophicalReaccumulation: this.normalizeGeneratedEnglishUsage(this.stripResponseFences(rawContent)),
+        authorMemorySummary: this.settings.authorMemorySummary
+      };
+    }
+    const philosophicalReaccumulation = typeof parsed.philosophical_reaccumulation === 'string'
+      ? this.normalizeGeneratedEnglishUsage(parsed.philosophical_reaccumulation.trim())
+      : '';
     const authorMemorySummary = typeof parsed.author_memory_summary === 'string'
-      ? parsed.author_memory_summary.trim()
+      ? this.normalizeGeneratedEnglishUsage(parsed.author_memory_summary.trim())
       : this.settings.authorMemorySummary;
 
-    const rawGoalSuggestions = Array.isArray(parsed.goal_suggestions) ? parsed.goal_suggestions : [];
-    const goalSuggestions = rawGoalSuggestions
+    return { philosophicalReaccumulation, authorMemorySummary };
+  }
+
+  async generateGoalSuggestionsFromAnalysis(
+    content: string,
+    analysis: AnalysisPayload,
+    sourceAnalysisPath: string = ''
+  ): Promise<GoalSuggestion[]> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+
+    const selectedGroupKeys = Object.keys(analysis.groupSyntheses);
+    const groupList = selectedGroupKeys.length > 0
+      ? selectedGroupKeys
+          .map((groupKey) => `- ${groupKey}: ${PERSPECTIVE_GROUPS[groupKey]?.title || groupKey}\n${analysis.groupSyntheses[groupKey] || 'No group synthesis returned.'}`)
+          .join('\n\n')
+      : 'No group syntheses available.';
+    const perspectiveSummaries = Object.entries(analysis.perspectives)
+      .map(([key, value]) => `- ${key}: ${value.slice(0, 700)}`)
+      .join('\n');
+    const personalityContext = this.getPersonalityContextForAI();
+    const authorMemoryContext = this.getAuthorMemoryContextForAI();
+    const readerContext = this.getReaderContextPrompt();
+    const dateContext = this.getLocalDateContext();
+
+    const rawContent = await this.createAIChatCompletion({
+      response_format: { type: 'json_object' },
+      max_tokens: 2500,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an empathetic interdisciplinary analysis assistant. Return valid JSON only.'
+        },
+        {
+          role: 'user',
+          content:
+            `Using the completed journal analyses below, generate goals only when explicitly requested.\n\n` +
+            `Return JSON with exactly one top-level key:\n` +
+            `- goal_suggestions: exactly 3 objects with keys title, description, category, targetDate, milestones, sourcePerspectives.\n\n` +
+            `These must synthesize the whole gamut of analytic frames into the three most salient next steps. Categories must be one of: ${Object.keys(GOAL_CATEGORIES).join(', ')}. targetDate must be YYYY-MM-DD and must be today or later in the user's timezone. When suggesting a form of activity, include concrete real-life examples of that form, such as types of groups, everyday actions, practices, scenes, public activities, mutual aid settings, study circles, creative routines, community organisations, or other realistic examples relevant to the journal entry. Mention other possible goals inside the descriptions as smaller intimations, not as extra goal objects.\n\n` +
+            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${dateContext}\n\n` +
+            `${this.getOutputLanguagePrompt()}\n\n` +
+            `Group syntheses:\n${groupList}\n\n` +
+            `Individual analysis excerpts:\n${perspectiveSummaries}\n\n` +
+            `Journal entry:\n${content}`
+        }
+      ]
+    });
+    if (!rawContent) return [];
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) return [];
+    return this.parseGoalSuggestions(parsed.goal_suggestions)
+      .slice(0, 3)
+      .map((goal) => ({
+        ...goal,
+        sourceAnalysisPath: goal.sourceAnalysisPath || sourceAnalysisPath
+      }));
+  }
+
+  async getInspirationalSong(
+    content: string,
+    perspectives: Record<string, string>,
+    groupSyntheses: Record<string, string>,
+    philosophicalReaccumulation: string,
+    personalityContext: string,
+    authorMemoryContext: string,
+    readerContext: string
+  ): Promise<{ song: InspirationalSong | null; warning?: string }> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+
+    const perspectiveSummaries = Object.entries(perspectives)
+      .slice(0, 24)
+      .map(([key, value]) => `- ${key}: ${value.slice(0, 320)}`)
+      .join('\n');
+    const synthesisSummaries = Object.entries(groupSyntheses)
+      .map(([key, value]) => `- ${PERSPECTIVE_GROUPS[key]?.title || key}: ${value.slice(0, 320)}`)
+      .join('\n');
+
+    const rawContent = await this.createAIChatCompletion({
+      response_format: { type: 'json_object' },
+      max_tokens: 2200,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a careful songwriter and reflective guide. Return valid JSON only.'
+        },
+        {
+          role: 'user',
+          content:
+            `Create a positive construction of a song that could inspire the author after the analyses have been completed.\n\n` +
+            `Return JSON with exactly these keys:\n` +
+            `- title: short song title.\n` +
+            `- rationale: 90-160 words explaining how the song gently transforms the journal entry's tensions into movement, courage, or hope without denying difficulty.\n` +
+            `- mood: a short phrase such as "steady, luminous, determined".\n` +
+            `- tempo_bpm: integer from 72 to 124.\n` +
+            `- key_center: one of C, D, E, F, G, A, B.\n` +
+            `- scale_mode: either major or minor.\n` +
+            `- chord_progression: array of exactly 4 simple chord symbols using only A-G roots with optional m, for example ["Am", "F", "C", "G"].\n` +
+            `- motif_degrees: array of exactly 8 integers from 1 to 7.\n` +
+            `- hook_line: one memorable, encouraging line under 14 words.\n` +
+            `- lyrics: 2 short verses and 1 chorus, written plainly enough to sing.\n\n` +
+            `The song should be encouraging, intelligent, and grounded in the author's actual material situation. Do not become saccharine, preachy, or falsely triumphant. Let the song retain struggle while still building a listenable path forward.\n\n` +
+            `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${this.getOutputLanguagePrompt()}\n\n` +
+            `Philosophy re-accumulation:\n${philosophicalReaccumulation}\n\n` +
+            `Group syntheses:\n${synthesisSummaries}\n\n` +
+            `Selected individual analysis excerpts:\n${perspectiveSummaries}\n\n` +
+            `Journal entry excerpt:\n${content.slice(0, 5000)}`
+        }
+      ]
+    });
+    if (!rawContent) {
+      return {
+        song: this.buildFallbackInspirationalSong(content, philosophicalReaccumulation),
+        warning: 'Inspirational song used a local fallback because the AI returned no song payload.'
+      };
+    }
+
+    try {
+      const parsedSong = this.parseInspirationalSong(
+        this.parseJsonObject(rawContent),
+        philosophicalReaccumulation,
+        content
+      );
+      if (parsedSong) {
+        return { song: parsedSong };
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    return {
+      song: this.buildFallbackInspirationalSong(content, philosophicalReaccumulation),
+      warning: 'Inspirational song used a local fallback because the AI song payload was incomplete.'
+    };
+  }
+
+  parseGoalSuggestions(rawGoalSuggestions: unknown): GoalSuggestion[] {
+    return (Array.isArray(rawGoalSuggestions) ? rawGoalSuggestions : [])
       .map((goal): GoalSuggestion | null => {
         if (!goal || typeof goal !== 'object') return null;
         const suggestion = goal as Record<string, unknown>;
-        const title = typeof suggestion.title === 'string' ? suggestion.title.trim() : '';
-        const description = typeof suggestion.description === 'string' ? suggestion.description.trim() : '';
+        const title = typeof suggestion.title === 'string' ? this.normalizeGeneratedEnglishUsage(suggestion.title.trim()) : '';
+        const description = typeof suggestion.description === 'string' ? this.normalizeGeneratedEnglishUsage(suggestion.description.trim()) : '';
         if (!title || !description) return null;
 
         const category = typeof suggestion.category === 'string' && GOAL_CATEGORIES[suggestion.category]
           ? suggestion.category
           : 'personal_growth';
-        const targetDate = typeof suggestion.targetDate === 'string' && suggestion.targetDate.trim()
+        const rawTargetDate = typeof suggestion.targetDate === 'string' && suggestion.targetDate.trim()
           ? suggestion.targetDate.trim()
           : '';
+        const targetDate = this.isUsableGoalTargetDate(rawTargetDate) ? rawTargetDate : '';
         const milestones = Array.isArray(suggestion.milestones)
-          ? suggestion.milestones.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
+          ? this.normalizeGeneratedEnglishUsageArray(
+              suggestion.milestones.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
+            )
           : [];
         const sourcePerspectives = Array.isArray(suggestion.sourcePerspectives)
           ? suggestion.sourcePerspectives.filter((item): item is string => typeof item === 'string').filter((item) => !!PERSPECTIVES[item])
@@ -361,37 +3777,202 @@ export default class DeleometerPlugin extends Plugin {
         return { title, description, category, targetDate, milestones, sourcePerspectives };
       })
       .filter((goal): goal is GoalSuggestion => !!goal);
+  }
 
-    if (authorMemorySummary && authorMemorySummary !== this.settings.authorMemorySummary) {
-      this.settings.authorMemorySummary = authorMemorySummary;
-      await this.saveSettings();
+  getSongStringValue(song: Record<string, unknown>, keys: string[]): string {
+    for (const key of keys) {
+      const value = song[key];
+      if (typeof value === 'string' && value.trim()) {
+        return this.normalizeGeneratedEnglishUsage(value.trim());
+      }
+      if (Array.isArray(value)) {
+        const joined = value
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .join('\n');
+        if (joined) {
+          return this.normalizeGeneratedEnglishUsage(joined);
+        }
+      }
     }
+    return '';
+  }
+
+  getSongNumberValue(song: Record<string, unknown>, keys: string[]): number | null {
+    for (const key of keys) {
+      const value = song[key];
+      if (typeof value === 'number' && Number.isFinite(value)) return value;
+      if (typeof value === 'string') {
+        const numeric = Number(value);
+        if (Number.isFinite(numeric)) return numeric;
+      }
+    }
+    return null;
+  }
+
+  getSongChordProgression(song: Record<string, unknown>): string[] {
+    const directKeys = ['chord_progression', 'chordProgression', 'chords'];
+    for (const key of directKeys) {
+      const value = song[key];
+      if (Array.isArray(value)) {
+        const chords = value
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim())
+          .filter((item) => /^[A-G]m?$/.test(item))
+          .slice(0, 4);
+        if (chords.length > 0) return chords;
+      }
+      if (typeof value === 'string') {
+        const chords = value
+          .split(/[^A-Gm]+/)
+          .map((item) => item.trim())
+          .filter((item) => /^[A-G]m?$/.test(item))
+          .slice(0, 4);
+        if (chords.length > 0) return chords;
+      }
+    }
+    return [];
+  }
+
+  getSongMotifDegrees(song: Record<string, unknown>): number[] {
+    const directKeys = ['motif_degrees', 'motifDegrees', 'motif', 'melody_degrees'];
+    for (const key of directKeys) {
+      const value = song[key];
+      if (Array.isArray(value)) {
+        const degrees = value
+          .map((item) => typeof item === 'number' ? item : Number(item))
+          .filter((item) => Number.isFinite(item))
+          .map((item) => Math.max(1, Math.min(7, Math.round(item))))
+          .slice(0, 8);
+        if (degrees.length > 0) return degrees;
+      }
+      if (typeof value === 'string') {
+        const degrees = value
+          .split(/[^0-9]+/)
+          .map((item) => Number(item))
+          .filter((item) => Number.isFinite(item))
+          .map((item) => Math.max(1, Math.min(7, Math.round(item))))
+          .slice(0, 8);
+        if (degrees.length > 0) return degrees;
+      }
+    }
+    return [];
+  }
+
+  buildFallbackInspirationalSong(content: string, philosophicalReaccumulation: string): InspirationalSong {
+    const seedText = `${philosophicalReaccumulation}\n${content}`.trim();
+    const significantWords = (seedText.match(/[A-Za-z][A-Za-z'-]{2,}/g) || [])
+      .map((word) => word.toLowerCase())
+      .filter((word) => !new Set([
+        'the', 'and', 'that', 'with', 'from', 'this', 'have', 'your', 'into', 'their',
+        'about', 'there', 'where', 'which', 'while', 'through', 'could', 'would', 'should',
+        'journal', 'entry', 'analysis', 'author', 'after', 'still', 'them', 'they', 'then'
+      ]).has(word));
+    const titleWords = Array.from(new Set(significantWords)).slice(0, 3);
+    const title = titleWords.length > 0
+      ? titleWords.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+      : 'Carry the Morning';
+    const negativeSignals = (seedText.match(/\b(fear|grief|hurt|loss|anxious|violence|dark|alone|tired|doubt)\b/gi) || []).length;
+    const scaleMode: 'major' | 'minor' = negativeSignals >= 3 ? 'minor' : 'major';
+    const hookLine = scaleMode === 'minor'
+      ? 'Keep moving, even when the night feels close'
+      : 'Carry this light into the next clear day';
+    const rationaleSource = philosophicalReaccumulation.trim() || content.trim();
+    const rationaleSnippet = rationaleSource
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 240);
+    const rationale = this.normalizeGeneratedEnglishUsage(
+      `${rationaleSnippet || 'This song stays close to the journal entry and turns difficulty into motion.'} ` +
+      `It keeps the pressure of the entry visible, but gives that pressure rhythm, breath, and a small forward pulse so the author can hear struggle becoming movement rather than stasis.`
+    );
 
     return {
-      perspectives: results,
-      authorMemorySummary,
-      goalSuggestions
+      title,
+      rationale,
+      mood: scaleMode === 'minor' ? 'steady, brave, grounded' : 'luminous, grounded, determined',
+      tempoBpm: scaleMode === 'minor' ? 88 : 96,
+      keyCenter: scaleMode === 'minor' ? 'A' : 'C',
+      scaleMode,
+      chordProgression: scaleMode === 'minor' ? ['Am', 'F', 'C', 'G'] : ['C', 'G', 'Am', 'F'],
+      motifDegrees: [1, 3, 5, 3, 6, 5, 3, 2],
+      hookLine,
+      lyrics: this.normalizeGeneratedEnglishUsage(
+        `Verse 1\nI carried the weight and I carried the weather\nHeld one small breath when the ground felt thin\nI did not vanish inside the pressure\nI kept one door unlatched within\n\n` +
+        `Verse 2\nNow the road is made of ordinary choices\nWater, rest, a call, a page, a light\nWhat grows tomorrow starts in these small voices\nOne clear step answering the night\n\n` +
+        `Chorus\n${hookLine}\nLet the tired heart gather what it knows\nNot every answer has to arrive at once\nKeep moving, and the wider morning grows`
+      )
     };
   }
 
-  async getSinglePerspectiveResponse(messages: ConversationMessage[], perspective: string): Promise<string> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+  parseInspirationalSong(rawSong: unknown, philosophicalReaccumulation: string = '', content: string = ''): InspirationalSong | null {
+    if (!rawSong || typeof rawSong !== 'object') return null;
+    const song = rawSong as Record<string, unknown>;
+    const fallback = this.buildFallbackInspirationalSong(content, philosophicalReaccumulation);
+    const title = this.getSongStringValue(song, ['title', 'song_title', 'name']);
+    const rationale = this.getSongStringValue(song, ['rationale', 'reason', 'summary', 'explanation']);
+    const mood = this.getSongStringValue(song, ['mood', 'feeling', 'tone']);
+    const hookLine = this.getSongStringValue(song, ['hook_line', 'hookLine', 'hook', 'chorus_hook']);
+    const lyrics = this.getSongStringValue(song, ['lyrics', 'lyric', 'verses', 'song_lyrics']);
+    const keyCandidate = this.getSongStringValue(song, ['key_center', 'keyCenter', 'key']);
+    const keyCenter = /^[A-G]$/.test(keyCandidate) ? keyCandidate : '';
+    const scaleCandidate = this.getSongStringValue(song, ['scale_mode', 'scaleMode', 'mode']).toLowerCase();
+    const scaleMode: 'major' | 'minor' = scaleCandidate === 'minor'
+      ? 'minor'
+      : (scaleCandidate === 'major' ? 'major' : fallback.scaleMode);
+    const rawTempo = this.getSongNumberValue(song, ['tempo_bpm', 'tempoBpm', 'tempo']);
+    const tempoBpm = Number.isFinite(rawTempo)
+      ? Math.max(72, Math.min(124, Math.round(rawTempo as number)))
+      : fallback.tempoBpm;
+    const chordProgression = this.getSongChordProgression(song);
+    const motifDegrees = this.getSongMotifDegrees(song);
+
+    const resolvedTitle = title || fallback.title;
+    const resolvedRationale = rationale || fallback.rationale;
+    const resolvedHookLine = hookLine || fallback.hookLine;
+    const resolvedLyrics = lyrics || fallback.lyrics;
+
+    if (!resolvedTitle || !resolvedRationale || !resolvedHookLine || !resolvedLyrics) return null;
+
+    return {
+      title: resolvedTitle,
+      rationale: resolvedRationale,
+      mood: mood || fallback.mood,
+      tempoBpm,
+      keyCenter: keyCenter || fallback.keyCenter,
+      scaleMode,
+      chordProgression: chordProgression.length === 4 ? chordProgression : fallback.chordProgression,
+      motifDegrees: motifDegrees.length === 8 ? motifDegrees : fallback.motifDegrees,
+      hookLine: resolvedHookLine,
+      lyrics: resolvedLyrics
+    };
+  }
+
+  async getSinglePerspectiveResponse(
+    messages: ConversationMessage[],
+    perspective: string,
+    contextOverride?: { title?: string; description?: string }
+  ): Promise<string> {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
     const persp = PERSPECTIVES[perspective];
     const authorContext = this.buildAuthorContext();
+    const specializationTitle = contextOverride?.title?.trim() || persp?.title || 'reflective analysis';
+    const specializationDescription = contextOverride?.description?.trim() || persp?.description || '';
     const systemMessage: ChatCompletionMessageParam = {
       role: 'system',
-      content: `You are an empathetic AI therapist specializing in ${persp?.title || 'psychological analysis'}. ${persp?.description || ''}\n\nYou help users explore their emotions, thoughts, and experiences. Be warm, insightful, and supportive. Ask thoughtful follow-up questions. Keep responses conversational and under 150 words unless more detail is needed.${authorContext ? `\n\nContext about the journal author:\n${authorContext}` : ''}`
+      content: `You are an empathetic analytical companion specializing in ${specializationTitle}. ${specializationDescription}\n\n${this.getReaderContextPrompt()}\n\n${this.getDictionaryModePrompt()}\n\n${this.getOutputLanguagePrompt()}\n\nYou help users explore emotions, thoughts, experiences, contexts, and practical possibilities through this perspective or synthesis. Be warm, insightful, and supportive. Ask thoughtful follow-up questions. Keep responses conversational and under 150 words unless more detail is needed.${authorContext ? `\n\nContext about the journal author:\n${authorContext}` : ''}`
     };
     const conversation: ChatCompletionMessageParam[] = messages.map((message) => ({
       role: message.role,
-      content: message.content
+      content: this.prepareTextForAI(message.content)
     }));
-    const response = await this.openai.chat.completions.create({ model: 'gpt-4o-mini', messages: [systemMessage, ...conversation] });
-    return response.choices[0]?.message?.content || 'I apologize, I could not generate a response.';
+    const rawContent = await this.createAIChatCompletion({ messages: [systemMessage, ...conversation] });
+    return this.normalizeGeneratedEnglishUsage(rawContent || 'I apologize, I could not generate a response.');
   }
 
   async getRandomJournalPrompt(): Promise<string> {
-    if (!this.openai) throw new Error('OpenAI not initialized');
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
 
     const goalStats = this.getGoalStats();
     const activeGoalFiles = goalStats.goals
@@ -415,9 +3996,10 @@ export default class DeleometerPlugin extends Plugin {
       ? recentJournalTitles.map((title) => `- ${title}`).join('\n')
       : 'No recent journal entries available.';
     const authorContext = this.buildAuthorContext() || 'No long-term author context available.';
+    const preparedGoalContext = this.prepareTextForAI(goalContext);
+    const preparedJournalContext = this.prepareTextForAI(journalContext);
 
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const rawContent = await this.createAIChatCompletion({
       temperature: 1,
       messages: [
         {
@@ -440,19 +4022,25 @@ export default class DeleometerPlugin extends Plugin {
             `- include one concrete angle or scene to write from\n` +
             `- include one optional twist or follow-up question in the same paragraph\n` +
             `- do not mention goals or milestones mechanically\n\n` +
+            `${this.getOutputLanguagePrompt()}\n\n` +
             `Author context:\n${authorContext}\n\n` +
-            `Active goals:\n${goalContext}\n\n` +
-            `Recent journal titles:\n${journalContext}`
+            `Active goals:\n${preparedGoalContext}\n\n` +
+            `Recent journal titles:\n${preparedJournalContext}`
         }
       ]
     });
 
-    return response.choices[0]?.message?.content?.trim() || 'Write about a moment today that quietly echoed one of your deeper goals, and follow that thread until it reveals what you most need right now.';
+    return this.normalizeGeneratedEnglishUsage(
+      rawContent.trim() || 'Write about a moment today that quietly echoed one of your deeper goals, and follow that thread until it reveals what you most need right now.'
+    );
   }
 
   async openChatFromSourceNote(sourceFilePath: string, perspectiveKey: string) {
-    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
-    if (!(abstractFile instanceof TFile)) {
+    if (!PERSPECTIVES[perspectiveKey]) {
+      throw new Error('Unknown analysis perspective');
+    }
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) {
       throw new Error('Source note not found');
     }
 
@@ -464,13 +4052,126 @@ export default class DeleometerPlugin extends Plugin {
     }
 
     this.pendingChatContext = {
+      chatKind: 'perspective',
       perspective: perspectiveKey,
       journalContent: this.getJournalContentBeforeAnalysis(content),
       initialAnalysis,
-      sourceFilePath
+      sourceFilePath,
+      sourceTitle: PERSPECTIVES[perspectiveKey]?.title || perspectiveKey,
+      sourceDescription: PERSPECTIVES[perspectiveKey]?.description || ''
     };
 
     await this.activateAIChatView();
+  }
+
+  getDefaultPerspectiveForGroup(groupKey: string): string {
+    const firstPerspective = getChronologicalPerspectiveKeys()
+      .find((key) => PERSPECTIVES[key]?.group === groupKey);
+    return firstPerspective || 'lacanian_perspective';
+  }
+
+  async openGroupChatFromSourceNote(sourceFilePath: string, groupKey: string) {
+    if (!PERSPECTIVE_GROUPS[groupKey]) {
+      throw new Error('Unknown group synthesis');
+    }
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) {
+      throw new Error('Source note not found');
+    }
+
+    const content = await this.app.vault.read(abstractFile);
+    const bounds = this.findGroupSynthesisSectionBounds(content, groupKey);
+    if (!bounds) {
+      throw new Error('Group synthesis not found in source note');
+    }
+
+    const initialAnalysis = content.slice(bounds.start, bounds.end)
+      .replace(/^###\s+.+$/m, '')
+      .replace(/\*\*Continue Group Chat:\*\*.*(?:\n|$)/g, '')
+      .replace(/\*\*Continue Chat:\*\*.*(?:\n|$)/g, '')
+      .replace(/#### Latest AI Chat[\s\S]*$/m, '')
+      .trim();
+    const group = PERSPECTIVE_GROUPS[groupKey];
+
+    this.pendingChatContext = {
+      chatKind: 'group_synthesis',
+      perspective: this.getDefaultPerspectiveForGroup(groupKey),
+      journalContent: this.getJournalContentBeforeAnalysis(content),
+      initialAnalysis,
+      sourceFilePath,
+      sourceGroupKey: groupKey,
+      sourceTitle: `${group.title} synthesis`,
+      sourceDescription: `${group.description}. This chat begins from the synthesis across the perspectives in this lineage group.`
+    };
+
+    await this.activateAIChatView();
+  }
+
+  async openGoalDraftsFromSourceNote(sourceFilePath: string) {
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) {
+      throw new Error('Source note not found');
+    }
+
+    const content = await this.app.vault.read(abstractFile);
+    const drafts = this.extractGoalSuggestionsFromAnalysisNote(content, sourceFilePath);
+    if (drafts.length === 0) {
+      new Notice('No suggested goals found in this analysis note');
+      return;
+    }
+
+    new GoalDraftsModal(this.app, this, drafts, sourceFilePath).open();
+  }
+
+  extractGoalSuggestionsFromAnalysisNote(content: string, sourceAnalysisPath: string = ''): GoalSuggestion[] {
+    const suggestionsStart = content.search(/^##\s+.*Suggested Goals.*$/m);
+    if (suggestionsStart === -1) return [];
+
+    const suggestionsSection = content.slice(suggestionsStart);
+    const nextSectionMatch = /^##\s+(?!.*Suggested Goals).*$/m.exec(suggestionsSection.slice(1));
+    const boundedSection = nextSectionMatch
+      ? suggestionsSection.slice(0, nextSectionMatch.index + 1)
+      : suggestionsSection;
+    const headingRegex = /^###\s+(.+)$/gm;
+    const headingMatches: { title: string; index: number; fullMatch: string }[] = [];
+    let match: RegExpExecArray | null;
+
+    while ((match = headingRegex.exec(boundedSection)) !== null) {
+      headingMatches.push({ title: match[1].trim(), index: match.index, fullMatch: match[0] });
+    }
+
+    return headingMatches
+      .map((heading, index): GoalSuggestion | null => {
+        const bodyStart = heading.index + heading.fullMatch.length;
+        const bodyEnd = index + 1 < headingMatches.length
+          ? headingMatches[index + 1].index
+          : boundedSection.length;
+        const body = boundedSection.slice(bodyStart, bodyEnd).trim();
+        const milestones = body
+          .split('\n')
+          .map((line) => line.trim())
+          .filter((line) => line.startsWith('- '))
+          .map((line) => line.replace(/^- \[[ xX]\]\s*/, '').replace(/^- /, '').trim())
+          .filter(Boolean);
+        const description = body
+          .split('\n')
+          .map((line) => line.trim())
+          .filter((line) => line && !line.startsWith('- ') && !line.startsWith('**Draft Goals:**'))
+          .join('\n')
+          .trim();
+        if (!heading.title || !description) return null;
+
+        return {
+          title: heading.title,
+          description,
+          category: 'personal_growth',
+          targetDate: '',
+          milestones,
+          sourcePerspectives: [],
+          sourceAnalysisPath
+        };
+      })
+      .filter((goal): goal is GoalSuggestion => !!goal);
   }
 
   normalizeHeadingText(value: string): string {
@@ -487,10 +4188,21 @@ export default class DeleometerPlugin extends Plugin {
 
     for (const [key, perspective] of Object.entries(PERSPECTIVES)) {
       const normalizedTitle = this.normalizeHeadingText(perspective.title);
+      const normalizedAliases = (PERSPECTIVE_HEADING_ALIASES[key] || [])
+        .map((alias) => this.normalizeHeadingText(alias));
+      if (normalizedHeading === normalizedTitle || normalizedAliases.some((alias) => normalizedHeading === alias)) {
+        return key;
+      }
+    }
+
+    for (const [key, perspective] of Object.entries(PERSPECTIVES)) {
+      const normalizedTitle = this.normalizeHeadingText(perspective.title);
+      const normalizedAliases = (PERSPECTIVE_HEADING_ALIASES[key] || [])
+        .map((alias) => this.normalizeHeadingText(alias));
       if (
-        normalizedHeading === normalizedTitle ||
         normalizedHeading.includes(normalizedTitle) ||
-        normalizedTitle.includes(normalizedHeading)
+        normalizedTitle.includes(normalizedHeading) ||
+        normalizedAliases.some((alias) => normalizedHeading.includes(alias) || alias.includes(normalizedHeading))
       ) {
         return key;
       }
@@ -556,16 +4268,71 @@ export default class DeleometerPlugin extends Plugin {
     return null;
   }
 
+  findGroupSynthesisSectionBounds(content: string, groupKey: string): { start: number; end: number } | null {
+    const group = PERSPECTIVE_GROUPS[groupKey];
+    if (!group) return null;
+
+    const groupSynthesesMatch = /^##\s+Group Syntheses\s*$/m.exec(content);
+    if (!groupSynthesesMatch || typeof groupSynthesesMatch.index !== 'number') return null;
+
+    const sectionStart = groupSynthesesMatch.index;
+    const afterStart = content.slice(sectionStart);
+    const nextSectionMatch = /^##\s+(?!Group Syntheses).+$/m.exec(afterStart.slice(groupSynthesesMatch[0].length));
+    const sectionEnd = nextSectionMatch
+      ? sectionStart + groupSynthesesMatch[0].length + nextSectionMatch.index
+      : content.length;
+    const sectionContent = content.slice(sectionStart, sectionEnd);
+    const headingMatches: { heading: string; index: number; fullMatch: string }[] = [];
+    const headingRegex = /^###\s+(.+)$/gm;
+    let match: RegExpExecArray | null;
+
+    while ((match = headingRegex.exec(sectionContent)) !== null) {
+      headingMatches.push({
+        heading: match[1].trim(),
+        index: match.index,
+        fullMatch: match[0]
+      });
+    }
+
+    for (let index = 0; index < headingMatches.length; index += 1) {
+      const currentHeading = headingMatches[index];
+      if (this.normalizeHeadingText(currentHeading.heading) !== this.normalizeHeadingText(group.title)) continue;
+
+      const start = sectionStart + currentHeading.index;
+      const end = index + 1 < headingMatches.length
+        ? sectionStart + headingMatches[index + 1].index
+        : sectionEnd;
+
+      return { start, end };
+    }
+
+    return null;
+  }
+
   buildPerspectiveChatLink(sourceFilePath: string, perspectiveKey: string): string {
     const encodedPath = encodeURIComponent(sourceFilePath);
     return `**Continue Chat:** [Open AI Chat](deleometer://chat?perspective=${perspectiveKey}&source=${encodedPath})`;
+  }
+
+  buildGroupSynthesisChatLink(sourceFilePath: string, groupKey: string): string {
+    const encodedPath = encodeURIComponent(sourceFilePath);
+    return `**Continue Group Chat:** [Open AI Chat](deleometer://chat?group=${groupKey}&source=${encodedPath})`;
   }
 
   extractAnalysisPayloadFromNote(content: string): AnalysisPayload {
     const perspectives: Record<string, string> = {};
     const analysisStart = this.findAnalysisSectionStart(content);
     if (analysisStart === -1) {
-      return { perspectives, authorMemorySummary: '', goalSuggestions: [] };
+      return {
+        perspectives,
+        furtherReadings: {},
+        groupSyntheses: {},
+        philosophicalReaccumulation: '',
+        inspirationalSong: null,
+        authorMemorySummary: '',
+        goalSuggestions: [],
+        analysisWarnings: []
+      };
     }
 
     const analysisSection = content.slice(analysisStart);
@@ -594,6 +4361,9 @@ export default class DeleometerPlugin extends Plugin {
       const sectionBody = analysisSection.slice(bodyStart, nextHeadingIndex)
         .replace(/\*\*Linked Chat:\*\*.*(?:\n|$)/g, '')
         .replace(/\*\*Start Chat:\*\*.*(?:\n|$)/g, '')
+        .replace(/\*\*Continue Chat:\*\*.*(?:\n|$)/g, '')
+        .replace(/#### Further readings[\s\S]*?(?=\n####|\n###|$)/g, '')
+        .replace(/#### Latest AI Chat[\s\S]*$/m, '')
         .trim();
 
       if (sectionBody && !perspectives[perspectiveKey]) {
@@ -601,10 +4371,27 @@ export default class DeleometerPlugin extends Plugin {
       }
     }
 
-    return { perspectives, authorMemorySummary: '', goalSuggestions: [] };
+    return {
+      perspectives,
+      furtherReadings: {},
+      groupSyntheses: {},
+      philosophicalReaccumulation: '',
+      inspirationalSong: null,
+      authorMemorySummary: '',
+      goalSuggestions: [],
+      analysisWarnings: []
+    };
   }
 
-  getOpenAIErrorMessage(error: unknown, fallback: string): string {
+  getErrorMessage(error: unknown): string {
+    if (error && typeof error === 'object' && 'message' in error) {
+      const message = (error as { message?: unknown }).message;
+      if (typeof message === 'string' && message.trim()) return message.trim();
+    }
+    return 'Unknown error';
+  }
+
+  getAIErrorMessage(error: unknown, fallback: string): string {
     if (error && typeof error === 'object') {
       const maybeError = error as {
         status?: number;
@@ -688,18 +4475,18 @@ export default class DeleometerPlugin extends Plugin {
   buildAuthorContext(): string {
     const parts: string[] = [];
 
-    if (this.settings.authorMemorySummary.trim()) {
+    if (this.settings.enableAuthorMemory && this.settings.includeAuthorMemoryInAI && this.settings.authorMemorySummary.trim()) {
       parts.push(`Author memory summary: ${this.settings.authorMemorySummary.trim()}`);
     }
 
-    if (this.settings.personalityProfile) {
+    if (this.settings.includePersonalityProfileInAI && this.settings.personalityProfile) {
       const profile = this.settings.personalityProfile;
       parts.push(
         `Personality profile: ${profile.psychological_type}. Dominant traits: ${profile.dominant_traits.join(', ')}. Growth areas: ${profile.growth_areas.join(', ')}.`
       );
     }
 
-    return parts.join('\n');
+    return this.prepareTextForAI(parts.join('\n'));
   }
 
   escapeYamlString(value: string): string {
@@ -722,6 +4509,340 @@ export default class DeleometerPlugin extends Plugin {
     const wikiTarget = this.getWikiLinkTarget(path);
     const parts = wikiTarget.split('/');
     return parts[parts.length - 1] || wikiTarget;
+  }
+
+  normalizeFolderSetting(path: string | undefined, fallback: string): string {
+    const normalized = (path || '').split('/').map((part) => part.trim()).filter(Boolean).join('/');
+    return normalized || fallback;
+  }
+
+  normalizeFullCalendarFolderSetting(path: string | undefined): string {
+    const normalized = this.normalizeFolderSetting(path, DEFAULT_SETTINGS.fullCalendarFolder);
+    return normalized === 'Deleometer' ? DEFAULT_SETTINGS.fullCalendarFolder : normalized;
+  }
+
+  isAbsoluteFolderSetting(path: string | undefined): boolean {
+    const trimmed = (path || '').trim();
+    return trimmed.startsWith('/') || /^[A-Za-z]:[\\/]/.test(trimmed);
+  }
+
+  estimateAnalysisDurationSeconds(content: string): number {
+    const selectedPerspectiveCount = this.getSelectedPerspectiveCount();
+    const selectedGroupCount = this.getSelectedGroupCount();
+    const chronologicalBatches = Math.ceil(selectedPerspectiveCount / 4);
+    const furtherReadingBatches = Math.ceil(selectedPerspectiveCount / 8);
+    let seconds = 20
+      + (selectedPerspectiveCount * 4)
+      + (chronologicalBatches * 10)
+      + (furtherReadingBatches * 6)
+      + (selectedGroupCount * 9)
+      + 25;
+
+    if (content.length > 12000) {
+      seconds += 35;
+    }
+    if (this.settings.generateInspirationalSong) {
+      seconds += 18;
+    }
+
+    return Math.max(45, seconds);
+  }
+
+  formatDurationLabel(totalSeconds: number): string {
+    const rounded = Math.max(1, Math.ceil(totalSeconds / 15) * 15);
+    if (rounded < 90) {
+      return `about ${rounded} seconds`;
+    }
+    const minutes = Math.floor(rounded / 60);
+    const seconds = rounded % 60;
+    if (seconds === 0) {
+      return `about ${minutes} minute${minutes === 1 ? '' : 's'}`;
+    }
+    return `about ${minutes} minute${minutes === 1 ? '' : 's'} ${seconds} seconds`;
+  }
+
+  getAnalysisEstimateText(content: string): string {
+    const baselineSeconds = this.estimateAnalysisDurationSeconds(content);
+    const lower = Math.max(30, Math.round(baselineSeconds * 0.8));
+    const upper = Math.max(lower + 15, Math.round(baselineSeconds * 1.35));
+    const selectedPerspectiveCount = getChronologicalPerspectiveKeys()
+      .filter((key) => this.settings.selectedPerspectives.includes(key))
+      .length;
+    return `Estimated analysis time: ${this.formatDurationLabel(lower)} to ${this.formatDurationLabel(upper)} for ${selectedPerspectiveCount} enabled analyses.`;
+  }
+
+  getSelectedPerspectiveCount(): number {
+    return getChronologicalPerspectiveKeys()
+      .filter((key) => this.settings.selectedPerspectives.includes(key))
+      .length;
+  }
+
+  getSelectedGroupCount(): number {
+    return new Set(
+      getChronologicalPerspectiveKeys()
+        .filter((key) => this.settings.selectedPerspectives.includes(key))
+        .map((key) => PERSPECTIVES[key]?.group)
+        .filter(Boolean)
+    ).size;
+  }
+
+  formatUsdRange(lower: number, upper: number): string {
+    const format = (value: number) => value < 0.01 ? '<$0.01' : `$${value.toFixed(2)}`;
+    return lower === upper ? format(lower) : `${format(lower)}-${format(upper)}`;
+  }
+
+  getAIProviderCostEstimateText(): string {
+    const selectedPerspectiveCount = this.getSelectedPerspectiveCount();
+    const selectedGroupCount = this.getSelectedGroupCount();
+    const chronologicalBatches = Math.ceil(selectedPerspectiveCount / 4);
+    const furtherReadingBatches = Math.ceil(selectedPerspectiveCount / 8);
+    const estimatedInputTokens = 4000
+      + (chronologicalBatches * 9000)
+      + (furtherReadingBatches * 5000)
+      + (selectedGroupCount * 4500)
+      + (selectedPerspectiveCount * 450);
+    const estimatedOutputTokens = 1200
+      + (selectedPerspectiveCount * 950)
+      + (selectedGroupCount * 450)
+      + (this.settings.generateInspirationalSong ? 900 : 0);
+    const lowerInputTokens = Math.round(estimatedInputTokens * 0.7);
+    const upperInputTokens = Math.round(estimatedInputTokens * 1.6);
+    const lowerOutputTokens = Math.round(estimatedOutputTokens * 0.7);
+    const upperOutputTokens = Math.round(estimatedOutputTokens * 1.6);
+    const lowerOpenAICost = (lowerInputTokens / 1_000_000 * GPT_4O_MINI_INPUT_USD_PER_1M)
+      + (lowerOutputTokens / 1_000_000 * GPT_4O_MINI_OUTPUT_USD_PER_1M);
+    const upperOpenAICost = (upperInputTokens / 1_000_000 * GPT_4O_MINI_INPUT_USD_PER_1M)
+      + (upperOutputTokens / 1_000_000 * GPT_4O_MINI_OUTPUT_USD_PER_1M);
+
+    if (this.settings.aiProvider === 'ollama') {
+      return `Local Ollama estimate for ${selectedPerspectiveCount} selected lenses across ${selectedGroupCount} groups: $0 OpenAI/API cost. Cost is local instead: model download size, disk space, battery/CPU/GPU use, and slower analysis depending on your computer and chosen model.`;
+    }
+
+    return `OpenAI estimate for ${selectedPerspectiveCount} selected lenses across ${selectedGroupCount} groups: roughly ${this.formatUsdRange(lowerOpenAICost, upperOpenAICost)} per full analysis on gpt-4o-mini pricing ($${GPT_4O_MINI_INPUT_USD_PER_1M}/1M input tokens, $${GPT_4O_MINI_OUTPUT_USD_PER_1M}/1M output tokens). Actual cost varies with journal length, retries, generated goals/songs, and model pricing.`;
+  }
+
+  getSongFolderPath(sourceFilePath: string): string {
+    const baseName = this.sanitizeFileNamePart(this.getFileDisplayName(sourceFilePath) || 'journal');
+    return `${this.settings.songsFolder}/${baseName}`;
+  }
+
+  getSongFilePath(sourceFilePath: string, songTitle: string): string {
+    return `${this.getSongFolderPath(sourceFilePath)}/${this.sanitizeFileNamePart(songTitle || 'Inspiration-Song')}.wav`;
+  }
+
+  async ensureInspirationalSongFile(sourceFile: TFile, analysis: AnalysisPayload): Promise<void> {
+    if (!this.settings.generateInspirationalSong || !analysis.inspirationalSong) return;
+
+    const song = analysis.inspirationalSong;
+    await this.ensureFolder(this.settings.songsFolder);
+    await this.ensureFolder(this.getSongFolderPath(sourceFile.path));
+    const filePath = this.getSongFilePath(sourceFile.path, song.title);
+    const audioBuffer = this.renderInspirationalSongWav(song);
+    const existing = this.app.vault.getAbstractFileByPath(filePath);
+
+    if (existing instanceof TFile) {
+      await this.app.vault.modifyBinary(existing, audioBuffer);
+    } else {
+      await this.app.vault.createBinary(filePath, audioBuffer);
+    }
+
+    song.audioFilePath = filePath;
+  }
+
+  renderInspirationalSongWav(song: InspirationalSong): ArrayBuffer {
+    const sampleRate = 22050;
+    const beatsPerBar = 4;
+    const bars = 8;
+    const totalBeats = bars * beatsPerBar;
+    const secondsPerBeat = 60 / Math.max(72, Math.min(124, song.tempoBpm));
+    const totalDuration = totalBeats * secondsPerBeat;
+    const totalSamples = Math.ceil(totalDuration * sampleRate);
+    const buffer = new Float32Array(totalSamples);
+    const rng = this.createSeededRng(this.hashString(`${song.title}|${song.hookLine}|${song.keyCenter}|${song.scaleMode}`));
+    const scaleIntervals = song.scaleMode === 'minor'
+      ? [0, 2, 3, 5, 7, 8, 10]
+      : [0, 2, 4, 5, 7, 9, 11];
+    const keySemitone = this.getNaturalNoteSemitone(song.keyCenter);
+    const progression = song.chordProgression.length ? song.chordProgression : ['C', 'G', 'Am', 'F'];
+    const motifDegrees = song.motifDegrees.length ? song.motifDegrees : [1, 3, 5, 3, 6, 5, 3, 2];
+
+    for (let bar = 0; bar < bars; bar += 1) {
+      const chordSymbol = progression[bar % progression.length];
+      const chord = this.parseSimpleChord(chordSymbol);
+      const barStartBeat = bar * beatsPerBar;
+      const barStartSeconds = barStartBeat * secondsPerBeat;
+
+      const chordMidi = this.chordToMidiNotes(chord, 3);
+      for (const midi of chordMidi) {
+        this.addWaveNote(buffer, sampleRate, barStartSeconds, secondsPerBeat * beatsPerBar * 0.96, this.midiToFrequency(midi), 0.055, 'sine', 0.03, 0.18);
+        this.addWaveNote(buffer, sampleRate, barStartSeconds, secondsPerBeat * beatsPerBar * 0.96, this.midiToFrequency(midi + 12), 0.025, 'triangle', 0.02, 0.18);
+      }
+
+      for (let beat = 0; beat < beatsPerBar; beat += 1) {
+        const beatSeconds = (barStartBeat + beat) * secondsPerBeat;
+        const bassMidi = chord.rootMidi;
+        if (beat === 0 || beat === 2) {
+          this.addWaveNote(buffer, sampleRate, beatSeconds, secondsPerBeat * 0.9, this.midiToFrequency(bassMidi), 0.08, 'triangle', 0.01, 0.12);
+        }
+
+        const motifIndex = (bar * beatsPerBar + beat) % motifDegrees.length;
+        const degree = motifDegrees[motifIndex];
+        const melodicSemitone = keySemitone + scaleIntervals[(degree - 1) % scaleIntervals.length];
+        const melodicMidi = 72 + melodicSemitone;
+        const melodicDurationBeats = beat === beatsPerBar - 1 ? 1.2 : 0.9;
+        const pitchBend = (rng() - 0.5) * 0.35;
+        this.addWaveNote(
+          buffer,
+          sampleRate,
+          beatSeconds,
+          secondsPerBeat * melodicDurationBeats,
+          this.midiToFrequency(melodicMidi + pitchBend),
+          0.14,
+          'sine',
+          0.01,
+          0.14
+        );
+
+        if (rng() > 0.58) {
+          const harmonyDegree = ((degree + 2) % 7) + 1;
+          const harmonyMidi = 72 + keySemitone + scaleIntervals[(harmonyDegree - 1) % scaleIntervals.length];
+          this.addWaveNote(buffer, sampleRate, beatSeconds, secondsPerBeat * 0.72, this.midiToFrequency(harmonyMidi), 0.05, 'triangle', 0.01, 0.12);
+        }
+      }
+    }
+
+    this.normalizeAudioBuffer(buffer, 0.85);
+    return this.encodeMonoWav(buffer, sampleRate);
+  }
+
+  hashString(value: string): number {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index += 1) {
+      hash ^= value.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  }
+
+  createSeededRng(seed: number): () => number {
+    let state = seed || 1;
+    return () => {
+      state ^= state << 13;
+      state ^= state >>> 17;
+      state ^= state << 5;
+      return ((state >>> 0) % 1000000) / 1000000;
+    };
+  }
+
+  getNaturalNoteSemitone(note: string): number {
+    const semitones: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+    return semitones[note] ?? 0;
+  }
+
+  parseSimpleChord(symbol: string): { root: string; minor: boolean; rootMidi: number } {
+    const match = symbol.trim().match(/^([A-G])(m?)$/);
+    const root = match?.[1] || 'C';
+    const minor = match?.[2] === 'm';
+    return {
+      root,
+      minor,
+      rootMidi: 48 + this.getNaturalNoteSemitone(root)
+    };
+  }
+
+  chordToMidiNotes(chord: { root: string; minor: boolean; rootMidi: number }, octave: number): number[] {
+    const rootMidi = octave * 12 + 12 + this.getNaturalNoteSemitone(chord.root);
+    const third = rootMidi + (chord.minor ? 3 : 4);
+    const fifth = rootMidi + 7;
+    return [rootMidi, third, fifth];
+  }
+
+  midiToFrequency(midi: number): number {
+    return 440 * Math.pow(2, (midi - 69) / 12);
+  }
+
+  addWaveNote(
+    buffer: Float32Array,
+    sampleRate: number,
+    startSeconds: number,
+    durationSeconds: number,
+    frequency: number,
+    amplitude: number,
+    waveform: 'sine' | 'triangle',
+    attackSeconds: number,
+    releaseSeconds: number
+  ) {
+    const startSample = Math.max(0, Math.floor(startSeconds * sampleRate));
+    const totalSamples = Math.max(1, Math.floor(durationSeconds * sampleRate));
+    const attackSamples = Math.max(1, Math.floor(attackSeconds * sampleRate));
+    const releaseSamples = Math.max(1, Math.floor(releaseSeconds * sampleRate));
+
+    for (let offset = 0; offset < totalSamples; offset += 1) {
+      const sampleIndex = startSample + offset;
+      if (sampleIndex >= buffer.length) break;
+
+      const time = offset / sampleRate;
+      let envelope = 1;
+      if (offset < attackSamples) {
+        envelope = offset / attackSamples;
+      } else if (offset > totalSamples - releaseSamples) {
+        envelope = Math.max(0, (totalSamples - offset) / releaseSamples);
+      }
+
+      const phase = 2 * Math.PI * frequency * time;
+      const wave = waveform === 'triangle'
+        ? (2 / Math.PI) * Math.asin(Math.sin(phase))
+        : Math.sin(phase);
+      buffer[sampleIndex] += wave * amplitude * envelope;
+    }
+  }
+
+  normalizeAudioBuffer(buffer: Float32Array, peakTarget: number) {
+    let peak = 0;
+    for (let index = 0; index < buffer.length; index += 1) {
+      peak = Math.max(peak, Math.abs(buffer[index]));
+    }
+    if (peak <= 0) return;
+    const scale = peakTarget / peak;
+    for (let index = 0; index < buffer.length; index += 1) {
+      buffer[index] *= scale;
+    }
+  }
+
+  encodeMonoWav(samples: Float32Array, sampleRate: number): ArrayBuffer {
+    const bytesPerSample = 2;
+    const dataLength = samples.length * bytesPerSample;
+    const buffer = new ArrayBuffer(44 + dataLength);
+    const view = new DataView(buffer);
+
+    const writeString = (offset: number, value: string) => {
+      for (let index = 0; index < value.length; index += 1) {
+        view.setUint8(offset + index, value.charCodeAt(index));
+      }
+    };
+
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + dataLength, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * bytesPerSample, true);
+    view.setUint16(32, bytesPerSample, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, dataLength, true);
+
+    let offset = 44;
+    for (let index = 0; index < samples.length; index += 1) {
+      const clamped = Math.max(-1, Math.min(1, samples[index]));
+      view.setInt16(offset, clamped < 0 ? clamped * 0x8000 : clamped * 0x7FFF, true);
+      offset += 2;
+    }
+
+    return buffer;
   }
 
   getPerspectiveHeadingTitle(perspectiveKey: string): string {
@@ -749,6 +4870,50 @@ export default class DeleometerPlugin extends Plugin {
     }
 
     return candidate;
+  }
+
+  getMarkdownFilesInFolderRecursive(folderPath: string): TFile[] {
+    const folder = this.app.vault.getAbstractFileByPath(folderPath);
+    if (!(folder instanceof TFolder)) return [];
+
+    const files: TFile[] = [];
+    const walk = (current: TFolder) => {
+      for (const child of current.children) {
+        if (child instanceof TFile && child.extension === 'md') {
+          files.push(child);
+        } else if (child instanceof TFolder) {
+          walk(child);
+        }
+      }
+    };
+
+    walk(folder);
+    return files;
+  }
+
+  getOrCreateSplitLeaf(): WorkspaceLeaf {
+    const splitLeaf = this.app.workspace.getLeaf('split', 'vertical');
+    if (splitLeaf) return splitLeaf;
+    return this.app.workspace.getRightLeaf(false) || this.app.workspace.getLeaf(true);
+  }
+
+  async openFileInSplit(file: TFile) {
+    const leaf = this.getOrCreateSplitLeaf();
+    await leaf.openFile(file);
+    await this.app.workspace.revealLeaf(leaf);
+  }
+
+  buildPerspectiveSourceNoteLink(sourceFilePath: string, perspectiveKey: string): string {
+    const perspective = PERSPECTIVES[perspectiveKey];
+    if (!perspective) {
+      return `[[${this.getWikiLinkTarget(sourceFilePath)}|${this.getFileDisplayName(sourceFilePath)}]]`;
+    }
+    return `[[${this.getWikiLinkTarget(sourceFilePath)}#${perspective.title}|${perspective.title}]]`;
+  }
+
+  getGoalMilestoneFolderPath(goalFilePath: string, goalTitle: string): string {
+    const baseName = this.sanitizeFileNamePart(this.getFileDisplayName(goalFilePath) || goalTitle || 'goal');
+    return `${this.settings.milestonesFolder}/${baseName}`;
   }
 
   async saveGeneratedGoal(goal: GoalSuggestion): Promise<TFile> {
@@ -807,12 +4972,472 @@ ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join('\n') || '- [ ] 
 `;
 
     const file = await this.app.vault.create(fileName, template);
+    await this.syncGoalMilestonesToFolder(file, true);
+    const savedGoal = await this.getGoalFileData(file);
+    if (savedGoal) {
+      await this.app.vault.modify(file, this.buildStandardGoalNote(savedGoal));
+      await this.updateGoalLinksInSourceAnalysis(savedGoal);
+    }
     await this.syncGoalFileToFullCalendar(file);
     return file;
   }
 
+  getMilestoneFolderFiles(): TFile[] {
+    return this.getMarkdownFilesInFolderRecursive(this.settings.milestonesFolder);
+  }
+
+  getGoalOwnedMilestoneFiles(goalFilePath: string): TFile[] {
+    return this.getMilestoneFolderFiles().filter((file) => {
+      const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+      return frontmatter?.deleometer_owner === 'deleometer'
+        && typeof frontmatter.deleometer_goal_path === 'string'
+        && frontmatter.deleometer_goal_path === goalFilePath;
+    }).sort((a, b) => {
+      const frontmatterA = this.app.metadataCache.getFileCache(a)?.frontmatter;
+      const frontmatterB = this.app.metadataCache.getFileCache(b)?.frontmatter;
+      const indexA = typeof frontmatterA?.deleometer_milestone_index === 'number'
+        ? frontmatterA.deleometer_milestone_index
+        : Number(frontmatterA?.deleometer_milestone_index || 0);
+      const indexB = typeof frontmatterB?.deleometer_milestone_index === 'number'
+        ? frontmatterB.deleometer_milestone_index
+        : Number(frontmatterB?.deleometer_milestone_index || 0);
+      return indexA - indexB;
+    });
+  }
+
+  isManagedGoalPath(goalFilePath: string): boolean {
+    return goalFilePath.startsWith(`${this.settings.goalsFolder}/`) && goalFilePath.toLowerCase().endsWith('.md');
+  }
+
+  buildMilestoneNote(event: {
+    title: string;
+    description: string;
+    targetDate?: string;
+    goalFile: TFile;
+    goalTitle: string;
+    milestoneIndex: number;
+    sourceAnalysisPath?: string;
+    sourcePerspectives?: string[];
+  }): string {
+    const goalLink = `[[${this.getWikiLinkTarget(event.goalFile.path)}|${event.goalTitle}]]`;
+    const sourceNoteLink = event.sourceAnalysisPath
+      ? `[[${this.getWikiLinkTarget(event.sourceAnalysisPath)}|${this.getFileDisplayName(event.sourceAnalysisPath)}]]`
+      : '';
+    const sourceTypeLinks = event.sourceAnalysisPath && event.sourcePerspectives?.length
+      ? event.sourcePerspectives
+          .map((perspectiveKey) => {
+            const perspective = PERSPECTIVES[perspectiveKey];
+            if (!perspective) return '';
+            return `[[${this.getWikiLinkTarget(event.sourceAnalysisPath!)}#${perspective.title}|${perspective.title}]]`;
+          })
+          .filter(Boolean)
+          .join(', ')
+      : '';
+
+    return `---
+type: milestone
+title: "${this.escapeYamlInlineString(event.title)}"
+description: "${this.escapeYamlInlineString(event.description)}"
+target_date: ${event.targetDate || 'null'}
+status: active
+created: ${new Date().toISOString()}
+deleometer_owner: deleometer
+deleometer_goal_path: "${this.escapeYamlString(event.goalFile.path)}"
+deleometer_goal_title: "${this.escapeYamlString(event.goalTitle)}"
+deleometer_milestone_index: ${event.milestoneIndex}
+source_analysis_note: ${event.sourceAnalysisPath ? `"${this.escapeYamlString(event.sourceAnalysisPath)}"` : 'null'}
+source_perspectives: ${this.formatYamlStringArray(event.sourcePerspectives || [])}
+---
+
+# ${event.title}
+
+**Goal:** ${goalLink}
+**Target Date:** ${event.targetDate || 'Not set'}
+**Status:** Active
+${sourceNoteLink ? `**Source Note:** ${sourceNoteLink}\n` : ''}${sourceTypeLinks ? `**Derived From:** ${sourceTypeLinks}\n` : ''}
+
+## Description
+${event.description}
+
+## Notes
+
+`;
+  }
+
+  async upsertGoalMilestoneNote(existingFile: TFile | null, event: {
+    title: string;
+    description: string;
+    targetDate?: string;
+    goalFile: TFile;
+    goalTitle: string;
+    milestoneIndex: number;
+    sourceAnalysisPath?: string;
+    sourcePerspectives?: string[];
+  }): Promise<TFile> {
+    const milestoneFolderPath = this.getGoalMilestoneFolderPath(event.goalFile.path, event.goalTitle);
+    await this.ensureFolder(milestoneFolderPath);
+
+    if (existingFile) {
+      const content = await this.app.vault.cachedRead(existingFile);
+      const looseFrontmatter = this.parseLooseFrontmatter(content);
+      const cachedFrontmatter = this.app.metadataCache.getFileCache(existingFile)?.frontmatter;
+      const frontmatter = looseFrontmatter && cachedFrontmatter
+        ? { ...looseFrontmatter, ...cachedFrontmatter }
+        : (cachedFrontmatter || looseFrontmatter);
+      if (frontmatter?.status === 'merged' || frontmatter?.deleometer_consolidated === true) {
+        return existingFile;
+      }
+    }
+
+    const note = this.buildMilestoneNote(event);
+    if (existingFile) {
+      const desiredPath = `${milestoneFolderPath}/${this.sanitizeFileNamePart(`Milestone ${event.milestoneIndex} ${event.goalTitle}`)}.md`;
+      if (existingFile.path !== desiredPath && !this.app.vault.getAbstractFileByPath(desiredPath)) {
+        await this.app.fileManager.renameFile(existingFile, desiredPath);
+        const renamed = this.getVaultMarkdownFile(desiredPath);
+        if (renamed) existingFile = renamed;
+      }
+      await this.app.vault.modify(existingFile, note);
+      return existingFile;
+    }
+
+    const path = this.getUniqueMarkdownPath(
+      milestoneFolderPath,
+      this.sanitizeFileNamePart(`Milestone ${event.milestoneIndex} ${event.goalTitle}`)
+    );
+    return await this.app.vault.create(path, note);
+  }
+
+  async deleteGoalMilestoneNotesByPath(goalFilePath: string) {
+    const files = this.getGoalOwnedMilestoneFiles(goalFilePath);
+    for (const file of files) {
+      await this.app.fileManager.trashFile(file);
+    }
+  }
+
+  async deleteGoalMilestoneNotes(goalFile: TFile) {
+    await this.deleteGoalMilestoneNotesByPath(goalFile.path);
+  }
+
+  async syncGoalMilestonesToFolder(goalFile: TFile, _force: boolean = false): Promise<boolean> {
+    if (!this.settings.milestonesFolder?.trim()) return false;
+
+    const goal = await this.getGoalFileData(goalFile);
+    if (!goal) return false;
+
+    await this.ensureFolder(this.settings.milestonesFolder);
+    await this.ensureFolder(this.getGoalMilestoneFolderPath(goal.file.path, goal.title));
+
+    const existingFiles = this.getGoalOwnedMilestoneFiles(goalFile.path);
+    const byIndex = new Map<number, TFile>();
+    for (const file of existingFiles) {
+      const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+      const index = typeof frontmatter?.deleometer_milestone_index === 'number'
+        ? frontmatter.deleometer_milestone_index
+        : (typeof frontmatter?.deleometer_milestone_index === 'string' ? Number(frontmatter.deleometer_milestone_index) : NaN);
+      if (Number.isFinite(index)) byIndex.set(index, file);
+    }
+
+    const expectedIndexes = new Set<number>();
+    const milestoneDates = this.getScheduledMilestoneDates(goal.targetDate, goal.created, goal.milestones.length);
+    for (let index = 0; index < goal.milestones.length; index += 1) {
+      const milestoneIndex = index + 1;
+      const milestoneText = goal.milestones[index];
+      expectedIndexes.add(milestoneIndex);
+      await this.upsertGoalMilestoneNote(byIndex.get(milestoneIndex) || null, {
+        title: milestoneText,
+        description: `Milestone ${milestoneIndex} for ${goal.title}`,
+        targetDate: milestoneDates[index],
+        goalFile,
+        goalTitle: goal.title,
+        milestoneIndex,
+        sourceAnalysisPath: goal.sourceAnalysisPath,
+        sourcePerspectives: goal.sourcePerspectives
+      });
+    }
+
+    for (const [index, file] of Array.from(byIndex.entries())) {
+      if (!expectedIndexes.has(index)) {
+        await this.app.fileManager.trashFile(file);
+      }
+    }
+
+    return true;
+  }
+
+  async syncAllGoalMilestonesToFolder(showNotice: boolean = false) {
+    const goalStats = this.getGoalStats();
+    let synced = 0;
+
+    for (const goalFile of goalStats.goals) {
+      const result = await this.syncGoalMilestonesToFolder(goalFile, true);
+      if (result) synced += 1;
+    }
+
+    if (showNotice) {
+      new Notice(`Synced milestones from ${synced} goal${synced === 1 ? '' : 's'} to folder`);
+    }
+  }
+
+  async getMilestoneFileData(milestoneFile: TFile): Promise<MilestoneFileData | null> {
+    const content = await this.app.vault.cachedRead(milestoneFile);
+    const frontmatter = this.app.metadataCache.getFileCache(milestoneFile)?.frontmatter || this.parseLooseFrontmatter(content);
+    if (!frontmatter) return null;
+
+    const type = typeof frontmatter.type === 'string' ? frontmatter.type : '';
+    const isOwnedMilestone = frontmatter.deleometer_owner === 'deleometer' && typeof frontmatter.deleometer_goal_path === 'string';
+    if (type !== 'milestone' && !isOwnedMilestone) return null;
+
+    const title = typeof frontmatter.title === 'string' && frontmatter.title.trim()
+      ? frontmatter.title.trim()
+      : milestoneFile.basename;
+    const frontmatterDescription = typeof frontmatter.description === 'string' ? frontmatter.description.trim() : '';
+    const description = frontmatterDescription || this.extractGoalSection(content, 'Description');
+    const targetDate = this.isValidDateString(frontmatter.target_date) ? frontmatter.target_date.trim() : undefined;
+    const goalPath = typeof frontmatter.deleometer_goal_path === 'string' ? frontmatter.deleometer_goal_path : undefined;
+    const goalTitle = typeof frontmatter.deleometer_goal_title === 'string' ? frontmatter.deleometer_goal_title : undefined;
+    const rawIndex = typeof frontmatter.deleometer_milestone_index === 'number'
+      ? frontmatter.deleometer_milestone_index
+      : (typeof frontmatter.deleometer_milestone_index === 'string' ? Number(frontmatter.deleometer_milestone_index) : NaN);
+    const sourcePerspectives = Array.isArray(frontmatter.source_perspectives)
+      ? frontmatter.source_perspectives.filter((item): item is string => typeof item === 'string')
+      : [];
+
+    return {
+      file: milestoneFile,
+      title,
+      description,
+      targetDate,
+      goalPath,
+      goalTitle,
+      milestoneIndex: Number.isFinite(rawIndex) ? rawIndex : undefined,
+      status: typeof frontmatter.status === 'string' ? frontmatter.status : 'active',
+      created: typeof frontmatter.created === 'string' ? frontmatter.created : new Date(milestoneFile.stat.ctime).toISOString(),
+      sourceAnalysisPath: typeof frontmatter.source_analysis_note === 'string' ? frontmatter.source_analysis_note : undefined,
+      sourcePerspectives
+    };
+  }
+
+  getMilestoneSimilarityTokens(value: string): string[] {
+    const stopWords = new Set(['the', 'and', 'for', 'with', 'from', 'into', 'your', 'this', 'that', 'about', 'through', 'more', 'than', 'have', 'will', 'goal', 'goals', 'milestone', 'milestones', 'practice', 'develop', 'create']);
+    return this.normalizeGoalText(value)
+      .split(' ')
+      .map((token) => token.trim())
+      .filter((token) => token.length > 3 && !stopWords.has(token));
+  }
+
+  getMilestoneSimilarityScore(left: MilestoneFileData, right: MilestoneFileData): number {
+    const leftText = `${left.title} ${left.description} ${left.goalTitle || ''}`;
+    const rightText = `${right.title} ${right.description} ${right.goalTitle || ''}`;
+    const leftTokens = new Set(this.getMilestoneSimilarityTokens(leftText));
+    const rightTokens = new Set(this.getMilestoneSimilarityTokens(rightText));
+    if (leftTokens.size === 0 || rightTokens.size === 0) return 0;
+
+    const shared = Array.from(leftTokens).filter((token) => rightTokens.has(token));
+    const union = new Set([...Array.from(leftTokens), ...Array.from(rightTokens)]);
+    const jaccard = shared.length / union.size;
+    const normalizedLeftTitle = this.normalizeGoalText(left.title);
+    const normalizedRightTitle = this.normalizeGoalText(right.title);
+    const titleIncludes = normalizedLeftTitle.length > 0 && normalizedRightTitle.length > 0
+      && (normalizedLeftTitle.includes(normalizedRightTitle) || normalizedRightTitle.includes(normalizedLeftTitle));
+    const sameGoal = !!left.goalPath && left.goalPath === right.goalPath;
+
+    if (sameGoal && shared.length > 0) return Math.max(jaccard, 0.5);
+    return titleIncludes ? Math.max(jaccard, 0.62) : jaccard;
+  }
+
+  buildMilestoneMergeDraft(milestones: MilestoneFileData[]): MilestoneMergeDraft {
+    const sorted = [...milestones].sort((a, b) => b.title.length - a.title.length);
+    const primary = sorted[0];
+    const descriptions = Array.from(new Set(milestones.map((milestone) => milestone.description.trim()).filter(Boolean)));
+    const targetDates = milestones.map((milestone) => milestone.targetDate).filter((value): value is string => !!value).sort();
+    const goalPairs: { path: string; title: string }[] = [];
+    for (const milestone of milestones) {
+      if (!milestone.goalPath || goalPairs.some((pair) => pair.path === milestone.goalPath)) continue;
+      goalPairs.push({ path: milestone.goalPath, title: milestone.goalTitle || this.getFileDisplayName(milestone.goalPath) });
+    }
+    const sourcePerspectives = Array.from(new Set(milestones.flatMap((milestone) => milestone.sourcePerspectives)));
+    const sourceAnalysisPath = milestones.find((milestone) => milestone.sourceAnalysisPath)?.sourceAnalysisPath;
+
+    return {
+      sourceMilestones: milestones.sort((a, b) => a.title.localeCompare(b.title)),
+      mergedTitle: primary.title,
+      mergedDescription: descriptions.join('\n\n'),
+      mergedTargetDate: targetDates[0],
+      mergedGoalPaths: goalPairs.map((pair) => pair.path),
+      mergedGoalTitles: goalPairs.map((pair) => pair.title),
+      mergedSourceAnalysisPath: sourceAnalysisPath,
+      mergedSourcePerspectives: sourcePerspectives
+    };
+  }
+
+  async getMilestoneConsolidationDrafts(): Promise<MilestoneMergeDraft[]> {
+    await this.syncAllGoalMilestonesToFolder(false);
+    const milestones = (await Promise.all(this.getMilestoneFolderFiles().map((file) => this.getMilestoneFileData(file))))
+      .filter((milestone): milestone is MilestoneFileData => !!milestone)
+      .filter((milestone) => milestone.status !== 'completed' && milestone.status !== 'merged');
+
+    const visited = new Set<string>();
+    const drafts: MilestoneMergeDraft[] = [];
+
+    for (const milestone of milestones) {
+      if (visited.has(milestone.file.path)) continue;
+      const group = [milestone];
+      visited.add(milestone.file.path);
+
+      for (const candidate of milestones) {
+        if (visited.has(candidate.file.path)) continue;
+        if (this.getMilestoneSimilarityScore(milestone, candidate) >= 0.42) {
+          group.push(candidate);
+          visited.add(candidate.file.path);
+        }
+      }
+
+      if (group.length < 2) continue;
+      drafts.push(this.buildMilestoneMergeDraft(group));
+    }
+
+    return drafts;
+  }
+
+  buildMergedMilestoneNote(draft: MilestoneMergeDraft): string {
+    const primary = [...draft.sourceMilestones].sort((a, b) => a.file.path.localeCompare(b.file.path))[0];
+    const created = draft.sourceMilestones
+      .map((milestone) => milestone.created)
+      .filter(Boolean)
+      .sort()[0] || new Date().toISOString();
+    const sourceLinks = draft.sourceMilestones
+      .map((milestone) => `- [[${this.getWikiLinkTarget(milestone.file.path)}|${milestone.title}]]`)
+      .join('\n');
+    const goalLinks = draft.mergedGoalPaths
+      .map((goalPath, index) => {
+        const label = draft.mergedGoalTitles[index] || this.getFileDisplayName(goalPath);
+        return `- [[${this.getWikiLinkTarget(goalPath)}|${label}]]`;
+      })
+      .join('\n');
+    const sourceNoteLink = draft.mergedSourceAnalysisPath
+      ? `[[${this.getWikiLinkTarget(draft.mergedSourceAnalysisPath)}|${this.getFileDisplayName(draft.mergedSourceAnalysisPath)}]]`
+      : '';
+    const sourcePerspectiveLinks = draft.mergedSourceAnalysisPath
+      ? draft.mergedSourcePerspectives
+          .map((perspectiveKey) => {
+            const perspective = PERSPECTIVES[perspectiveKey];
+            if (!perspective) return '';
+            return `[[${this.getWikiLinkTarget(draft.mergedSourceAnalysisPath!)}#${perspective.title}|${perspective.title}]]`;
+          })
+          .filter(Boolean)
+          .join(', ')
+      : '';
+
+    return `---
+type: milestone
+title: "${this.escapeYamlInlineString(draft.mergedTitle)}"
+description: "${this.escapeYamlInlineString(draft.mergedDescription)}"
+target_date: ${draft.mergedTargetDate || 'null'}
+status: active
+created: ${created}
+deleometer_owner: deleometer
+deleometer_consolidated: true
+deleometer_goal_path: ${primary?.goalPath ? `"${this.escapeYamlString(primary.goalPath)}"` : 'null'}
+deleometer_goal_title: ${primary?.goalTitle ? `"${this.escapeYamlString(primary.goalTitle)}"` : 'null'}
+deleometer_milestone_index: ${typeof primary?.milestoneIndex === 'number' ? primary.milestoneIndex : 'null'}
+source_goal_paths: ${this.formatYamlStringArray(draft.mergedGoalPaths)}
+source_goal_titles: ${this.formatYamlStringArray(draft.mergedGoalTitles)}
+source_perspectives: ${this.formatYamlStringArray(draft.mergedSourcePerspectives)}
+source_analysis_note: ${draft.mergedSourceAnalysisPath ? `"${this.escapeYamlString(draft.mergedSourceAnalysisPath)}"` : 'null'}
+merged_from: ${this.formatYamlStringArray(draft.sourceMilestones.map((milestone) => milestone.file.path))}
+---
+
+# ${draft.mergedTitle}
+
+**Target Date:** ${draft.mergedTargetDate || 'Not set'}
+**Status:** Active
+${sourceNoteLink ? `**Source Note:** ${sourceNoteLink}\n` : ''}${sourcePerspectiveLinks ? `**Derived From Analysis Types:** ${sourcePerspectiveLinks}\n` : ''}
+
+## Description
+${draft.mergedDescription}
+
+${goalLinks ? `## Related Goals\n${goalLinks}\n\n` : ''}## Merged From Milestones
+${sourceLinks}
+
+## Notes
+
+`;
+  }
+
+  buildMergedMilestoneSourceNote(targetMilestonePath: string, mergedTitle: string, looseFrontmatter?: Record<string, unknown>): string {
+    const created = typeof looseFrontmatter?.created === 'string' ? `created: ${looseFrontmatter.created}\n` : '';
+    const goalPath = typeof looseFrontmatter?.deleometer_goal_path === 'string'
+      ? `deleometer_goal_path: "${this.escapeYamlString(looseFrontmatter.deleometer_goal_path)}"\n`
+      : '';
+    const goalTitle = typeof looseFrontmatter?.deleometer_goal_title === 'string'
+      ? `deleometer_goal_title: "${this.escapeYamlString(looseFrontmatter.deleometer_goal_title)}"\n`
+      : '';
+    const rawIndex = typeof looseFrontmatter?.deleometer_milestone_index === 'number'
+      ? looseFrontmatter.deleometer_milestone_index
+      : (typeof looseFrontmatter?.deleometer_milestone_index === 'string' ? Number(looseFrontmatter.deleometer_milestone_index) : NaN);
+    const milestoneIndex = Number.isFinite(rawIndex) ? `deleometer_milestone_index: ${rawIndex}\n` : '';
+    return `---
+type: milestone
+status: merged
+merged_into: "${this.escapeYamlInlineString(targetMilestonePath)}"
+deleometer_owner: deleometer
+${goalPath}${goalTitle}${milestoneIndex}
+${created}
+---
+
+# Milestone Merged
+
+This milestone has been consolidated into [[${this.getWikiLinkTarget(targetMilestonePath)}|${mergedTitle}]].
+`;
+  }
+
+  async consolidateMilestoneDrafts(drafts: MilestoneMergeDraft[]) {
+    let mergedCount = 0;
+
+    for (const draft of drafts) {
+      if (draft.sourceMilestones.length < 2) continue;
+
+      const sortedMilestones = [...draft.sourceMilestones].sort((a, b) => a.file.path.localeCompare(b.file.path));
+      const primary = sortedMilestones[0];
+      const primaryFile = primary.file;
+
+      await this.app.vault.modify(primaryFile, this.buildMergedMilestoneNote(draft));
+
+      for (const duplicate of sortedMilestones.slice(1)) {
+        const content = await this.app.vault.cachedRead(duplicate.file);
+        await this.app.vault.modify(
+          duplicate.file,
+          this.buildMergedMilestoneSourceNote(primaryFile.path, draft.mergedTitle, this.parseLooseFrontmatter(content) || undefined)
+        );
+      }
+
+      mergedCount += 1;
+    }
+
+    if (mergedCount > 0) {
+      new Notice(`Consolidated ${mergedCount} similar milestone group${mergedCount === 1 ? '' : 's'}`);
+    }
+  }
+
+  async openMilestoneConsolidationModal() {
+    const drafts = await this.getMilestoneConsolidationDrafts();
+    if (drafts.length === 0) {
+      new Notice('No similar milestone groups found');
+      return;
+    }
+    new MilestoneConsolidationModal(this.app, this, drafts).open();
+  }
+
   isValidDateString(value: unknown): value is string {
     return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim());
+  }
+
+  isUsableGoalTargetDate(value: string): boolean {
+    if (!this.isValidDateString(value)) return false;
+    const today = this.parseDateOnly(this.formatDateOnly(new Date()));
+    const target = this.parseDateOnly(value);
+    return target.getTime() >= today.getTime();
   }
 
   parseDateOnly(value: string): Date {
@@ -1118,10 +5743,23 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
 `;
   }
 
-  async deleteGoalCalendarEvents(goalFile: TFile) {
-    const files = this.getGoalOwnedCalendarFiles(goalFile.path);
+  async deleteGoalCalendarEventsByPath(goalFilePath: string) {
+    const files = await this.getGoalOwnedCalendarFiles(goalFilePath);
     for (const file of files) {
       await this.app.fileManager.trashFile(file);
+    }
+  }
+
+  async deleteGoalCalendarEvents(goalFile: TFile) {
+    await this.deleteGoalCalendarEventsByPath(goalFile.path);
+  }
+
+  async handleGoalFileDeleted(goalFilePath: string) {
+    try {
+      await this.deleteGoalMilestoneNotesByPath(goalFilePath);
+      await this.deleteGoalCalendarEventsByPath(goalFilePath);
+    } catch (error) {
+      console.error('Could not clean up deleted Deleometer goal artifacts', goalFilePath, error);
     }
   }
 
@@ -1142,6 +5780,10 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
       : '';
     const mergedFromLinks = extras?.mergedFrom?.length
       ? extras.mergedFrom.map((path) => `- [[${this.getWikiLinkTarget(path)}|${this.getFileDisplayName(path)}]]`).join('\n')
+      : '';
+    const milestoneFiles = this.getGoalOwnedMilestoneFiles(goal.file.path);
+    const milestoneNoteLinks = milestoneFiles.length
+      ? milestoneFiles.map((file) => `- [[${this.getWikiLinkTarget(file.path)}|${this.getFileDisplayName(file.path)}]]`).join('\n')
       : '';
 
     return `---
@@ -1171,6 +5813,7 @@ ${goal.description}
 
 ## Milestones
 ${goal.milestones.map((milestone) => `- [ ] ${milestone}`).join('\n') || '- [ ] Add first milestone'}
+${milestoneNoteLinks ? `\n\n## Milestone Notes\n${milestoneNoteLinks}\n` : ''}
 ${mergedFromLinks ? `\n\n## Merged From Goals\n${mergedFromLinks}\n` : ''}
 
 ## Progress Notes
@@ -1251,9 +5894,11 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
       const primaryFile = primary.file;
 
       await this.app.vault.modify(primaryFile, this.buildMergedGoalNote(draft));
+      await this.syncGoalMilestonesToFolder(primaryFile, true);
       await this.syncGoalFileToFullCalendar(primaryFile, true);
 
       for (const duplicate of sortedGoals.slice(1)) {
+        await this.deleteGoalMilestoneNotes(duplicate.file);
         await this.deleteGoalCalendarEvents(duplicate.file);
         await this.app.vault.modify(duplicate.file, this.buildMergedSourceNote(primaryFile.path, draft.mergedTitle));
       }
@@ -1295,23 +5940,46 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
     return Array.from({ length: milestoneCount }, (_, index) => this.formatDateOnly(this.addDays(startDate, (index + 1) * 7)));
   }
 
-  getFullCalendarFolderFiles(): TFile[] {
-    const folder = this.app.vault.getAbstractFileByPath(this.settings.fullCalendarFolder);
-    if (!(folder instanceof TFolder)) return [];
-    return folder.children.filter((child): child is TFile => child instanceof TFile);
+  async getCalendarEventFrontmatter(file: TFile): Promise<Record<string, unknown> | null> {
+    const cachedFrontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+    const content = await this.app.vault.cachedRead(file);
+    const looseFrontmatter = this.parseLooseFrontmatter(content);
+    if (cachedFrontmatter && looseFrontmatter) return { ...looseFrontmatter, ...cachedFrontmatter };
+    return cachedFrontmatter || looseFrontmatter;
   }
 
-  getGoalOwnedCalendarFiles(goalFilePath: string): TFile[] {
-    return this.getFullCalendarFolderFiles().filter((file) => {
-      const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
-      return frontmatter?.deleometer_owner === 'deleometer'
+  async getGoalOwnedCalendarFiles(goalFilePath: string): Promise<TFile[]> {
+    const ownedFiles: TFile[] = [];
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      const frontmatter = await this.getCalendarEventFrontmatter(file);
+      if (frontmatter?.deleometer_owner === 'deleometer'
+        && (frontmatter.deleometer_event_kind === 'goal_due' || frontmatter.deleometer_event_kind === 'milestone')
         && typeof frontmatter.deleometer_goal_path === 'string'
-        && frontmatter.deleometer_goal_path === goalFilePath;
-    });
+        && frontmatter.deleometer_goal_path === goalFilePath) {
+        ownedFiles.push(file);
+      }
+    }
+    return ownedFiles;
   }
 
-  buildFullCalendarEventPath(baseName: string): string {
-    return this.getUniqueMarkdownPath(this.settings.fullCalendarFolder, this.sanitizeFileNamePart(baseName));
+  getFullCalendarEventBaseName(event: {
+    title: string;
+    date: string;
+    goalTitle: string;
+    kind: 'goal_due' | 'milestone';
+    milestoneIndex?: number;
+  }): string {
+    return `${event.date} ${event.kind === 'goal_due' ? 'Goal Due' : `Milestone ${event.milestoneIndex ?? ''}`} ${event.goalTitle}`.trim();
+  }
+
+  getFullCalendarEventPath(event: {
+    title: string;
+    date: string;
+    goalTitle: string;
+    kind: 'goal_due' | 'milestone';
+    milestoneIndex?: number;
+  }): string {
+    return `${this.settings.fullCalendarFolder}/${this.sanitizeFileNamePart(this.getFullCalendarEventBaseName(event))}.md`;
   }
 
   buildFullCalendarEventId(goalFilePath: string, kind: 'goal_due' | 'milestone', milestoneIndex?: number): string {
@@ -1390,12 +6058,21 @@ ${event.kind === 'goal_due'
   }) {
     const note = this.buildFullCalendarEventNote(event);
     if (existingFile) {
+      const desiredPath = this.getFullCalendarEventPath(event);
+      if (existingFile.path !== desiredPath && !this.app.vault.getAbstractFileByPath(desiredPath)) {
+        await this.ensureFolder(this.settings.fullCalendarFolder);
+        await this.app.fileManager.renameFile(existingFile, desiredPath);
+        const renamed = this.getVaultMarkdownFile(desiredPath);
+        if (renamed) existingFile = renamed;
+      }
       await this.app.vault.modify(existingFile, note);
       return existingFile;
     }
 
-    const baseName = `${event.date} ${event.kind === 'goal_due' ? 'Goal Due' : `Milestone ${event.milestoneIndex ?? ''}`} ${event.goalTitle}`.trim();
-    const path = this.buildFullCalendarEventPath(baseName);
+    const desiredPath = this.getFullCalendarEventPath(event);
+    const path = this.app.vault.getAbstractFileByPath(desiredPath)
+      ? this.getUniqueMarkdownPath(this.settings.fullCalendarFolder, this.sanitizeFileNamePart(this.getFullCalendarEventBaseName(event)))
+      : desiredPath;
     return await this.app.vault.create(path, note);
   }
 
@@ -1407,16 +6084,30 @@ ${event.kind === 'goal_due'
 
     await this.ensureFolder(this.settings.fullCalendarFolder);
 
-    const existingFiles = this.getGoalOwnedCalendarFiles(goalFile.path);
+    const existingFiles = await this.getGoalOwnedCalendarFiles(goalFile.path);
     const byKey = new Map<string, TFile>();
+    const duplicateFiles: TFile[] = [];
     for (const file of existingFiles) {
-      const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+      const frontmatter = await this.getCalendarEventFrontmatter(file);
       const kind = typeof frontmatter?.deleometer_event_kind === 'string' ? frontmatter.deleometer_event_kind : '';
       const milestoneIndex = typeof frontmatter?.deleometer_milestone_index === 'number'
         ? frontmatter.deleometer_milestone_index
         : (typeof frontmatter?.deleometer_milestone_index === 'string' ? Number(frontmatter.deleometer_milestone_index) : NaN);
       const key = kind === 'milestone' && Number.isFinite(milestoneIndex) ? `milestone:${milestoneIndex}` : kind;
-      if (key) byKey.set(key, file);
+      if (!key) continue;
+      const existing = byKey.get(key);
+      if (!existing) {
+        byKey.set(key, file);
+        continue;
+      }
+      const existingInCurrentFolder = existing.path.startsWith(`${this.settings.fullCalendarFolder}/`);
+      const fileInCurrentFolder = file.path.startsWith(`${this.settings.fullCalendarFolder}/`);
+      if (!existingInCurrentFolder && fileInCurrentFolder) {
+        duplicateFiles.push(existing);
+        byKey.set(key, file);
+      } else {
+        duplicateFiles.push(file);
+      }
     }
 
     const expectedKeys = new Set<string>();
@@ -1458,6 +6149,10 @@ ${event.kind === 'goal_due'
       }
     }
 
+    for (const file of duplicateFiles) {
+      await this.app.fileManager.trashFile(file);
+    }
+
     return true;
   }
 
@@ -1475,13 +6170,14 @@ ${event.kind === 'goal_due'
     }
   }
 
-  buildChatFileBaseName(sourceFilePath: string | undefined, perspectiveKey: string): string {
-    const perspective = this.sanitizeFileNamePart(this.getPerspectiveHeadingTitle(perspectiveKey));
+  buildChatFileBaseName(sourceFilePath: string | undefined, perspectiveKey: string, dateStamp?: string, baseLabel?: string): string {
+    const perspective = this.sanitizeFileNamePart(baseLabel || this.getPerspectiveHeadingTitle(perspectiveKey));
+    const safeDate = this.sanitizeFileNamePart(dateStamp || new Date().toISOString().split('T')[0]);
     if (!sourceFilePath) {
-      return `Chat-${perspective}-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+      return `${safeDate}-${perspective}-Chat`;
     }
 
-    return `${this.sanitizeFileNamePart(this.getFileDisplayName(sourceFilePath))}-${perspective}-Chat`;
+    return `${safeDate}-${this.sanitizeFileNamePart(this.getFileDisplayName(sourceFilePath))}-${perspective}-Chat`;
   }
 
   async ensurePerspectiveChatLinks(sourceFile: TFile, analysis: AnalysisPayload) {
@@ -1490,9 +6186,80 @@ ${event.kind === 'goal_due'
     }
   }
 
+  async ensureGroupSynthesisChatLinks(sourceFile: TFile, analysis: AnalysisPayload) {
+    for (const groupKey of Object.keys(analysis.groupSyntheses)) {
+      await this.upsertGroupSynthesisSectionLine(
+        sourceFile.path,
+        groupKey,
+        '**Continue Group Chat:**',
+        this.buildGroupSynthesisChatLink(sourceFile.path, groupKey)
+      );
+    }
+  }
+
+  buildGoalDraftLink(sourceFilePath: string): string {
+    const encodedPath = encodeURIComponent(sourceFilePath);
+    return `**Draft Goals:** [Open proposed goals](deleometer://goals?source=${encodedPath})`;
+  }
+
+  async updateGoalLinksInSourceAnalysis(goal: GoalFileData) {
+    if (!goal.sourceAnalysisPath) return;
+    const abstractFile = this.getVaultMarkdownFile(goal.sourceAnalysisPath);
+    if (!abstractFile) return;
+
+    const currentContent = await this.app.vault.read(abstractFile);
+    const suggestionsStart = currentContent.search(/^##\s+.*Suggested Goals.*$/m);
+    if (suggestionsStart === -1) return;
+
+    const suggestionsSection = currentContent.slice(suggestionsStart);
+    const nextSectionMatch = /^##\s+(?!.*Suggested Goals).*$/m.exec(suggestionsSection.slice(1));
+    const boundedLength = nextSectionMatch ? nextSectionMatch.index + 1 : suggestionsSection.length;
+    const boundedSection = suggestionsSection.slice(0, boundedLength);
+    const headingRegex = /^###\s+(.+)$/gm;
+    const headingMatches: { title: string; index: number; fullMatch: string }[] = [];
+    let match: RegExpExecArray | null;
+
+    while ((match = headingRegex.exec(boundedSection)) !== null) {
+      headingMatches.push({ title: match[1].trim(), index: match.index, fullMatch: match[0] });
+    }
+
+    const targetIndex = headingMatches.findIndex((heading) => (
+      this.normalizeHeadingText(heading.title) === this.normalizeHeadingText(goal.title)
+    ));
+    if (targetIndex === -1) return;
+
+    const heading = headingMatches[targetIndex];
+    const bodyEnd = targetIndex + 1 < headingMatches.length ? headingMatches[targetIndex + 1].index : boundedSection.length;
+    const goalSection = boundedSection.slice(heading.index, bodyEnd);
+    const goalLinkLine = `**Saved Goal:** [[${this.getWikiLinkTarget(goal.file.path)}|${goal.title}]]`;
+    const milestoneFiles = this.getGoalOwnedMilestoneFiles(goal.file.path);
+    const milestoneLinks = milestoneFiles
+      .map((file) => `[[${this.getWikiLinkTarget(file.path)}|${this.getFileDisplayName(file.path)}]]`)
+      .join(', ');
+    const milestoneLinkLine = milestoneLinks ? `**Milestone Notes:** ${milestoneLinks}` : '';
+    const upsertLine = (section: string, prefix: string, fullLine: string) => {
+      const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const lineRegex = new RegExp(`${escapedPrefix}.*(?:\\n|$)`);
+      return lineRegex.test(section)
+        ? section.replace(lineRegex, `${fullLine}\n`)
+        : `${section.trimEnd()}\n${fullLine}\n`;
+    };
+
+    let updatedGoalSection = goalSection;
+    updatedGoalSection = upsertLine(updatedGoalSection, '**Saved Goal:**', goalLinkLine);
+    if (milestoneLinkLine) {
+      updatedGoalSection = upsertLine(updatedGoalSection, '**Milestone Notes:**', milestoneLinkLine);
+    }
+
+    const updatedBoundedSection = `${boundedSection.slice(0, heading.index)}${updatedGoalSection}${boundedSection.slice(bodyEnd)}`;
+    const updatedContent = `${currentContent.slice(0, suggestionsStart)}${updatedBoundedSection}${currentContent.slice(suggestionsStart + boundedLength)}`;
+    await this.app.vault.modify(abstractFile, updatedContent);
+  }
+
   async upsertPerspectiveSectionLine(sourceFilePath: string, perspectiveKey: string, linePrefix: string, fullLine: string) {
-    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
-    if (!(abstractFile instanceof TFile)) return;
+    if (!PERSPECTIVES[perspectiveKey]) return;
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) return;
 
     const currentContent = await this.app.vault.read(abstractFile);
     const bounds = this.findPerspectiveSectionBounds(currentContent, perspectiveKey);
@@ -1504,7 +6271,7 @@ ${event.kind === 'goal_due'
     const lineRegex = new RegExp(`${escapedPrefix}.*(?:\\n|$)`);
     const updatedSection = lineRegex.test(section)
       ? section.replace(lineRegex, `${fullLine}\n`)
-      : `${section.trimEnd()}\n\n${fullLine}\n`;
+      : `${section.trimEnd()}\n${fullLine}\n`;
 
     await this.app.vault.modify(
       abstractFile,
@@ -1512,15 +6279,46 @@ ${event.kind === 'goal_due'
     );
   }
 
-  async saveChatBackToSourceNote(sourceFilePath: string, perspectiveKey: string, chatMessages: ConversationMessage[], chatStartTime: Date) {
-    const abstractFile = this.app.vault.getAbstractFileByPath(sourceFilePath);
-    if (!(abstractFile instanceof TFile)) return;
+  async upsertGroupSynthesisSectionLine(sourceFilePath: string, groupKey: string, linePrefix: string, fullLine: string) {
+    if (!PERSPECTIVE_GROUPS[groupKey]) return;
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) return;
 
     const currentContent = await this.app.vault.read(abstractFile);
-    const bounds = this.findPerspectiveSectionBounds(currentContent, perspectiveKey);
+    const bounds = this.findGroupSynthesisSectionBounds(currentContent, groupKey);
     if (!bounds) return;
 
-    const perspectiveTitle = this.getPerspectiveHeadingTitle(perspectiveKey);
+    const section = currentContent.slice(bounds.start, bounds.end);
+    const escapedPrefix = linePrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const lineRegex = new RegExp(`${escapedPrefix}.*(?:\\n|$)`);
+    const updatedSection = lineRegex.test(section)
+      ? section.replace(lineRegex, `${fullLine}\n`)
+      : `${section.trimEnd()}\n${fullLine}\n`;
+
+    await this.app.vault.modify(
+      abstractFile,
+      `${currentContent.slice(0, bounds.start)}${updatedSection}${currentContent.slice(bounds.end)}`
+    );
+  }
+
+  async saveChatBackToSourceNote(
+    sourceFilePath: string,
+    chatMessages: ConversationMessage[],
+    chatStartTime: Date,
+    options: { perspectiveKey?: string; groupKey?: string; speakerTitle?: string } = {}
+  ): Promise<boolean> {
+    const abstractFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!abstractFile) return false;
+
+    const currentContent = await this.app.vault.read(abstractFile);
+    const bounds = options.groupKey
+      ? this.findGroupSynthesisSectionBounds(currentContent, options.groupKey)
+      : (options.perspectiveKey ? this.findPerspectiveSectionBounds(currentContent, options.perspectiveKey) : null);
+    if (!bounds) return false;
+
+    const speakerTitle = options.speakerTitle
+      || (options.groupKey ? `${PERSPECTIVE_GROUPS[options.groupKey]?.title || options.groupKey} synthesis` : '')
+      || (options.perspectiveKey ? this.getPerspectiveHeadingTitle(options.perspectiveKey) : 'AI');
     const messagesToPersist = chatMessages.filter((message, index) => {
       if (index === 0 && message.role === 'user' && message.content.startsWith('Here is a journal entry I wrote:')) {
         return false;
@@ -1528,7 +6326,7 @@ ${event.kind === 'goal_due'
       return true;
     });
     const transcript = messagesToPersist
-      .map((message) => `${message.role === 'user' ? '**You:**' : `**${perspectiveTitle}:**`}\n\n${message.content}`)
+      .map((message) => `${message.role === 'user' ? '**You:**' : `**${speakerTitle}:**`}\n\n${message.content}`)
       .join('\n\n---\n\n');
     const chatBlock = `#### Latest AI Chat (${chatStartTime.toLocaleString()})\n\n${transcript}\n`;
     const section = currentContent.slice(bounds.start, bounds.end);
@@ -1540,37 +6338,105 @@ ${event.kind === 'goal_due'
       abstractFile,
       `${currentContent.slice(0, bounds.start)}${updatedSection}${currentContent.slice(bounds.end)}`
     );
+    return true;
   }
 
   async appendAnalysisToFile(sourceFile: TFile, analysis: AnalysisPayload) {
+    try {
+      await this.ensureInspirationalSongFile(sourceFile, analysis);
+    } catch (error) {
+      const warning = `Inspirational song audio could not be rendered: ${this.getErrorMessage(error)}`;
+      if (!analysis.analysisWarnings.includes(warning)) {
+        analysis.analysisWarnings.push(warning);
+      }
+      console.error(error);
+    }
     const currentContent = await this.app.vault.read(sourceFile);
     const analysisStart = this.findAnalysisSectionStart(currentContent);
 
     if (analysisStart !== -1) {
       const cleaned = currentContent.slice(0, analysisStart).trimEnd();
-      await this.app.vault.modify(sourceFile, `${cleaned.trimEnd()}${this.buildAnalysisMarkdown(analysis)}`);
+      await this.app.vault.modify(sourceFile, `${cleaned.trimEnd()}${this.buildAnalysisMarkdown(analysis, sourceFile.path)}`);
     } else {
-      await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${this.buildAnalysisMarkdown(analysis)}`);
+      await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${this.buildAnalysisMarkdown(analysis, sourceFile.path)}`);
     }
     await this.ensurePerspectiveChatLinks(sourceFile, analysis);
+    await this.ensureGroupSynthesisChatLinks(sourceFile, analysis);
   }
 
-  buildAnalysisMarkdown(analysis: AnalysisPayload): string {
-    let analysisMarkdown = '\n\n---\n\n## 🔍 AI Analysis\n\n';
-    analysisMarkdown += `*Analyzed: ${new Date().toLocaleString()}*\n\n`;
+  async writeAnalysisStatusToFile(sourceFile: TFile, status: string) {
+    const currentContent = await this.app.vault.read(sourceFile);
+    const analysisStart = this.findAnalysisSectionStart(currentContent);
+    const statusMarkdown = `\n\n---\n\n## 🔍 AI Analysis\n\n*Status: ${status}*\n\n`;
+
+    if (analysisStart !== -1) {
+      const cleaned = currentContent.slice(0, analysisStart).trimEnd();
+      await this.app.vault.modify(sourceFile, `${cleaned.trimEnd()}${statusMarkdown}`);
+    } else {
+      await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${statusMarkdown}`);
+    }
+  }
+
+  buildAnalysisMarkdown(analysis: AnalysisPayload, sourceFilePath: string = ''): string {
+    let analysisMarkdown = '\n\n---\n## 🔍 AI Analysis\n';
+    analysisMarkdown += `*Analyzed: ${new Date().toLocaleString()}*\n`;
 
     for (const [perspKey, content] of Object.entries(analysis.perspectives)) {
       const persp = PERSPECTIVES[perspKey];
-      analysisMarkdown += `### ${persp?.title || perspKey}\n\n${content}\n\n`;
+      const groupTitle = persp ? PERSPECTIVE_GROUPS[persp.group]?.title : '';
+      analysisMarkdown += `\n### ${persp?.title || perspKey}\n`;
+      if (groupTitle) {
+        analysisMarkdown += `*Group: ${groupTitle}*\n`;
+      }
+      analysisMarkdown += `${content}\n`;
+      const readings = analysis.furtherReadings[perspKey] || [];
+      if (readings.length > 0) {
+        analysisMarkdown += `#### Further readings\n${readings.map((reading) => `- ${reading}`).join('\n')}\n`;
+      }
+    }
+
+    if (Object.keys(analysis.groupSyntheses).length > 0) {
+      analysisMarkdown += `\n## Group Syntheses\n`;
+      for (const [groupKey, content] of Object.entries(analysis.groupSyntheses)) {
+        const group = PERSPECTIVE_GROUPS[groupKey];
+        analysisMarkdown += `### ${group?.title || groupKey}\n${content}\n`;
+      }
+    }
+
+    if (analysis.philosophicalReaccumulation) {
+      analysisMarkdown += `\n## Philosophy Re-accumulation\n${analysis.philosophicalReaccumulation}\n`;
+    }
+
+    if (analysis.inspirationalSong) {
+      const song = analysis.inspirationalSong;
+      analysisMarkdown += `\n## Inspirational Song\n`;
+      analysisMarkdown += `### ${song.title}\n`;
+      analysisMarkdown += `**Mood:** ${song.mood}\n`;
+      analysisMarkdown += `**Tempo:** ${song.tempoBpm} BPM\n`;
+      analysisMarkdown += `**Key:** ${song.keyCenter} ${song.scaleMode}\n`;
+      analysisMarkdown += `**Hook:** ${song.hookLine}\n`;
+      if (song.audioFilePath) {
+        analysisMarkdown += `**Listen:** ![[${this.getWikiLinkTarget(song.audioFilePath)}]]\n`;
+      }
+      analysisMarkdown += `${song.rationale}\n`;
+      analysisMarkdown += `#### Lyrics\n${song.lyrics}\n`;
+    }
+
+    if (analysis.analysisWarnings.length > 0) {
+      analysisMarkdown += `\n## Analysis Notes\n`;
+      analysisMarkdown += `${analysis.analysisWarnings.map((warning) => `- ${warning}`).join('\n')}\n`;
     }
 
     if (analysis.goalSuggestions.length > 0) {
-      analysisMarkdown += `## 🎯 Suggested Goals\n\n`;
+      analysisMarkdown += `\n## 🎯 Suggested Goals\n`;
       for (const goal of analysis.goalSuggestions) {
-        analysisMarkdown += `### ${goal.title}\n\n${goal.description}\n\n`;
+        analysisMarkdown += `### ${goal.title}\n${goal.description}\n`;
         if (goal.milestones.length > 0) {
-          analysisMarkdown += `${goal.milestones.map((milestone) => `- ${milestone}`).join('\n')}\n\n`;
+          analysisMarkdown += `${goal.milestones.map((milestone) => `- ${milestone}`).join('\n')}\n`;
         }
+      }
+      if (sourceFilePath) {
+        analysisMarkdown += `${this.buildGoalDraftLink(sourceFilePath)}\n`;
       }
     }
 
@@ -1645,9 +6511,141 @@ ${event.kind === 'goal_due'
   async loadSettings() {
     const savedData = await this.loadData() as Partial<DeleometerSettings> | null;
     this.settings = Object.assign({}, DEFAULT_SETTINGS, savedData ?? {});
-    if (!Array.isArray(this.settings.selectedPerspectives) || this.settings.selectedPerspectives.length === 0) {
-      this.settings.selectedPerspectives = Object.keys(PERSPECTIVES);
+    this.settings.journalFolder = this.normalizeFolderSetting(this.settings.journalFolder, DEFAULT_SETTINGS.journalFolder);
+    this.settings.goalsFolder = this.normalizeFolderSetting(this.settings.goalsFolder, DEFAULT_SETTINGS.goalsFolder);
+    this.settings.milestonesFolder = this.normalizeFolderSetting(this.settings.milestonesFolder, DEFAULT_SETTINGS.milestonesFolder);
+    this.settings.songsFolder = this.normalizeFolderSetting(this.settings.songsFolder, DEFAULT_SETTINGS.songsFolder);
+    this.settings.chatsFolder = this.normalizeFolderSetting(this.settings.chatsFolder, DEFAULT_SETTINGS.chatsFolder);
+    this.settings.fullCalendarFolder = this.normalizeFullCalendarFolderSetting(this.settings.fullCalendarFolder);
+    if (this.settings.aiProvider !== 'openai' && this.settings.aiProvider !== 'ollama') {
+      this.settings.aiProvider = DEFAULT_SETTINGS.aiProvider;
     }
+    this.settings.openaiModel = this.settings.openaiModel?.trim() || DEFAULT_SETTINGS.openaiModel;
+    this.settings.localEndpoint = this.settings.localEndpoint?.trim() || DEFAULT_SETTINGS.localEndpoint;
+    this.settings.localModel = this.settings.localModel?.trim() || DEFAULT_SETTINGS.localModel;
+    this.settings.localModelToInstall = this.settings.localModelToInstall?.trim() || DEFAULT_SETTINGS.localModelToInstall;
+    this.settings.lastLocalModelNames = Array.isArray(this.settings.lastLocalModelNames)
+      ? this.settings.lastLocalModelNames.filter((value): value is string => typeof value === 'string' && !!value.trim()).map((value) => value.trim())
+      : DEFAULT_SETTINGS.lastLocalModelNames;
+    this.settings.lastLocalModelDigest = typeof this.settings.lastLocalModelDigest === 'string'
+      ? this.settings.lastLocalModelDigest
+      : DEFAULT_SETTINGS.lastLocalModelDigest;
+    this.settings.lastLocalModelLibrarySignature = typeof this.settings.lastLocalModelLibrarySignature === 'string'
+      ? this.settings.lastLocalModelLibrarySignature
+      : DEFAULT_SETTINGS.lastLocalModelLibrarySignature;
+    this.settings.lastLocalModelLibraryCheckedAt = typeof this.settings.lastLocalModelLibraryCheckedAt === 'string'
+      ? this.settings.lastLocalModelLibraryCheckedAt
+      : DEFAULT_SETTINGS.lastLocalModelLibraryCheckedAt;
+    if (!ZPD_LEVELS[this.settings.zpdLevel]) {
+      this.settings.zpdLevel = DEFAULT_SETTINGS.zpdLevel;
+    }
+    if (!OUTPUT_LANGUAGES[this.settings.outputLanguage]) {
+      this.settings.outputLanguage = DEFAULT_SETTINGS.outputLanguage;
+    }
+    if (!DICTIONARY_MODES[this.settings.dictionaryMode]) {
+      this.settings.dictionaryMode = DEFAULT_SETTINGS.dictionaryMode;
+    }
+    this.settings.redactSensitiveDataBeforeAI = typeof this.settings.redactSensitiveDataBeforeAI === 'boolean'
+      ? this.settings.redactSensitiveDataBeforeAI
+      : DEFAULT_SETTINGS.redactSensitiveDataBeforeAI;
+    this.settings.enableAuthorMemory = typeof this.settings.enableAuthorMemory === 'boolean'
+      ? this.settings.enableAuthorMemory
+      : DEFAULT_SETTINGS.enableAuthorMemory;
+    this.settings.includeAuthorMemoryInAI = typeof this.settings.includeAuthorMemoryInAI === 'boolean'
+      ? this.settings.includeAuthorMemoryInAI
+      : DEFAULT_SETTINGS.includeAuthorMemoryInAI;
+    this.settings.includePersonalityProfileInAI = typeof this.settings.includePersonalityProfileInAI === 'boolean'
+      ? this.settings.includePersonalityProfileInAI
+      : DEFAULT_SETTINGS.includePersonalityProfileInAI;
+    this.settings.myersBriggsProfile = this.settings.myersBriggsProfile && typeof this.settings.myersBriggsProfile === 'object'
+      ? this.settings.myersBriggsProfile
+      : DEFAULT_SETTINGS.myersBriggsProfile;
+    this.settings.maslowProfile = this.settings.maslowProfile && typeof this.settings.maslowProfile === 'object'
+      ? this.settings.maslowProfile
+      : DEFAULT_SETTINGS.maslowProfile;
+    if (this.settings.personalityProfile && !this.settings.personalityProfile.theory) {
+      this.settings.personalityProfile.theory = 'Five-Factor Model (Big Five). A broad trait model across openness, conscientiousness, extraversion, agreeableness, and neuroticism.';
+    }
+    this.settings.sendFullJournalToChat = typeof this.settings.sendFullJournalToChat === 'boolean'
+      ? this.settings.sendFullJournalToChat
+      : DEFAULT_SETTINGS.sendFullJournalToChat;
+    this.settings.generateInspirationalSong = typeof this.settings.generateInspirationalSong === 'boolean'
+      ? this.settings.generateInspirationalSong
+      : DEFAULT_SETTINGS.generateInspirationalSong;
+    const perspectiveKeys = getChronologicalPerspectiveKeys();
+    if (!Array.isArray(this.settings.selectedPerspectives) || this.settings.selectedPerspectives.length === 0) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const selectedPerspectives = this.settings.selectedPerspectives.filter((key) => !!PERSPECTIVES[key]);
+    const hadEveryPreHierarchyPerspective = PRE_HIERARCHY_PERSPECTIVE_KEYS
+      .every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreHierarchyPerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const preOrganisationalTransformationPerspectiveKeys = perspectiveKeys
+      .filter((key) => !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPreOrganisationalTransformationPerspective = preOrganisationalTransformationPerspectiveKeys
+      .every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreOrganisationalTransformationPerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const preDevelopmentalGuidancePerspectiveKeys = perspectiveKeys
+      .filter((key) => !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPreDevelopmentalGuidancePerspective = preDevelopmentalGuidancePerspectiveKeys
+      .every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreDevelopmentalGuidancePerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const preMaterialDiscursivePerspectiveKeys = perspectiveKeys
+      .filter((key) => !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key) && !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPreMaterialDiscursivePerspective = preMaterialDiscursivePerspectiveKeys
+      .every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreMaterialDiscursivePerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const preSelfSubjectivityPerspectiveKeys = perspectiveKeys
+      .filter((key) => !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key) && !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPreSelfSubjectivityPerspective = preSelfSubjectivityPerspectiveKeys
+      .every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreSelfSubjectivityPerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const preAccumulatedChronologyPerspectiveKeys = perspectiveKeys
+      .filter((key) => !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key) && !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPreAccumulatedChronologyPerspective = preAccumulatedChronologyPerspectiveKeys
+      .every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreAccumulatedChronologyPerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const preSemioticLinguisticPerspectiveKeys = perspectiveKeys
+      .filter((key) => !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key) && !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key) && !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key) && !PHILOSOPHY_LINEAGE_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPreSemioticLinguisticPerspective = preSemioticLinguisticPerspectiveKeys
+      .every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPreSemioticLinguisticPerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const prePhilosophyLineagePerspectiveKeys = perspectiveKeys
+      .filter((key) => !PHILOSOPHY_LINEAGE_PERSPECTIVE_KEYS.includes(key) && !SEMIOTIC_LINGUISTIC_PERSPECTIVE_KEYS.includes(key) && !ACCUMULATED_CHRONOLOGY_PERSPECTIVE_KEYS.includes(key) && !SELF_SUBJECTIVITY_PERSPECTIVE_KEYS.includes(key) && !MATERIAL_DISCURSIVE_PERSPECTIVE_KEYS.includes(key) && !DEVELOPMENTAL_GUIDANCE_PERSPECTIVE_KEYS.includes(key) && !ORGANISATIONAL_TRANSFORMATION_PERSPECTIVE_KEYS.includes(key));
+    const hadEveryPrePhilosophyLineagePerspective = prePhilosophyLineagePerspectiveKeys
+      .every((key) => selectedPerspectives.includes(key));
+    if (hadEveryPrePhilosophyLineagePerspective) {
+      this.settings.selectedPerspectives = perspectiveKeys;
+      return;
+    }
+    const existingPerspectiveKeys = perspectiveKeys.filter((key) => key !== MYERS_BRIGGS_PERSPECTIVE_KEY);
+    const hadEveryExistingPerspective = existingPerspectiveKeys.every((key) => selectedPerspectives.includes(key));
+    if (hadEveryExistingPerspective && !selectedPerspectives.includes(MYERS_BRIGGS_PERSPECTIVE_KEY)) {
+      selectedPerspectives.push(MYERS_BRIGGS_PERSPECTIVE_KEY);
+    }
+    this.settings.selectedPerspectives = selectedPerspectives.length > 0 ? selectedPerspectives : perspectiveKeys;
   }
   async saveSettings() { await this.saveData(this.settings); }
   onunload() {}
@@ -1667,6 +6665,14 @@ class DashboardView extends ItemView {
   getViewType() { return VIEW_TYPE_DASHBOARD; }
   getDisplayText() { return 'Deleometer dashboard'; }
   getIcon() { return 'bar-chart-3'; }
+
+  getMoodScaleLabel(mood: number): string {
+    if (mood <= 2) return 'very low';
+    if (mood <= 4) return 'low';
+    if (mood <= 6) return 'mid-range';
+    if (mood <= 8) return 'high';
+    return 'very high';
+  }
 
   onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
@@ -1705,21 +6711,73 @@ class DashboardView extends ItemView {
       ).open();
     });
 
-    // Personality Profile Section
-    if (this.plugin.settings.personalityProfile) {
-      const profile = this.plugin.settings.personalityProfile;
+    // Reflective assessment section
+    if (this.plugin.settings.personalityProfile || this.plugin.settings.myersBriggsProfile || this.plugin.settings.maslowProfile) {
       const profileSection = container.createDiv({ cls: 'analysis-section' });
-      profileSection.createEl('h3', { text: 'Your personality profile' });
-      const chart = profileSection.createDiv({ cls: 'big-five-chart' });
-      const traits = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'] as const;
-      for (const trait of traits) {
-        const score = profile.big_five_scores[trait];
-        const bar = chart.createDiv({ cls: 'trait-bar' });
-        bar.createDiv({ cls: 'trait-label', text: trait.charAt(0).toUpperCase() + trait.slice(1) });
-        const progress = bar.createDiv({ cls: 'trait-progress' });
-        const fill = progress.createDiv({ cls: `trait-fill ${trait}` });
-        fill.style.width = `${score}%`;
-        bar.createDiv({ cls: 'trait-score', text: `${score}` });
+      profileSection.createEl('h3', { text: 'Your reflective assessments' });
+      profileSection.createEl('p', {
+        text: 'These are reflective summaries. The big five section uses the five-factor model. The myers-briggs and maslow tools are stored separately rather than being inferred from the big five scores.',
+        cls: 'analysis-source'
+      });
+
+      if (this.plugin.settings.personalityProfile) {
+        const profile = this.plugin.settings.personalityProfile;
+        const theory = profile.theory || 'Five-Factor Model (Big Five) reflective profile';
+        const bigFiveSection = profileSection.createDiv({ cls: 'analysis-section' });
+        bigFiveSection.createEl('h4', { text: 'Big five / five-factor model' });
+        bigFiveSection.createEl('p', { text: theory, cls: 'analysis-source' });
+        const chart = bigFiveSection.createDiv({ cls: 'big-five-chart' });
+        const traits = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'] as const;
+        for (const trait of traits) {
+          const score = profile.big_five_scores[trait];
+          const bar = chart.createDiv({ cls: 'trait-bar' });
+          bar.createDiv({ cls: 'trait-label', text: trait.charAt(0).toUpperCase() + trait.slice(1) });
+          const progress = bar.createDiv({ cls: 'trait-progress' });
+          const fill = progress.createDiv({ cls: `trait-fill ${trait}` });
+          fill.style.width = `${score}%`;
+          bar.createDiv({ cls: 'trait-score', text: `${score}` });
+        }
+        bigFiveSection.createEl('p', { text: `Summary: ${profile.psychological_type}` });
+        bigFiveSection.createEl('p', { text: `Dominant traits: ${profile.dominant_traits.join(', ')}` });
+        bigFiveSection.createEl('p', { text: `Growth areas: ${profile.growth_areas.join(', ')}` });
+      }
+
+      if (this.plugin.settings.myersBriggsProfile) {
+        const mbti = this.plugin.settings.myersBriggsProfile;
+        const mbtiSection = profileSection.createDiv({ cls: 'analysis-section' });
+        mbtiSection.createEl('h4', { text: 'Typology profile' });
+        mbtiSection.createEl('p', { text: mbti.theory, cls: 'analysis-source' });
+        mbtiSection.createEl('p', { text: `Type: ${mbti.type_code}` });
+        mbtiSection.createEl('p', { text: mbti.summary });
+        mbtiSection.createEl('p', { text: `Strengths: ${mbti.strengths.join(', ')}` });
+        mbtiSection.createEl('p', { text: `Growth areas: ${mbti.growth_areas.join(', ')}` });
+      }
+
+      if (this.plugin.settings.maslowProfile) {
+        const maslow = this.plugin.settings.maslowProfile;
+        const maslowSection = profileSection.createDiv({ cls: 'analysis-section' });
+        maslowSection.createEl('h4', { text: 'Maslow needs profile' });
+        maslowSection.createEl('p', { text: maslow.theory, cls: 'analysis-source' });
+        const needLabels: Array<{ key: keyof MaslowNeedsScores; label: string }> = [
+          { key: 'physiological', label: 'Physiological' },
+          { key: 'safety', label: 'Safety' },
+          { key: 'belonging', label: 'Belonging' },
+          { key: 'esteem', label: 'Esteem' },
+          { key: 'self_actualization', label: 'Self-actualization' }
+        ];
+        const needsChart = maslowSection.createDiv({ cls: 'big-five-chart' });
+        for (const need of needLabels) {
+          const score = maslow.needs_scores[need.key];
+          const bar = needsChart.createDiv({ cls: 'trait-bar' });
+          bar.createDiv({ cls: 'trait-label', text: need.label });
+          const progress = bar.createDiv({ cls: 'trait-progress' });
+          const fill = progress.createDiv({ cls: 'progress-fill' });
+          fill.style.width = `${score}%`;
+          bar.createDiv({ cls: 'trait-score', text: `${score}` });
+        }
+        maslowSection.createEl('p', { text: `Currently strongest supported needs: ${maslow.strongest_needs.join(', ')}` });
+        maslowSection.createEl('p', { text: `Growth areas: ${maslow.growth_areas.join(', ')}` });
+        maslowSection.createEl('p', { text: maslow.summary });
       }
     }
 
@@ -1727,9 +6785,26 @@ class DashboardView extends ItemView {
     if (journalStats.entries > 0) {
       const moodChartSection = container.createDiv({ cls: 'analysis-section' });
       moodChartSection.createEl('h3', { text: 'Mood trends' });
+      moodChartSection.createEl('p', {
+        text: 'This chart shows the last 7 journal entries with mood scores. Each bar is one entry, not an average.',
+        cls: 'analysis-source'
+      });
       const moodData = this.getMoodTrendData();
       if (moodData.labels.length > 0) {
         this.renderMoodChart(moodChartSection, moodData);
+        const scaleSummary = moodChartSection.createDiv({ cls: 'mood-scale-summary' });
+        scaleSummary.createEl('p', {
+          text: `Average mood ${journalStats.avgMood.toFixed(1)} sits in the ${this.getMoodScaleLabel(journalStats.avgMood)} range on your 1-10 self-rating scale.`,
+          cls: 'analysis-source'
+        });
+        scaleSummary.createEl('p', {
+          text: 'Scale guide: 1-2 very low, 3-4 low, 5-6 middle range, 7-8 high, 9-10 very high. 5 is the midpoint, not a perfect score.',
+          cls: 'analysis-source'
+        });
+        scaleSummary.createEl('p', {
+          text: 'This scale is reflective, not diagnostic. If mood stays unusually low or unusually high, or comes with major changes in sleep, energy, activity, concentration, or risk-taking, speak with a general practitioner, psychologist, psychiatrist, or other health professional. You can also journal those changes here so the pattern is easier to review.',
+          cls: 'analysis-source'
+        });
       } else {
         moodChartSection.createEl('p', { text: 'Add mood scores to your journal entries to see trends.', cls: 'empty-state' });
       }
@@ -1744,6 +6819,10 @@ class DashboardView extends ItemView {
       const consolidateRow = goalChartSection.createDiv({ cls: 'btn-row' });
       const consolidateBtn = consolidateRow.createEl('button', { text: 'Consolidate similar goals', cls: 'btn-secondary btn-small' });
       consolidateBtn.onclick = () => { void this.plugin.openGoalConsolidationModal(); };
+      const syncMilestonesBtn = consolidateRow.createEl('button', { text: 'Sync milestones to folder', cls: 'btn-secondary btn-small' });
+      syncMilestonesBtn.onclick = () => { void this.plugin.syncAllGoalMilestonesToFolder(true); };
+      const consolidateMilestonesBtn = consolidateRow.createEl('button', { text: 'Consolidate similar milestones', cls: 'btn-secondary btn-small' });
+      consolidateMilestonesBtn.onclick = () => { void this.plugin.openMilestoneConsolidationModal(); };
 
       const goalsSection = container.createDiv({ cls: 'deleometer-recent' });
       goalsSection.createEl('h3', { text: 'Goals' });
@@ -1804,10 +6883,15 @@ class DashboardView extends ItemView {
     const chartBars = chartDiv.createDiv({ cls: 'simple-chart' });
     data.labels.forEach((label, i) => {
       const barWrapper = chartBars.createDiv({ cls: 'chart-bar-wrapper' });
+      barWrapper.createDiv({ cls: 'chart-value', text: `${data.data[i]}/10` });
       const bar = barWrapper.createDiv({ cls: 'chart-bar' });
       bar.style.height = `${(data.data[i] / maxMood) * 100}%`;
       bar.style.backgroundColor = this.getMoodColor(data.data[i]);
       barWrapper.createDiv({ cls: 'chart-label', text: label });
+    });
+    const legend = chartDiv.createDiv({ cls: 'mood-scale-legend' });
+    ['1-2 very low', '3-4 low', '5-6 middle', '7-8 high', '9-10 very high'].forEach((label) => {
+      legend.createEl('span', { text: label, cls: 'legend-item' });
     });
   }
 
@@ -1947,12 +7031,20 @@ class AIChatView extends ItemView {
   plugin: DeleometerPlugin;
   chatMessages: ConversationMessage[] = [];
   currentPerspective: string = 'lacanian_perspective';
+  sourceChatKind: 'perspective' | 'group_synthesis' = 'perspective';
+  sourcePerspectiveKey: string = '';
+  sourceGroupKey: string = '';
+  sourceTitle: string = '';
+  sourceDescription: string = '';
+  liveContextTitle: string = '';
+  liveContextDescription: string = '';
   messagesContainer: HTMLElement;
   inputArea: HTMLTextAreaElement;
   chatTitle: string = '';
   chatStartTime: Date = new Date();
   journalContext: string = '';
   sourceFilePath: string = '';
+  initialAnalysis: string = '';
 
   constructor(leaf: WorkspaceLeaf, plugin: DeleometerPlugin) {
     super(leaf);
@@ -1975,14 +7067,30 @@ class AIChatView extends ItemView {
     this.chatStartTime = new Date();
     this.journalContext = '';
     this.sourceFilePath = '';
+    this.initialAnalysis = '';
+    this.sourceChatKind = 'perspective';
+    this.sourcePerspectiveKey = '';
+    this.sourceGroupKey = '';
+    this.sourceTitle = '';
+    this.sourceDescription = '';
+    this.liveContextTitle = '';
+    this.liveContextDescription = '';
 
     // Check for pending context from journal analysis
     const context = this.plugin.pendingChatContext;
     if (context) {
+      this.sourceChatKind = context.chatKind || 'perspective';
       this.currentPerspective = context.perspective;
+      this.sourcePerspectiveKey = this.sourceChatKind === 'perspective' ? context.perspective : '';
+      this.sourceGroupKey = context.sourceGroupKey || '';
       this.journalContext = context.journalContent;
-      this.chatTitle = `Journal analysis - ${PERSPECTIVES[context.perspective]?.title}`;
+      this.sourceTitle = context.sourceTitle || PERSPECTIVES[context.perspective]?.title || context.perspective;
+      this.sourceDescription = context.sourceDescription || PERSPECTIVES[context.perspective]?.description || '';
+      this.liveContextTitle = this.sourceTitle;
+      this.liveContextDescription = this.sourceDescription;
+      this.chatTitle = `Journal analysis - ${this.sourceTitle}`;
       this.sourceFilePath = context.sourceFilePath || '';
+      this.initialAnalysis = context.initialAnalysis || '';
       this.plugin.pendingChatContext = null; // Clear it
     } else {
       this.chatTitle = `Chat - ${new Date().toLocaleDateString()}`;
@@ -2002,7 +7110,7 @@ class AIChatView extends ItemView {
     newChatBtn.onclick = () => this.startNewChat();
 
     if (context) {
-      header.createEl('p', { text: `Continuing analysis with ${PERSPECTIVES[this.currentPerspective]?.title}`, cls: 'chat-subtitle context-active' });
+      header.createEl('p', { text: `Continuing analysis with ${this.sourceTitle}`, cls: 'chat-subtitle context-active' });
     } else {
       header.createEl('p', { text: 'Explore your emotions with AI guidance', cls: 'chat-subtitle' });
     }
@@ -2017,8 +7125,23 @@ class AIChatView extends ItemView {
     }
     select.onchange = () => {
       this.currentPerspective = select.value;
+      this.liveContextTitle = '';
+      this.liveContextDescription = '';
       // Add a system message about perspective change
       this.addMessage('assistant', `I'll now respond from a ${PERSPECTIVES[this.currentPerspective].title} perspective. How can I help you?`);
+    };
+
+    const levelSelector = container.createDiv({ cls: 'perspective-selector-container' });
+    levelSelector.createEl('label', { text: 'Reader level: ' });
+    const levelSelect = levelSelector.createEl('select', { cls: 'perspective-selector' });
+    for (const [key, level] of Object.entries(ZPD_LEVELS)) {
+      const option = levelSelect.createEl('option', { text: level.label, value: key });
+      if (key === this.plugin.settings.zpdLevel) option.selected = true;
+    }
+    levelSelect.onchange = () => {
+      this.plugin.settings.zpdLevel = ZPD_LEVELS[levelSelect.value] ? levelSelect.value : 'tertiary_year_2';
+      void this.plugin.saveSettings();
+      this.addMessage('assistant', `I'll respond at the ${ZPD_LEVELS[this.plugin.settings.zpdLevel].label} level from here.`);
     };
 
     this.messagesContainer = container.createDiv({ cls: 'chat-messages' });
@@ -2027,7 +7150,8 @@ class AIChatView extends ItemView {
     if (context) {
       // Show the journal excerpt
       this.addMessage('user', `[From my journal entry]\n\n${context.journalContent.substring(0, 500)}${context.journalContent.length > 500 ? '...' : ''}`);
-      this.chatMessages.push({ role: 'user', content: `Here is a journal entry I wrote:\n\n${context.journalContent}` });
+      const journalContextForAI = this.plugin.getChatJournalContextForAI(context.journalContent);
+      this.chatMessages.push({ role: 'user', content: `Here is a journal entry I wrote:\n\n${journalContextForAI}` });
 
       // Show the initial analysis
       this.addMessage('assistant', context.initialAnalysis);
@@ -2068,7 +7192,7 @@ class AIChatView extends ItemView {
   async sendMessage() {
     const content = this.inputArea.value.trim();
     if (!content) return;
-    if (!this.plugin.openai) { new Notice('Please set your API key in settings'); return; }
+    if (!this.plugin.hasAIProviderConfigured()) { new Notice(this.plugin.getAIProviderSetupNotice()); return; }
 
     this.inputArea.value = '';
     this.addMessage('user', content);
@@ -2078,14 +7202,20 @@ class AIChatView extends ItemView {
     loadingDiv.createEl('p', { text: 'Thinking...' });
 
     try {
-      const response = await this.plugin.getSinglePerspectiveResponse(this.chatMessages, this.currentPerspective);
+      const response = await this.plugin.getSinglePerspectiveResponse(
+        this.chatMessages,
+        this.currentPerspective,
+        this.liveContextTitle || this.liveContextDescription
+          ? { title: this.liveContextTitle, description: this.liveContextDescription }
+          : undefined
+      );
       loadingDiv.remove();
       this.addMessage('assistant', response);
       this.chatMessages.push({ role: 'assistant', content: response });
     } catch (error) {
       loadingDiv.remove();
-      this.addMessage('assistant', this.plugin.getOpenAIErrorMessage(error, 'I could not process your message.'));
-      new Notice(this.plugin.getOpenAIErrorMessage(error, 'Error processing your message'));
+      this.addMessage('assistant', this.plugin.getAIErrorMessage(error, 'I could not process your message.'));
+      new Notice(this.plugin.getAIErrorMessage(error, 'Error processing your message'));
       console.error(error);
     }
   }
@@ -2100,7 +7230,37 @@ class AIChatView extends ItemView {
         new Notice('This chat is not linked to a journal analysis note. Use export if you want a separate note.');
         return;
       }
-      await this.plugin.saveChatBackToSourceNote(this.sourceFilePath, this.currentPerspective, this.chatMessages, this.chatStartTime);
+      if (!this.sourcePerspectiveKey && !this.sourceGroupKey) {
+        new Notice('This chat is missing its source analysis link. Re-open it from the analysis note and try again.');
+        return;
+      }
+      const messagesToSave = this.chatMessages.filter((message, index) => {
+        if (index === 0 && message.role === 'user' && message.content.startsWith('Here is a journal entry I wrote:')) {
+          return false;
+        }
+        if (this.initialAnalysis && message.role === 'assistant' && message.content === this.initialAnalysis) {
+          return false;
+        }
+        return true;
+      });
+      if (messagesToSave.length === 0) {
+        new Notice('No new chat messages to save beyond the existing analysis');
+        return;
+      }
+      const saved = await this.plugin.saveChatBackToSourceNote(
+        this.sourceFilePath,
+        messagesToSave,
+        this.chatStartTime,
+        {
+          perspectiveKey: this.sourcePerspectiveKey || undefined,
+          groupKey: this.sourceGroupKey || undefined,
+          speakerTitle: this.sourceTitle || undefined
+        }
+      );
+      if (!saved) {
+        new Notice('Could not find the source analysis section in the note. Re-open the chat from the note link and try again.');
+        return;
+      }
       new Notice('Chat saved back to the source analysis section');
     } catch (error) {
       new Notice('Error saving chat');
@@ -2116,25 +7276,73 @@ class AIChatView extends ItemView {
 
     await this.plugin.ensureFolder(this.plugin.settings.chatsFolder);
     const timestamp = new Date().toISOString().split('T')[0];
-    const perspTitle = PERSPECTIVES[this.currentPerspective]?.title || 'Unknown';
-    const fileName = `${this.plugin.settings.chatsFolder}/Chat-Export-${timestamp}-${Date.now()}.md`;
+    const sourcePerspectiveKey = this.sourcePerspectiveKey || this.currentPerspective;
+    const exportTitle = this.sourceTitle || PERSPECTIVES[sourcePerspectiveKey]?.title || PERSPECTIVES[this.currentPerspective]?.title || 'Unknown';
+    const fileLabelKey = this.sourcePerspectiveKey || this.currentPerspective;
+    const chatBaseName = this.plugin.buildChatFileBaseName(this.sourceFilePath, fileLabelKey, timestamp, exportTitle);
+    const fileName = this.plugin.getUniqueMarkdownPath(this.plugin.settings.chatsFolder, chatBaseName);
+    let initialAnalysis = this.initialAnalysis;
+    if (!initialAnalysis && this.sourceFilePath && this.sourceGroupKey) {
+      const sourceFile = this.plugin.getVaultMarkdownFile(this.sourceFilePath);
+      if (sourceFile) {
+        const sourceContent = await this.app.vault.read(sourceFile);
+        const bounds = this.plugin.findGroupSynthesisSectionBounds(sourceContent, this.sourceGroupKey);
+        if (bounds) {
+          initialAnalysis = sourceContent.slice(bounds.start, bounds.end)
+            .replace(/^###\s+.+$/m, '')
+            .replace(/\*\*Continue Group Chat:\*\*.*(?:\n|$)/g, '')
+            .replace(/#### Latest AI Chat[\s\S]*$/m, '')
+            .trim();
+        }
+      }
+    } else if (!initialAnalysis && this.sourceFilePath && sourcePerspectiveKey) {
+      const sourceFile = this.plugin.getVaultMarkdownFile(this.sourceFilePath);
+      if (sourceFile) {
+        const sourceContent = await this.app.vault.read(sourceFile);
+        const sourceAnalysis = this.plugin.extractAnalysisPayloadFromNote(sourceContent);
+        initialAnalysis = sourceAnalysis.perspectives[sourcePerspectiveKey] || '';
+      }
+    }
 
-    let content = `# 💬 Chat Export: ${this.chatTitle}\n\n`;
-    content += `**Perspective:** ${perspTitle}\n`;
+    let content = `# 💬 ${exportTitle} Chat - ${timestamp}\n\n`;
+    content += `**Source Analysis:** ${exportTitle}\n`;
     content += `**Date:** ${this.chatStartTime.toLocaleString()}\n`;
     content += `**Exported:** ${new Date().toLocaleString()}\n\n`;
+    if (this.sourceFilePath) {
+      content += `**Source Note:** [[${this.plugin.getWikiLinkTarget(this.sourceFilePath)}|${this.plugin.getFileDisplayName(this.sourceFilePath)}]]\n\n`;
+      if (this.sourceGroupKey && PERSPECTIVE_GROUPS[this.sourceGroupKey]) {
+        content += `**Source Group Synthesis:** [[${this.plugin.getWikiLinkTarget(this.sourceFilePath)}#${PERSPECTIVE_GROUPS[this.sourceGroupKey].title}|${PERSPECTIVE_GROUPS[this.sourceGroupKey].title}]]\n\n`;
+      } else if (sourcePerspectiveKey) {
+        content += `**Source Analysis Lens:** ${this.plugin.buildPerspectiveSourceNoteLink(this.sourceFilePath, sourcePerspectiveKey)}\n\n`;
+      }
+    }
 
     if (this.journalContext) {
       content += `## 📝 Original Journal Entry\n\n`;
       content += `${this.journalContext}\n\n`;
     }
 
+    if (initialAnalysis) {
+      content += `## 🔍 Linked Analysis\n\n`;
+      content += `${initialAnalysis}\n\n`;
+    }
+
+    const exportedConversation = this.chatMessages.filter((message, index) => {
+      if (index === 0 && message.role === 'user' && message.content.startsWith('Here is a journal entry I wrote:')) {
+        return false;
+      }
+      if (initialAnalysis && message.role === 'assistant' && message.content === initialAnalysis) {
+        return false;
+      }
+      return true;
+    });
+
     content += `---\n\n## 💬 Conversation\n\n`;
-    for (const msg of this.chatMessages) {
+    for (const msg of exportedConversation) {
       if (msg.role === 'user') {
         content += `### You\n\n${msg.content}\n\n`;
       } else {
-        content += `### ${perspTitle}\n\n${msg.content}\n\n`;
+        content += `### ${exportTitle}\n\n${msg.content}\n\n`;
       }
     }
 
@@ -2147,7 +7355,7 @@ class AIChatView extends ItemView {
 
     try {
       const file = await this.app.vault.create(fileName, content);
-      await this.app.workspace.getLeaf().openFile(file);
+      await this.plugin.openFileInSplit(file);
       new Notice('Chat exported to note');
     } catch (error) {
       new Notice('Could not export chat');
@@ -2161,7 +7369,15 @@ class AIChatView extends ItemView {
     this.journalContext = '';
     this.chatTitle = `Chat - ${new Date().toLocaleDateString()}`;
     this.currentPerspective = 'lacanian_perspective';
+    this.sourceChatKind = 'perspective';
+    this.sourcePerspectiveKey = '';
+    this.sourceGroupKey = '';
+    this.sourceTitle = '';
+    this.sourceDescription = '';
+    this.liveContextTitle = '';
+    this.liveContextDescription = '';
     this.sourceFilePath = '';
+    this.initialAnalysis = '';
     void this.onOpen(); // Re-render
     new Notice('Started a new chat');
   }
@@ -2257,8 +7473,8 @@ class JournalEntryModal extends Modal {
 
   async generatePrompt(button: HTMLButtonElement) {
     if (this.isGeneratingPrompt) return;
-    if (!this.plugin.openai) {
-      new Notice('Please set your API key in settings to generate prompts');
+    if (!this.plugin.hasAIProviderConfigured()) {
+      new Notice(this.plugin.getAIProviderSetupNotice());
       return;
     }
 
@@ -2273,7 +7489,7 @@ class JournalEntryModal extends Modal {
       this.promptUseBtn.disabled = !this.suggestedPrompt;
     } catch (error) {
       this.promptDisplay.setText('Could not generate a prompt right now.');
-      new Notice(this.plugin.getOpenAIErrorMessage(error, 'Error generating journal prompt'));
+      new Notice(this.plugin.getAIErrorMessage(error, 'Error generating journal prompt'));
       console.error(error);
     } finally {
       this.isGeneratingPrompt = false;
@@ -2300,13 +7516,14 @@ class JournalEntryModal extends Modal {
     try {
       await this.plugin.ensureFolder(this.plugin.settings.journalFolder);
       const date = new Date();
+      const localDate = this.plugin.formatDateOnly(date);
       const safeTitle = this.plugin.sanitizeFileNamePart(this.title || 'journal');
       const fileName = this.plugin.getUniqueMarkdownPath(
         this.plugin.settings.journalFolder,
-        `${date.toISOString().split('T')[0]}-${safeTitle}`
+        `${localDate}-${safeTitle}`
       );
       const template = `---
-date: ${date.toISOString()}
+date: ${localDate}
 type: journal
 entry_type: ${this.entryType}
 mood_score: ${this.moodScore}
@@ -2323,20 +7540,18 @@ ${this.content}
       this.close();
 
       if (analyze) {
-        if (!this.plugin.openai) {
-          new Notice('Please set your API key in settings to analyze');
+        if (!this.plugin.hasAIProviderConfigured()) {
+          new Notice(this.plugin.getAIProviderSetupNotice());
           return;
         }
-        new Notice('Analyzing with multiple perspectives...');
         try {
           const savedContent = await this.app.vault.read(file);
           const journalContent = this.plugin.stripFrontmatter(savedContent);
-          const analysis = await this.plugin.getMultiPerspectiveAnalysis(journalContent);
-          await this.plugin.appendAnalysisToFile(file, analysis);
+          const analysis = await this.plugin.runJournalAnalysisForFile(file, journalContent);
           new AnalysisResultModal(this.app, this.plugin, analysis, journalContent, file).open();
           new Notice('Analysis added to the note');
         } catch (error) {
-          new Notice(this.plugin.getOpenAIErrorMessage(error, 'Error analyzing journal entry'));
+          new Notice(this.plugin.getAIErrorMessage(error, 'Error analyzing journal entry'));
           console.error(error);
         }
       }
@@ -2360,6 +7575,7 @@ class GoalModal extends Modal {
   category: string = 'personal_growth';
   targetDate: string = '';
   milestones: Milestone[] = [];
+  isSaving: boolean = false;
 
   constructor(app: App, plugin: DeleometerPlugin) {
     super(app);
@@ -2432,14 +7648,17 @@ class GoalModal extends Modal {
   }
 
   async saveGoal() {
+    if (this.isSaving) return;
     if (!this.goalTitle.trim() || !this.description.trim()) { new Notice('Please fill in title and description'); return; }
-    await this.plugin.ensureFolder(this.plugin.settings.goalsFolder);
-    const date = new Date();
-    const fileName = this.plugin.getUniqueMarkdownPath(
-      this.plugin.settings.goalsFolder,
-      this.plugin.sanitizeFileNamePart(this.goalTitle)
-    );
-    const template = `---
+    this.isSaving = true;
+    try {
+      await this.plugin.ensureFolder(this.plugin.settings.goalsFolder);
+      const date = new Date();
+      const fileName = this.plugin.getUniqueMarkdownPath(
+        this.plugin.settings.goalsFolder,
+        this.plugin.sanitizeFileNamePart(this.goalTitle)
+      );
+      const template = `---
 type: goal
 title: "${this.plugin.escapeYamlInlineString(this.goalTitle)}"
 description: "${this.plugin.escapeYamlInlineString(this.description)}"
@@ -2466,11 +7685,22 @@ ${this.milestones.map(m => `- [ ] ${m.title}`).join('\n')}
 ## Progress Notes
 
 `;
-    const file = await this.app.vault.create(fileName, template);
-    await this.plugin.syncGoalFileToFullCalendar(file);
-    await this.app.workspace.getLeaf().openFile(file);
-    new Notice('Goal created!');
-    this.close();
+      const file = await this.app.vault.create(fileName, template);
+      await this.plugin.syncGoalMilestonesToFolder(file, true);
+      const savedGoal = await this.plugin.getGoalFileData(file);
+      if (savedGoal) {
+        await this.app.vault.modify(file, this.plugin.buildStandardGoalNote(savedGoal));
+      }
+      await this.plugin.syncGoalFileToFullCalendar(file);
+      await this.plugin.openFileInSplit(file);
+      new Notice('Goal created!');
+      this.close();
+    } catch (error) {
+      new Notice('Could not create goal');
+      console.error(error);
+    } finally {
+      this.isSaving = false;
+    }
   }
 
   onClose() { this.contentEl.empty(); }
@@ -2481,6 +7711,7 @@ class GoalDraftsModal extends Modal {
   plugin: DeleometerPlugin;
   drafts: GoalSuggestion[];
   sourceAnalysisPath: string;
+  isSaving: boolean = false;
 
   constructor(app: App, plugin: DeleometerPlugin, drafts: GoalSuggestion[], sourceAnalysisPath: string = '') {
     super(app);
@@ -2502,9 +7733,19 @@ class GoalDraftsModal extends Modal {
     contentEl.createEl('h2', { text: 'Draft goals from analysis' });
     contentEl.createEl('p', { text: 'Edit these AI-generated goals before saving them to your goals folder.', cls: 'analysis-source' });
 
+    if (this.drafts.length === 0) {
+      contentEl.createEl('p', { text: 'No proposed goals remain. Close this modal or return to the analysis.', cls: 'analysis-source' });
+    }
+
     this.drafts.forEach((draft, index) => {
       const section = contentEl.createDiv({ cls: 'analysis-section' });
-      section.createEl('h4', { text: `Goal ${index + 1}` });
+      const header = section.createDiv({ cls: 'perspective-header' });
+      header.createEl('h4', { text: `Goal ${index + 1}` });
+      const deleteBtn = header.createEl('button', { text: 'Delete proposed goal', cls: 'btn-secondary' });
+      deleteBtn.onclick = () => {
+        this.drafts.splice(index, 1);
+        this.onOpen();
+      };
 
       const titleGroup = section.createDiv({ cls: 'form-group' });
       titleGroup.createEl('label', { text: 'Title' });
@@ -2550,16 +7791,19 @@ class GoalDraftsModal extends Modal {
     const cancelBtn = btnRow.createEl('button', { text: 'Cancel', cls: 'btn-secondary' });
     cancelBtn.onclick = () => this.close();
     const saveBtn = btnRow.createEl('button', { text: 'Save draft goals', cls: 'btn-primary' });
+    saveBtn.disabled = this.drafts.length === 0;
     saveBtn.onclick = () => { void this.saveGoals(); };
   }
 
   async saveGoals() {
+    if (this.isSaving) return;
     const validDrafts = this.drafts.filter((draft) => draft.title.trim() && draft.description.trim());
     if (validDrafts.length === 0) {
       new Notice('No valid goal drafts to save');
       return;
     }
 
+    this.isSaving = true;
     try {
       let lastFile: TFile | null = null;
       for (const draft of validDrafts) {
@@ -2567,7 +7811,7 @@ class GoalDraftsModal extends Modal {
       }
 
       if (lastFile) {
-        await this.app.workspace.getLeaf().openFile(lastFile);
+        await this.plugin.openFileInSplit(lastFile);
       }
 
       new Notice(`Saved ${validDrafts.length} goal draft${validDrafts.length === 1 ? '' : 's'}!`);
@@ -2575,6 +7819,8 @@ class GoalDraftsModal extends Modal {
     } catch (error) {
       new Notice('Could not save goal drafts');
       console.error(error);
+    } finally {
+      this.isSaving = false;
     }
   }
 
@@ -2669,9 +7915,162 @@ class GoalConsolidationModal extends Modal {
   onClose() { this.contentEl.empty(); }
 }
 
+class MilestoneConsolidationModal extends Modal {
+  plugin: DeleometerPlugin;
+  drafts: MilestoneMergeDraft[];
+
+  constructor(app: App, plugin: DeleometerPlugin, drafts: MilestoneMergeDraft[]) {
+    super(app);
+    this.plugin = plugin;
+    this.drafts = drafts.map((draft) => ({
+      ...draft,
+      sourceMilestones: [...draft.sourceMilestones],
+      mergedGoalPaths: [...draft.mergedGoalPaths],
+      mergedGoalTitles: [...draft.mergedGoalTitles],
+      mergedSourcePerspectives: [...draft.mergedSourcePerspectives]
+    }));
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('deleometer-modal');
+    contentEl.addClass('deleometer-modal-wide');
+    contentEl.createEl('h2', { text: 'Consolidate similar milestones' });
+    contentEl.createEl('p', { text: 'Review the suggested groups below. Saving will keep one consolidated milestone note and mark the others as merged redirects.', cls: 'analysis-source' });
+
+    this.drafts.forEach((draft, index) => {
+      const section = contentEl.createDiv({ cls: 'analysis-section' });
+      section.createEl('h4', { text: `Group ${index + 1}` });
+      section.createEl('p', { text: `Source milestones: ${draft.sourceMilestones.map((milestone) => milestone.title).join(', ')}`, cls: 'analysis-source' });
+
+      const titleGroup = section.createDiv({ cls: 'form-group' });
+      titleGroup.createEl('label', { text: 'Merged title' });
+      const titleInput = titleGroup.createEl('input', { type: 'text', value: draft.mergedTitle });
+      titleInput.oninput = () => { draft.mergedTitle = titleInput.value; };
+
+      const descGroup = section.createDiv({ cls: 'form-group' });
+      descGroup.createEl('label', { text: 'Merged description' });
+      const descArea = descGroup.createEl('textarea', { text: draft.mergedDescription });
+      descArea.oninput = () => { draft.mergedDescription = descArea.value; };
+
+      const dateGroup = section.createDiv({ cls: 'form-group' });
+      dateGroup.createEl('label', { text: 'Target date' });
+      const dateInput = dateGroup.createEl('input', { type: 'date' });
+      dateInput.value = draft.mergedTargetDate || '';
+      dateInput.oninput = () => { draft.mergedTargetDate = dateInput.value || undefined; };
+
+      const goalsGroup = section.createDiv({ cls: 'form-group' });
+      goalsGroup.createEl('label', { text: 'Related goal titles (one per line)' });
+      const goalsArea = goalsGroup.createEl('textarea', { text: draft.mergedGoalTitles.join('\n') });
+      goalsArea.oninput = () => {
+        draft.mergedGoalTitles = goalsArea.value.split('\n').map((line) => line.trim()).filter(Boolean);
+      };
+    });
+
+    const btnRow = contentEl.createDiv({ cls: 'btn-row' });
+    const cancelBtn = btnRow.createEl('button', { text: 'Cancel', cls: 'btn-secondary' });
+    cancelBtn.onclick = () => this.close();
+    const saveBtn = btnRow.createEl('button', { text: 'Merge suggested milestones', cls: 'btn-primary' });
+    saveBtn.onclick = () => { void this.save(); };
+  }
+
+  async save() {
+    const validDrafts = this.drafts.filter((draft) => draft.mergedTitle.trim() && draft.mergedDescription.trim() && draft.sourceMilestones.length > 1);
+    if (validDrafts.length === 0) {
+      new Notice('No valid milestone consolidations to save');
+      return;
+    }
+
+    try {
+      await this.plugin.consolidateMilestoneDrafts(validDrafts);
+      this.close();
+    } catch (error) {
+      new Notice('Could not consolidate milestones');
+      console.error(error);
+    }
+  }
+
+  onClose() { this.contentEl.empty(); }
+}
+
 
 // Personality Assessment Modal
 class PersonalityAssessmentModal extends Modal {
+  plugin: DeleometerPlugin;
+
+  constructor(app: App, plugin: DeleometerPlugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('deleometer-modal');
+    contentEl.addClass('deleometer-modal-medium');
+    contentEl.createEl('h2', { text: 'Reflective assessments' });
+    contentEl.createEl('p', {
+      text: 'Choose a reflective assessment. The big five uses the five-factor model. The typology and maslow profiles are stored separately rather than being inferred from one another.',
+      cls: 'analysis-source'
+    });
+
+    const options = contentEl.createDiv({ cls: 'analysis-results' });
+
+    const bigFiveCard = options.createDiv({ cls: 'analysis-section' });
+    bigFiveCard.createEl('h3', { text: 'Big five / five-factor model' });
+    bigFiveCard.createEl('p', {
+      text: 'Trait-based personality model using openness, conscientiousness, extraversion, agreeableness, and neuroticism.',
+      cls: 'analysis-source'
+    });
+    if (this.plugin.settings.personalityProfile) {
+      bigFiveCard.createEl('p', { text: `Latest summary: ${this.plugin.settings.personalityProfile.psychological_type}` });
+    }
+    const bigFiveBtn = bigFiveCard.createEl('button', { text: 'Take big five assessment', cls: 'btn-primary' });
+    bigFiveBtn.onclick = () => {
+      this.close();
+      new BigFiveAssessmentModal(this.app, this.plugin).open();
+    };
+
+    const mbtiCard = options.createDiv({ cls: 'analysis-section' });
+    mbtiCard.createEl('h3', { text: 'Typology profile' });
+    mbtiCard.createEl('p', {
+      text: 'Typology-oriented reflective profile across introversion-extraversion, sensing-intuition, thinking-feeling, and judging-perceiving. This short version draws on the myers-briggs tradition but is not an official mbti instrument.',
+      cls: 'analysis-source'
+    });
+    if (this.plugin.settings.myersBriggsProfile) {
+      mbtiCard.createEl('p', { text: `Latest type: ${this.plugin.settings.myersBriggsProfile.type_code}` });
+    }
+    const mbtiBtn = mbtiCard.createEl('button', { text: 'Take typology assessment', cls: 'btn-primary' });
+    mbtiBtn.onclick = () => {
+      this.close();
+      new MyersBriggsAssessmentModal(this.app, this.plugin).open();
+    };
+
+    const maslowCard = options.createDiv({ cls: 'analysis-section' });
+    maslowCard.createEl('h3', { text: 'Maslow needs profile' });
+    maslowCard.createEl('p', {
+      text: 'Reflective needs profile across physiological, safety, belonging, esteem, and self-actualization layers.',
+      cls: 'analysis-source'
+    });
+    if (this.plugin.settings.maslowProfile) {
+      maslowCard.createEl('p', { text: `Latest summary: ${this.plugin.settings.maslowProfile.summary}` });
+    }
+    const maslowBtn = maslowCard.createEl('button', { text: 'Take needs assessment', cls: 'btn-primary' });
+    maslowBtn.onclick = () => {
+      this.close();
+      new MaslowAssessmentModal(this.app, this.plugin).open();
+    };
+
+    const btnRow = contentEl.createDiv({ cls: 'btn-row' });
+    const closeBtn = btnRow.createEl('button', { text: 'Close', cls: 'btn-secondary' });
+    closeBtn.onclick = () => this.close();
+  }
+
+  onClose() { this.contentEl.empty(); }
+}
+
+class BigFiveAssessmentModal extends Modal {
   plugin: DeleometerPlugin;
   currentQuestion: number = 0;
   answers: number[] = [];
@@ -2696,9 +8095,13 @@ class PersonalityAssessmentModal extends Modal {
     }
 
     const q = ASSESSMENT_QUESTIONS[this.currentQuestion];
-    const progress = ((this.currentQuestion) / ASSESSMENT_QUESTIONS.length) * 100;
+    const progress = (this.currentQuestion / ASSESSMENT_QUESTIONS.length) * 100;
 
-    contentEl.createEl('h2', { text: 'Personality assessment' });
+    contentEl.createEl('h2', { text: 'Big five assessment' });
+    contentEl.createEl('p', {
+      text: 'Theory: five-factor model. This short reflective questionnaire estimates five broad personality traits. It is not a clinical or official psychometric instrument.',
+      cls: 'analysis-source'
+    });
 
     const progressDiv = contentEl.createDiv({ cls: 'assessment-progress' });
     const progressBar = progressDiv.createDiv({ cls: 'progress-bar' });
@@ -2715,7 +8118,7 @@ class PersonalityAssessmentModal extends Modal {
       option.createEl('span', { text: label });
       option.onclick = () => {
         this.answers.push(i + 1);
-        this.currentQuestion++;
+        this.currentQuestion += 1;
         this.renderQuestion();
       };
     });
@@ -2728,6 +8131,7 @@ class PersonalityAssessmentModal extends Modal {
 
     const scores = this.calculateScores();
     const profile: PersonalityProfile = {
+      theory: 'Five-Factor Model (Big Five). A broad trait model across openness, conscientiousness, extraversion, agreeableness, and neuroticism, estimated here through a short reflective questionnaire.',
       big_five_scores: scores,
       assessment_date: new Date().toISOString(),
       dominant_traits: this.getDominantTraits(scores),
@@ -2738,7 +8142,8 @@ class PersonalityAssessmentModal extends Modal {
     this.plugin.settings.personalityProfile = profile;
     void this.plugin.saveSettings();
 
-    contentEl.createEl('h2', { text: 'Your personality profile' });
+    contentEl.createEl('h2', { text: 'Your big five profile' });
+    contentEl.createEl('p', { text: profile.theory, cls: 'analysis-source' });
 
     const chart = contentEl.createDiv({ cls: 'big-five-chart' });
     const traits = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'] as const;
@@ -2765,6 +8170,11 @@ class PersonalityAssessmentModal extends Modal {
     growth.createEl('p', { text: profile.growth_areas.join(', ') });
 
     const btnRow = contentEl.createDiv({ cls: 'btn-row' });
+    const backBtn = btnRow.createEl('button', { text: 'Back to assessments', cls: 'btn-secondary' });
+    backBtn.onclick = () => {
+      this.close();
+      new PersonalityAssessmentModal(this.app, this.plugin).open();
+    };
     const closeBtn = btnRow.createEl('button', { text: 'Close', cls: 'btn-primary' });
     closeBtn.onclick = () => this.close();
   }
@@ -2811,6 +8221,355 @@ class PersonalityAssessmentModal extends Modal {
   onClose() { this.contentEl.empty(); }
 }
 
+class MyersBriggsAssessmentModal extends Modal {
+  plugin: DeleometerPlugin;
+  currentQuestion: number = 0;
+  answers: number[] = [];
+
+  constructor(app: App, plugin: DeleometerPlugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+
+  onOpen() {
+    this.renderQuestion();
+  }
+
+  renderQuestion() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('deleometer-modal');
+
+    if (this.currentQuestion >= MYERS_BRIGGS_QUESTIONS.length) {
+      this.showResults();
+      return;
+    }
+
+    const q = MYERS_BRIGGS_QUESTIONS[this.currentQuestion];
+    const progress = (this.currentQuestion / MYERS_BRIGGS_QUESTIONS.length) * 100;
+
+    contentEl.createEl('h2', { text: 'Typology assessment' });
+    contentEl.createEl('p', {
+      text: 'Theory: jung-influenced typology. This short reflective version draws on the myers-briggs tradition for orientation and is not an official mbti instrument.',
+      cls: 'analysis-source'
+    });
+
+    const progressDiv = contentEl.createDiv({ cls: 'assessment-progress' });
+    const progressBar = progressDiv.createDiv({ cls: 'progress-bar' });
+    const progressFill = progressBar.createDiv({ cls: 'progress-fill' });
+    progressFill.style.width = `${progress}%`;
+    progressDiv.createEl('p', { text: `Question ${this.currentQuestion + 1} of ${MYERS_BRIGGS_QUESTIONS.length}`, cls: 'progress-text' });
+
+    const questionDiv = contentEl.createDiv({ cls: 'assessment-question' });
+    questionDiv.createEl('h3', { text: q.prompt });
+    questionDiv.createEl('p', {
+      text: 'Move the slider toward the side that feels more true for you right now. Leave it near the middle when both sides fit.',
+      cls: 'analysis-source'
+    });
+
+    const scaleDiv = questionDiv.createDiv({ cls: 'bipolar-scale' });
+    const labelsDiv = scaleDiv.createDiv({ cls: 'bipolar-labels' });
+    labelsDiv.createEl('span', { text: q.leftLabel });
+    labelsDiv.createEl('span', { text: q.rightLabel });
+
+    const slider = scaleDiv.createEl('input', {
+      type: 'range',
+      cls: 'bipolar-slider',
+      attr: { min: '1', max: '7', step: '1', value: '4' }
+    });
+    const currentValue = scaleDiv.createEl('p', {
+      text: this.describeTypologySliderValue(4, q.leftLabel, q.rightLabel),
+      cls: 'bipolar-current'
+    });
+    slider.oninput = () => {
+      currentValue.setText(this.describeTypologySliderValue(Number(slider.value), q.leftLabel, q.rightLabel));
+    };
+
+    new Setting(questionDiv)
+      .addButton((button) => button
+        .setButtonText(this.currentQuestion === MYERS_BRIGGS_QUESTIONS.length - 1 ? 'See results' : 'Next')
+        .setCta()
+        .onClick(() => {
+          this.answers.push(Number(slider.value));
+          this.currentQuestion += 1;
+          this.renderQuestion();
+        }));
+  }
+
+  describeTypologySliderValue(value: number, leftLabel: string, rightLabel: string): string {
+    if (value <= 1) return `Strongly toward ${leftLabel.toLowerCase()}`;
+    if (value <= 3) return `Somewhat toward ${leftLabel.toLowerCase()}`;
+    if (value === 4) return 'Balanced, mixed, or not sure';
+    if (value <= 6) return `Somewhat toward ${rightLabel.toLowerCase()}`;
+    return `Strongly toward ${rightLabel.toLowerCase()}`;
+  }
+
+  calculateProfile(): MyersBriggsProfile {
+    const dimensionScores: MyersBriggsDimensions = { ei: 0, sn: 0, tf: 0, jp: 0 };
+    const grouped: Record<keyof MyersBriggsDimensions, number[]> = { ei: [], sn: [], tf: [], jp: [] };
+
+    MYERS_BRIGGS_QUESTIONS.forEach((question, index) => {
+      grouped[question.dimension].push(this.answers[index]);
+    });
+
+    (Object.keys(grouped) as Array<keyof MyersBriggsDimensions>).forEach((dimension) => {
+      const avg = grouped[dimension].reduce((sum, value) => sum + value, 0) / grouped[dimension].length;
+      dimensionScores[dimension] = Math.round(((avg - 1) / 6) * 100);
+    });
+
+    const typeCode = [
+      dimensionScores.ei >= 50 ? 'E' : 'I',
+      dimensionScores.sn >= 50 ? 'N' : 'S',
+      dimensionScores.tf >= 50 ? 'F' : 'T',
+      dimensionScores.jp >= 50 ? 'P' : 'J'
+    ].join('');
+
+    const strengths: string[] = [];
+    const growthAreas: string[] = [];
+
+    if (typeCode[0] === 'E') strengths.push('energising interaction and outward engagement');
+    else strengths.push('reflection, focus, and self-directed processing');
+    if (typeCode[1] === 'N') strengths.push('pattern recognition and future possibility thinking');
+    else strengths.push('practical detail and grounded observation');
+    if (typeCode[2] === 'T') strengths.push('logical analysis and consistency');
+    else strengths.push('value sensitivity and relational awareness');
+    if (typeCode[3] === 'J') strengths.push('structure, closure, and advance planning');
+    else strengths.push('adaptability, openness, and responsive improvisation');
+
+    if (typeCode[0] === 'E') growthAreas.push('making room for solitude and slower reflection');
+    else growthAreas.push('stepping outward when collaboration is needed');
+    if (typeCode[1] === 'N') growthAreas.push('checking ideas against practical detail');
+    else growthAreas.push('making room for longer-range imagination');
+    if (typeCode[2] === 'T') growthAreas.push('attending to emotional and relational effects');
+    else growthAreas.push('holding values alongside firmer decision criteria');
+    if (typeCode[3] === 'J') growthAreas.push('keeping flexibility when plans change');
+    else growthAreas.push('building more stable routines and commitments');
+
+    const summary = `Type ${typeCode} suggests a preference pattern rather than a fixed identity: ${strengths.slice(0, 2).join(', ')}, with likely growth in ${growthAreas.slice(0, 2).join(' and ')}.`;
+
+    return {
+      theory: 'Myers-Briggs / Jungian typology reflective profile. A short preference-oriented exercise across Extraversion-Introversion, Sensing-Intuition, Thinking-Feeling, and Judging-Perceiving. This plugin version is reflective and unofficial.',
+      assessment_date: new Date().toISOString(),
+      type_code: typeCode,
+      dimension_scores: dimensionScores,
+      summary,
+      strengths,
+      growth_areas: growthAreas
+    };
+  }
+
+  showResults() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('deleometer-modal');
+
+    const profile = this.calculateProfile();
+    this.plugin.settings.myersBriggsProfile = profile;
+    void this.plugin.saveSettings();
+
+    contentEl.createEl('h2', { text: 'Your typology profile' });
+    contentEl.createEl('p', { text: profile.theory, cls: 'analysis-source' });
+
+    const summary = contentEl.createDiv({ cls: 'analysis-section' });
+    summary.createEl('h4', { text: `Type ${profile.type_code}` });
+    summary.createEl('p', { text: profile.summary });
+
+    const dimensions = contentEl.createDiv({ cls: 'big-five-chart' });
+    const labels: Array<{ key: keyof MyersBriggsDimensions; label: string }> = [
+      { key: 'ei', label: 'E / I' },
+      { key: 'sn', label: 'N / S' },
+      { key: 'tf', label: 'F / T' },
+      { key: 'jp', label: 'P / J' }
+    ];
+    for (const dimension of labels) {
+      const score = profile.dimension_scores[dimension.key];
+      const bar = dimensions.createDiv({ cls: 'trait-bar' });
+      bar.createDiv({ cls: 'trait-label', text: dimension.label });
+      const progress = bar.createDiv({ cls: 'trait-progress' });
+      const fill = progress.createDiv({ cls: 'progress-fill' });
+      fill.style.width = `${score}%`;
+      bar.createDiv({ cls: 'trait-score', text: `${score}` });
+    }
+
+    const strengths = contentEl.createDiv({ cls: 'analysis-section' });
+    strengths.createEl('h4', { text: 'Strengths' });
+    strengths.createEl('p', { text: profile.strengths.join(', ') });
+
+    const growth = contentEl.createDiv({ cls: 'analysis-section' });
+    growth.createEl('h4', { text: 'Growth areas' });
+    growth.createEl('p', { text: profile.growth_areas.join(', ') });
+
+    const btnRow = contentEl.createDiv({ cls: 'btn-row' });
+    const backBtn = btnRow.createEl('button', { text: 'Back to assessments', cls: 'btn-secondary' });
+    backBtn.onclick = () => {
+      this.close();
+      new PersonalityAssessmentModal(this.app, this.plugin).open();
+    };
+    const closeBtn = btnRow.createEl('button', { text: 'Close', cls: 'btn-primary' });
+    closeBtn.onclick = () => this.close();
+  }
+
+  onClose() { this.contentEl.empty(); }
+}
+
+class MaslowAssessmentModal extends Modal {
+  plugin: DeleometerPlugin;
+  currentQuestion: number = 0;
+  answers: number[] = [];
+
+  constructor(app: App, plugin: DeleometerPlugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+
+  onOpen() {
+    this.renderQuestion();
+  }
+
+  renderQuestion() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('deleometer-modal');
+
+    if (this.currentQuestion >= MASLOW_QUESTIONS.length) {
+      this.showResults();
+      return;
+    }
+
+    const q = MASLOW_QUESTIONS[this.currentQuestion];
+    const progress = (this.currentQuestion / MASLOW_QUESTIONS.length) * 100;
+
+    contentEl.createEl('h2', { text: 'Needs assessment' });
+    contentEl.createEl('p', {
+      text: 'Theory: maslow hierarchy of needs. This short reflective questionnaire looks at which layers of need feel more supported or more strained right now. It is not a diagnostic tool.',
+      cls: 'analysis-source'
+    });
+
+    const progressDiv = contentEl.createDiv({ cls: 'assessment-progress' });
+    const progressBar = progressDiv.createDiv({ cls: 'progress-bar' });
+    const progressFill = progressBar.createDiv({ cls: 'progress-fill' });
+    progressFill.style.width = `${progress}%`;
+    progressDiv.createEl('p', { text: `Question ${this.currentQuestion + 1} of ${MASLOW_QUESTIONS.length}`, cls: 'progress-text' });
+
+    const questionDiv = contentEl.createDiv({ cls: 'assessment-question' });
+    questionDiv.createEl('h3', { text: q.question });
+
+    const optionsDiv = questionDiv.createDiv({ cls: 'scale-options' });
+    SCALE_LABELS.forEach((label, i) => {
+      const option = optionsDiv.createDiv({ cls: 'scale-option' });
+      option.createEl('span', { text: label });
+      option.onclick = () => {
+        this.answers.push(i + 1);
+        this.currentQuestion += 1;
+        this.renderQuestion();
+      };
+    });
+  }
+
+  calculateProfile(): MaslowProfile {
+    const grouped: Record<keyof MaslowNeedsScores, number[]> = {
+      physiological: [],
+      safety: [],
+      belonging: [],
+      esteem: [],
+      self_actualization: []
+    };
+    MASLOW_QUESTIONS.forEach((question, index) => {
+      let score = this.answers[index];
+      if (question.reverse) score = 8 - score;
+      grouped[question.need].push(score);
+    });
+
+    const needsScores: MaslowNeedsScores = {
+      physiological: 0,
+      safety: 0,
+      belonging: 0,
+      esteem: 0,
+      self_actualization: 0
+    };
+
+    (Object.keys(needsScores) as Array<keyof MaslowNeedsScores>).forEach((need) => {
+      const avg = grouped[need].reduce((sum, value) => sum + value, 0) / grouped[need].length;
+      needsScores[need] = Math.round((avg / 7) * 100);
+    });
+
+    const ranked = Object.entries(needsScores).sort((a, b) => b[1] - a[1]);
+    const labelMap: Record<keyof MaslowNeedsScores, string> = {
+      physiological: 'physiological',
+      safety: 'safety',
+      belonging: 'belonging',
+      esteem: 'esteem',
+      self_actualization: 'self-actualization'
+    };
+    const strongest = ranked.slice(0, 2).map(([key]) => labelMap[key as keyof MaslowNeedsScores]);
+    const growthAreas = ranked.slice(-2).map(([key]) => labelMap[key as keyof MaslowNeedsScores]);
+    const summary = `Your current pattern suggests stronger support around ${strongest.join(' and ')}, with more attention likely needed around ${growthAreas.join(' and ')}.`;
+
+    return {
+      theory: 'Maslow hierarchy of needs reflective profile. A short exercise across physiological, safety, belonging, esteem, and self-actualization layers, used here as a practical reflection tool rather than a fixed ranking of human worth.',
+      assessment_date: new Date().toISOString(),
+      needs_scores: needsScores,
+      strongest_needs: strongest,
+      growth_areas: growthAreas,
+      summary
+    };
+  }
+
+  showResults() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('deleometer-modal');
+
+    const profile = this.calculateProfile();
+    this.plugin.settings.maslowProfile = profile;
+    void this.plugin.saveSettings();
+
+    contentEl.createEl('h2', { text: 'Your needs profile' });
+    contentEl.createEl('p', { text: profile.theory, cls: 'analysis-source' });
+
+    const needsChart = contentEl.createDiv({ cls: 'big-five-chart' });
+    const labels: Array<{ key: keyof MaslowNeedsScores; label: string }> = [
+      { key: 'physiological', label: 'Physiological' },
+      { key: 'safety', label: 'Safety' },
+      { key: 'belonging', label: 'Belonging' },
+      { key: 'esteem', label: 'Esteem' },
+      { key: 'self_actualization', label: 'Self-actualization' }
+    ];
+    for (const need of labels) {
+      const score = profile.needs_scores[need.key];
+      const bar = needsChart.createDiv({ cls: 'trait-bar' });
+      bar.createDiv({ cls: 'trait-label', text: need.label });
+      const progress = bar.createDiv({ cls: 'trait-progress' });
+      const fill = progress.createDiv({ cls: 'progress-fill' });
+      fill.style.width = `${score}%`;
+      bar.createDiv({ cls: 'trait-score', text: `${score}` });
+    }
+
+    const summary = contentEl.createDiv({ cls: 'analysis-section' });
+    summary.createEl('h4', { text: 'Summary' });
+    summary.createEl('p', { text: profile.summary });
+
+    const strongest = contentEl.createDiv({ cls: 'analysis-section' });
+    strongest.createEl('h4', { text: 'Currently strongest supported needs' });
+    strongest.createEl('p', { text: profile.strongest_needs.join(', ') });
+
+    const growth = contentEl.createDiv({ cls: 'analysis-section' });
+    growth.createEl('h4', { text: 'Growth areas' });
+    growth.createEl('p', { text: profile.growth_areas.join(', ') });
+
+    const btnRow = contentEl.createDiv({ cls: 'btn-row' });
+    const backBtn = btnRow.createEl('button', { text: 'Back to assessments', cls: 'btn-secondary' });
+    backBtn.onclick = () => {
+      this.close();
+      new PersonalityAssessmentModal(this.app, this.plugin).open();
+    };
+    const closeBtn = btnRow.createEl('button', { text: 'Close', cls: 'btn-primary' });
+    closeBtn.onclick = () => this.close();
+  }
+
+  onClose() { this.contentEl.empty(); }
+}
+
 
 // Analysis Result Modal - Shows multi-perspective analysis with option to chat
 class AnalysisResultModal extends Modal {
@@ -2818,6 +8577,7 @@ class AnalysisResultModal extends Modal {
   analysis: AnalysisPayload;
   originalContent: string;
   sourceFile: TFile | null;
+  isGeneratingGoals: boolean = false;
 
   constructor(app: App, plugin: DeleometerPlugin, analysis: AnalysisPayload, originalContent: string = '', sourceFile: TFile | null = null) {
     super(app);
@@ -2838,18 +8598,81 @@ class AnalysisResultModal extends Modal {
     }
 
     const results = contentEl.createDiv({ cls: 'analysis-results' });
-    for (const [perspKey, analysisContent] of Object.entries(this.analysis.perspectives)) {
-      const persp = PERSPECTIVES[perspKey];
-      const card = results.createDiv({ cls: 'perspective-card' });
+    for (const groupKey of getChronologicalGroupKeys()) {
+      const groupEntries = Object.entries(this.analysis.perspectives)
+        .filter(([perspKey]) => PERSPECTIVES[perspKey]?.group === groupKey);
+      if (groupEntries.length === 0) continue;
 
-      const header = card.createDiv({ cls: 'perspective-header' });
-      header.createEl('h4', { text: persp?.title || perspKey });
+      const group = PERSPECTIVE_GROUPS[groupKey];
+      const groupHeader = results.createDiv({ cls: 'perspective-group-heading' });
+      groupHeader.createEl('h3', { text: group.title });
+      groupHeader.createEl('p', { text: group.description });
 
-      // Chat button for this perspective
-      const chatBtn = header.createEl('button', { text: 'Chat with this perspective', cls: 'chat-with-btn' });
-      chatBtn.onclick = () => { void this.openChatWithPerspective(perspKey, analysisContent); };
+      for (const [perspKey, analysisContent] of groupEntries) {
+        const persp = PERSPECTIVES[perspKey];
+        const card = results.createDiv({ cls: 'perspective-card' });
 
-      card.createEl('p', { text: analysisContent });
+        const header = card.createDiv({ cls: 'perspective-header' });
+        header.createEl('h4', { text: persp?.title || perspKey });
+
+        // Chat button for this perspective
+        const chatBtn = header.createEl('button', { text: 'Chat with this perspective', cls: 'chat-with-btn' });
+        chatBtn.onclick = () => { void this.openChatWithPerspective(perspKey, analysisContent); };
+
+        card.createEl('p', { text: analysisContent });
+        const readings = this.analysis.furtherReadings[perspKey] || [];
+        if (readings.length > 0) {
+          card.createEl('h5', { text: 'Further readings' });
+          const readingsList = card.createEl('ul');
+          for (const reading of readings) {
+            readingsList.createEl('li', { text: reading });
+          }
+        }
+      }
+    }
+
+    if (Object.keys(this.analysis.groupSyntheses).length > 0) {
+      const synthesisSection = contentEl.createDiv({ cls: 'analysis-section' });
+      synthesisSection.createEl('h3', { text: 'Group syntheses' });
+      for (const [groupKey, content] of Object.entries(this.analysis.groupSyntheses)) {
+        const group = PERSPECTIVE_GROUPS[groupKey];
+        const synthesisCard = synthesisSection.createDiv({ cls: 'perspective-card' });
+        const header = synthesisCard.createDiv({ cls: 'perspective-header' });
+        header.createEl('h4', { text: group?.title || groupKey });
+        const chatBtn = header.createEl('button', { text: 'Chat with this synthesis', cls: 'chat-with-btn' });
+        chatBtn.onclick = () => { void this.openChatWithGroupSynthesis(groupKey, content); };
+        synthesisCard.createEl('p', { text: content });
+      }
+    }
+
+    if (this.analysis.philosophicalReaccumulation) {
+      const philosophySection = contentEl.createDiv({ cls: 'analysis-section' });
+      philosophySection.createEl('h3', { text: 'Philosophy re-accumulation' });
+      philosophySection.createEl('p', { text: this.analysis.philosophicalReaccumulation });
+    }
+
+    if (this.analysis.inspirationalSong) {
+      const songSection = contentEl.createDiv({ cls: 'analysis-section' });
+      songSection.createEl('h3', { text: 'Inspirational song' });
+      songSection.createEl('h4', { text: this.analysis.inspirationalSong.title });
+      songSection.createEl('p', { text: this.analysis.inspirationalSong.rationale });
+      songSection.createEl('p', {
+        text: `Mood: ${this.analysis.inspirationalSong.mood} | Tempo: ${this.analysis.inspirationalSong.tempoBpm} BPM | Key: ${this.analysis.inspirationalSong.keyCenter} ${this.analysis.inspirationalSong.scaleMode}`
+      });
+      songSection.createEl('p', { text: `Hook: ${this.analysis.inspirationalSong.hookLine}` });
+      songSection.createEl('pre', { text: this.analysis.inspirationalSong.lyrics });
+      if (this.analysis.inspirationalSong.audioFilePath) {
+        songSection.createEl('p', { text: `Audio file: ${this.plugin.getFileDisplayName(this.analysis.inspirationalSong.audioFilePath)}`, cls: 'analysis-source' });
+      }
+    }
+
+    if (this.analysis.analysisWarnings.length > 0) {
+      const warningSection = contentEl.createDiv({ cls: 'analysis-section' });
+      warningSection.createEl('h3', { text: 'Analysis notes' });
+      const warningList = warningSection.createEl('ul');
+      for (const warning of this.analysis.analysisWarnings) {
+        warningList.createEl('li', { text: warning });
+      }
     }
 
     if (this.analysis.authorMemorySummary) {
@@ -2864,16 +8687,40 @@ class AnalysisResultModal extends Modal {
         text: 'Append analysis to note',
         cls: 'btn-secondary analysis-append-button'
       });
-      appendBtn.onclick = () => { void this.appendAnalysisToNote(); };
+      appendBtn.onclick = () => { void this.runButtonAction(appendBtn, 'Append analysis to note', 'Appending...', () => this.appendAnalysisToNote()); };
     }
 
     const btnRow = contentEl.createDiv({ cls: 'btn-row' });
-    if (this.analysis.goalSuggestions.length > 0) {
-      const goalBtn = btnRow.createEl('button', { text: 'Draft goals from analysis', cls: 'btn-secondary' });
-      goalBtn.onclick = () => this.openGoalDrafts();
+    if (this.sourceFile || this.analysis.goalSuggestions.length > 0) {
+      const goalBtn = btnRow.createEl('button', {
+        text: this.analysis.goalSuggestions.length > 0 ? 'Draft goals from analysis' : 'Generate draft goals',
+        cls: 'btn-secondary'
+      });
+      goalBtn.onclick = () => {
+        void this.runButtonAction(
+          goalBtn,
+          () => (this.analysis.goalSuggestions.length > 0 ? 'Draft goals from analysis' : 'Generate draft goals'),
+          'Generating...',
+          async () => this.openGoalDrafts(goalBtn)
+        );
+      };
     }
     const closeBtn = btnRow.createEl('button', { text: 'Close', cls: 'btn-primary' });
     closeBtn.onclick = () => this.close();
+  }
+
+  async runButtonAction(button: HTMLButtonElement, idleText: string | (() => string), busyText: string, action: () => Promise<void>) {
+    if (button.disabled) return;
+    button.disabled = true;
+    button.addClass('is-busy');
+    button.setText(busyText);
+    try {
+      await action();
+    } finally {
+      button.removeClass('is-busy');
+      button.disabled = false;
+      button.setText(typeof idleText === 'function' ? idleText() : idleText);
+    }
   }
 
   async openChatWithPerspective(perspectiveKey: string, initialAnalysis: string) {
@@ -2882,13 +8729,36 @@ class AnalysisResultModal extends Modal {
     }
     this.close();
     this.plugin.pendingChatContext = {
+      chatKind: 'perspective',
       perspective: perspectiveKey,
       journalContent: this.originalContent,
       initialAnalysis,
-      sourceFilePath: this.sourceFile?.path || ''
+      sourceFilePath: this.sourceFile?.path || '',
+      sourceTitle: PERSPECTIVES[perspectiveKey]?.title || perspectiveKey,
+      sourceDescription: PERSPECTIVES[perspectiveKey]?.description || ''
     };
     await this.plugin.activateAIChatView();
     new Notice(`Opening chat with ${PERSPECTIVES[perspectiveKey]?.title || perspectiveKey} perspective`);
+  }
+
+  async openChatWithGroupSynthesis(groupKey: string, initialAnalysis: string) {
+    if (this.sourceFile) {
+      await this.plugin.appendAnalysisToFile(this.sourceFile, this.analysis);
+    }
+    this.close();
+    const group = PERSPECTIVE_GROUPS[groupKey];
+    this.plugin.pendingChatContext = {
+      chatKind: 'group_synthesis',
+      perspective: this.plugin.getDefaultPerspectiveForGroup(groupKey),
+      journalContent: this.originalContent,
+      initialAnalysis,
+      sourceFilePath: this.sourceFile?.path || '',
+      sourceGroupKey: groupKey,
+      sourceTitle: `${group?.title || groupKey} synthesis`,
+      sourceDescription: `${group?.description || ''}. This chat begins from the synthesis across the perspectives in this group.`
+    };
+    await this.plugin.activateAIChatView();
+    new Notice(`Opening chat with ${group?.title || groupKey} synthesis`);
   }
 
   async appendAnalysisToNote() {
@@ -2897,7 +8767,27 @@ class AnalysisResultModal extends Modal {
     new Notice('Analysis appended to note!');
   }
 
-  openGoalDrafts() {
+  async openGoalDrafts(button?: HTMLButtonElement) {
+    if (this.analysis.goalSuggestions.length === 0) {
+      if (!this.sourceFile) {
+        new Notice('Goal drafts can only be generated from a saved analysis note.');
+        return;
+      }
+      this.analysis.goalSuggestions = await this.plugin.generateGoalSuggestionsFromAnalysis(
+        this.originalContent,
+        this.analysis,
+        this.sourceFile.path
+      );
+      if (this.analysis.goalSuggestions.length === 0) {
+        new Notice('No goal drafts could be generated from this analysis.');
+        return;
+      }
+      await this.plugin.appendAnalysisToFile(this.sourceFile, this.analysis);
+      if (button) {
+        button.setText('Draft goals from analysis');
+      }
+      new Notice('Draft goals generated from this analysis.');
+    }
     new GoalDraftsModal(this.app, this.plugin, this.analysis.goalSuggestions, this.sourceFile?.path || '').open();
   }
 
@@ -2921,19 +8811,257 @@ class DeleometerSettingTab extends PluginSettingTab {
       text: 'Configure journal analysis, goals, and calendar sync.',
       cls: 'setting-item-description'
     });
+    new Setting(containerEl)
+      .setName('Safety and interpretation')
+      .setDesc(SAFETY_DISCLAIMER)
+      .setHeading();
 
     new Setting(containerEl)
-      .setName('API key')
-      .setDesc(this.plugin.settings.openaiApiKey
-        ? 'Your API key for AI analysis. A key is currently stored in plugin data and reloaded on startup.'
-        : 'Your API key for AI analysis.')
-      .addText(text => text
-        .setPlaceholder('Paste your API key')
-        .setValue(this.plugin.settings.openaiApiKey)
+      .setName('Security and privacy')
+      .setDesc(PRIVACY_SECURITY_NOTICE)
+      .setHeading();
+
+    new Setting(containerEl)
+      .setName('AI provider')
+      .setDesc(this.plugin.getAIProviderPrivacyNotice())
+      .addDropdown((dropdown) => dropdown
+        .addOption('openai', 'OpenAI')
+        .addOption('ollama', 'Local Ollama')
+        .setValue(this.plugin.settings.aiProvider)
         .onChange(async (value) => {
-          this.plugin.settings.openaiApiKey = value;
+          this.plugin.settings.aiProvider = value as AIProvider;
+          this.plugin.initializeAIProvider();
           await this.plugin.saveSettings();
-          if (value) this.plugin.initializeOpenAI();
+          this.display();
+        }));
+
+    new Setting(containerEl)
+      .setName('Estimated AI cost')
+      .setDesc(this.plugin.getAIProviderCostEstimateText());
+
+    if (this.plugin.settings.aiProvider === 'openai') {
+      new Setting(containerEl)
+        .setName('OpenAI model')
+        .setDesc('Model used for OpenAI analysis, chat, goals, songs, and prompts.')
+        .addText((text) => text
+          .setPlaceholder(DEFAULT_SETTINGS.openaiModel)
+          .setValue(this.plugin.settings.openaiModel)
+          .onChange(async (value) => {
+            this.plugin.settings.openaiModel = value.trim() || DEFAULT_SETTINGS.openaiModel;
+            await this.plugin.saveSettings();
+          }));
+    }
+
+    if (this.plugin.settings.aiProvider === 'openai') {
+      new Setting(containerEl)
+        .setName('API key')
+        .setDesc(this.plugin.settings.openaiApiKey
+          ? 'Your API key is hidden on screen, but it is still stored locally in Obsidian plugin data and may be included in vault backups or sync.'
+          : 'Your API key for AI analysis. It will be hidden on screen after you paste it, but stored locally in Obsidian plugin data.')
+        .addText((text) => {
+          text.inputEl.type = 'password';
+          text.inputEl.autocomplete = 'off';
+          text.inputEl.spellcheck = false;
+          text
+            .setPlaceholder('Paste your API key')
+            .setValue(this.plugin.settings.openaiApiKey)
+            .onChange(async (value) => {
+              this.plugin.settings.openaiApiKey = value;
+              await this.plugin.saveSettings();
+              if (value) this.plugin.initializeAIProvider();
+            });
+        })
+        .addButton((button) => button
+          .setButtonText('Clear key')
+          .onClick(async () => {
+            this.plugin.settings.openaiApiKey = '';
+            this.plugin.openai = null;
+            await this.plugin.saveSettings();
+            this.display();
+          }));
+    }
+
+    if (this.plugin.settings.aiProvider === 'ollama') {
+      const ollamaLinkFragment = document.createDocumentFragment();
+      ollamaLinkFragment.appendText('Install Ollama first if this computer does not have it. ');
+      const ollamaLink = ollamaLinkFragment.createEl('a', {
+        text: 'Download Ollama',
+        href: OLLAMA_DOWNLOAD_URL
+      });
+      ollamaLink.setAttr('target', '_blank');
+      ollamaLink.setAttr('rel', 'noopener');
+      ollamaLinkFragment.appendText(' then return here and use Find installed models or Download model into Ollama.');
+      new Setting(containerEl)
+        .setName('Install Ollama')
+        .setDesc(ollamaLinkFragment);
+
+      new Setting(containerEl)
+        .setName('Local Ollama endpoint')
+        .setDesc(`${this.plugin.getLocalModelSetupHelp()} Local AI mode sends journal and chat context to this endpoint only. The plugin will not fall back to OpenAI.`)
+        .addText((text) => text
+          .setPlaceholder(DEFAULT_SETTINGS.localEndpoint)
+          .setValue(this.plugin.settings.localEndpoint)
+          .onChange(async (value) => {
+            this.plugin.settings.localEndpoint = value.trim() || DEFAULT_SETTINGS.localEndpoint;
+            await this.plugin.saveSettings();
+          }));
+
+      const installedLocalModels = this.plugin.settings.lastLocalModelNames;
+      if (installedLocalModels.length > 0) {
+        new Setting(containerEl)
+          .setName('Installed Ollama model')
+          .setDesc('Choose from models currently detected in the local Ollama library.')
+          .addDropdown((dropdown) => {
+            installedLocalModels.forEach((modelName) => dropdown.addOption(modelName, modelName));
+            dropdown
+              .setValue(installedLocalModels.includes(this.plugin.settings.localModel)
+                ? this.plugin.settings.localModel
+                : installedLocalModels[0])
+              .onChange(async (value) => {
+                this.plugin.settings.localModel = value;
+                await this.plugin.saveSettings();
+              });
+          });
+      }
+
+      new Setting(containerEl)
+        .setName('Manual Ollama model name')
+        .setDesc(installedLocalModels.length > 0
+          ? 'Advanced: type a model name manually if it is not shown in the installed model list.'
+          : 'No installed models have been detected yet. Install Ollama, download a model, then refresh. Example model names: llama3.1, qwen2.5, mistral, gemma2.')
+        .addText((text) => text
+          .setPlaceholder(DEFAULT_SETTINGS.localModel)
+          .setValue(this.plugin.settings.localModel)
+          .onChange(async (value) => {
+            this.plugin.settings.localModel = value.trim() || DEFAULT_SETTINGS.localModel;
+            await this.plugin.saveSettings();
+          }))
+        .addButton((button) => button
+          .setButtonText('Find installed models')
+          .onClick(async () => {
+            await this.plugin.checkLocalModelLibrary(true);
+            this.display();
+          }));
+
+      new Setting(containerEl)
+        .setName('Download model into Ollama')
+        .setDesc('Choose a recommended model or type any Ollama model name. This downloads the model to this computer through the local Ollama server, then selects it for The Deleometer.')
+        .addDropdown((dropdown) => {
+          Object.entries(RECOMMENDED_LOCAL_MODELS).forEach(([modelName, description]) => {
+            dropdown.addOption(modelName, `${modelName} - ${description}`);
+          });
+          if (!RECOMMENDED_LOCAL_MODELS[this.plugin.settings.localModelToInstall]) {
+            dropdown.addOption(this.plugin.settings.localModelToInstall, this.plugin.settings.localModelToInstall);
+          }
+          dropdown
+            .setValue(this.plugin.settings.localModelToInstall)
+            .onChange(async (value) => {
+              this.plugin.settings.localModelToInstall = value;
+              await this.plugin.saveSettings();
+              this.display();
+            });
+        })
+        .addText((text) => text
+          .setPlaceholder('Any Ollama model name')
+          .setValue(this.plugin.settings.localModelToInstall)
+          .onChange(async (value) => {
+            this.plugin.settings.localModelToInstall = value.trim() || DEFAULT_SETTINGS.localModelToInstall;
+            await this.plugin.saveSettings();
+          }))
+        .addButton((button) => button
+          .setButtonText('Download')
+          .onClick(async () => {
+            const modelName = this.plugin.settings.localModelToInstall.trim();
+            button.setDisabled(true);
+            button.setButtonText('Downloading...');
+            try {
+              await this.plugin.installLocalModel(modelName);
+              new Notice(`Downloaded and selected local model "${modelName}".`, 12000);
+              this.display();
+            } catch (error) {
+              new Notice(this.plugin.getAIErrorMessage(error, `Could not download "${modelName}" into Ollama`), 12000);
+              console.error(error);
+            } finally {
+              button.setDisabled(false);
+              button.setButtonText('Download');
+            }
+          }));
+
+      const checkedAt = this.plugin.settings.lastLocalModelLibraryCheckedAt
+        ? new Date(this.plugin.settings.lastLocalModelLibraryCheckedAt).toLocaleString()
+        : 'Not checked yet';
+      new Setting(containerEl)
+        .setName('Local model updates')
+        .setDesc(`Last checked: ${checkedAt}. The Deleometer stores the selected model digest and shows a notice when your local Ollama model library changes.`);
+    }
+
+    new Setting(containerEl)
+      .setName('Redact common sensitive details before AI calls')
+      .setDesc('Redacts email addresses, web links, phone numbers, and simple street addresses before text leaves Obsidian. This is a helper, not perfect anonymization.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.redactSensitiveDataBeforeAI)
+        .onChange(async (value) => {
+          this.plugin.settings.redactSensitiveDataBeforeAI = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Author memory')
+      .setDesc('Keep a continuing local author memory summary. Turn this off if you do not want ongoing memory stored in plugin data.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.enableAuthorMemory)
+        .onChange(async (value) => {
+          this.plugin.settings.enableAuthorMemory = value;
+          await this.plugin.saveSettings();
+          this.display();
+        }))
+      .addButton((button) => button
+        .setButtonText('Clear memory')
+        .onClick(async () => {
+          this.plugin.settings.authorMemorySummary = '';
+          await this.plugin.saveSettings();
+          new Notice('Author memory cleared');
+        }));
+
+    new Setting(containerEl)
+      .setName('Share author memory with AI')
+      .setDesc('When enabled, the local author memory summary is included in AI prompts. Disable this to keep memory local only.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.includeAuthorMemoryInAI)
+        .onChange(async (value) => {
+          this.plugin.settings.includeAuthorMemoryInAI = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Share personality profile with AI')
+      .setDesc('When enabled, saved reflective assessment profiles can be included in AI prompts. Disable this to keep them local only.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.includePersonalityProfileInAI)
+        .onChange(async (value) => {
+          this.plugin.settings.includePersonalityProfileInAI = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Send full journal entry into perspective chat')
+      .setDesc('Off by default. If disabled, perspective chat receives excerpts plus the selected analysis, not the entire journal entry.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.sendFullJournalToChat)
+        .onChange(async (value) => {
+          this.plugin.settings.sendFullJournalToChat = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Generate inspirational song')
+      .setDesc('After philosophy re-accumulation, generate a positive song sketch with lyrics and a locally rendered audio file.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.generateInspirationalSong)
+        .onChange(async (value) => {
+          this.plugin.settings.generateInspirationalSong = value;
+          await this.plugin.saveSettings();
+          this.display();
         }));
 
     new Setting(containerEl)
@@ -2942,7 +9070,7 @@ class DeleometerSettingTab extends PluginSettingTab {
       .addText(text => text
         .setValue(this.plugin.settings.journalFolder)
         .onChange(async (value) => {
-          this.plugin.settings.journalFolder = value;
+          this.plugin.settings.journalFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.journalFolder);
           await this.plugin.saveSettings();
         }));
 
@@ -2952,7 +9080,37 @@ class DeleometerSettingTab extends PluginSettingTab {
       .addText(text => text
         .setValue(this.plugin.settings.goalsFolder)
         .onChange(async (value) => {
-          this.plugin.settings.goalsFolder = value;
+          this.plugin.settings.goalsFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.goalsFolder);
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(containerEl)
+      .setName('Milestones folder')
+      .setDesc('Folder for generated milestone notes. These notes can be reviewed and consolidated separately from goals.')
+      .addText(text => text
+        .setValue(this.plugin.settings.milestonesFolder)
+        .onChange(async (value) => {
+          this.plugin.settings.milestonesFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.milestonesFolder);
+          await this.plugin.saveSettings();
+        }))
+      .addButton((button) => button
+        .setButtonText('Sync now')
+        .onClick(async () => {
+          await this.plugin.syncAllGoalMilestonesToFolder(true);
+        }))
+      .addButton((button) => button
+        .setButtonText('Consolidate')
+        .onClick(async () => {
+          await this.plugin.openMilestoneConsolidationModal();
+        }));
+
+    new Setting(containerEl)
+      .setName('Songs folder')
+      .setDesc('Folder for generated inspirational song audio files.')
+      .addText(text => text
+        .setValue(this.plugin.settings.songsFolder)
+        .onChange(async (value) => {
+          this.plugin.settings.songsFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.songsFolder);
           await this.plugin.saveSettings();
         }));
 
@@ -2960,11 +9118,22 @@ class DeleometerSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Calendar folder')
-      .setDesc('Folder watched by your calendar plugin local calendar source. Deleometer will create dated event notes here.')
+      .setDesc('Vault-relative folder watched by your calendar plugin local calendar source, such as deleometer/calendar. Do not use an absolute macOS path or the top-level deleometer folder.')
       .addText(text => text
         .setValue(this.plugin.settings.fullCalendarFolder)
         .onChange(async (value) => {
-          this.plugin.settings.fullCalendarFolder = value;
+          if (this.plugin.isAbsoluteFolderSetting(value)) {
+            new Notice('Use a folder inside this vault, such as deleometer/calendar, not an absolute file path.');
+            this.plugin.settings.fullCalendarFolder = DEFAULT_SETTINGS.fullCalendarFolder;
+            await this.plugin.saveSettings();
+            this.display();
+            return;
+          }
+          const nextFolder = this.plugin.normalizeFullCalendarFolderSetting(value);
+          if (nextFolder !== this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.fullCalendarFolder)) {
+            new Notice('Calendar events now go in deleometer/calendar so they do not sit beside goals and milestones.');
+          }
+          this.plugin.settings.fullCalendarFolder = nextFolder;
           await this.plugin.saveSettings();
         }));
 
@@ -2983,8 +9152,56 @@ class DeleometerSettingTab extends PluginSettingTab {
           await this.plugin.syncAllGoalsToFullCalendar(true);
         }));
 
+    new Setting(containerEl)
+      .setName('Analysis reader level')
+      .setDesc('Sets the zone of proximal development for analysis explanations, so key terms are taught at the right level.')
+      .addDropdown((dropdown) => {
+        for (const [key, level] of Object.entries(ZPD_LEVELS)) {
+          dropdown.addOption(key, level.label);
+        }
+        dropdown
+          .setValue(this.plugin.settings.zpdLevel)
+          .onChange(async (value) => {
+            this.plugin.settings.zpdLevel = ZPD_LEVELS[value] ? value : 'tertiary_year_2';
+            await this.plugin.saveSettings();
+          });
+      });
+
+    new Setting(containerEl)
+      .setName('Analysis output language')
+      .setDesc('Sets the language for generated analyses, syntheses, goals, chat replies, and journaling prompts.')
+      .addDropdown((dropdown) => {
+        for (const [key, language] of Object.entries(OUTPUT_LANGUAGES)) {
+          dropdown.addOption(key, language.label);
+        }
+        dropdown
+          .setValue(this.plugin.settings.outputLanguage)
+          .onChange(async (value) => {
+            this.plugin.settings.outputLanguage = OUTPUT_LANGUAGES[value] ? value : 'english';
+            await this.plugin.saveSettings();
+          });
+      });
+
+    new Setting(containerEl)
+      .setName('Dictionary mode')
+      .setDesc('Choose whether dictionary-informed lenses should interpret through a living lexicon or lean into dictionary-like phrasing more directly.')
+      .addDropdown((dropdown) => {
+        for (const [key, mode] of Object.entries(DICTIONARY_MODES)) {
+          dropdown.addOption(key, mode.label);
+        }
+        dropdown
+          .setValue(this.plugin.settings.dictionaryMode)
+          .onChange(async (value) => {
+            this.plugin.settings.dictionaryMode = DICTIONARY_MODES[value] ? value : 'engage';
+            await this.plugin.saveSettings();
+          });
+      });
+
     new Setting(containerEl).setName('Analysis perspectives').setHeading();
-    containerEl.createEl('p', { text: 'Select which perspectives to use for journal analysis:', cls: 'setting-item-description' });
+    containerEl.createEl('p', {
+      text: 'Select which perspectives to use for journal analysis. The order follows strict chronology inside each group. Tradition, placement, chronology, and lineage labels are guiding maps to intellectual history, not exclusive ownership claims.',
+      cls: 'setting-item-description'
+    });
 
     new Setting(containerEl)
       .setName('Enable all perspectives')
@@ -2992,27 +9209,68 @@ class DeleometerSettingTab extends PluginSettingTab {
       .addButton((button) => button
         .setButtonText('Enable all')
         .onClick(async () => {
-          this.plugin.settings.selectedPerspectives = Object.keys(PERSPECTIVES);
+          this.plugin.settings.selectedPerspectives = getChronologicalPerspectiveKeys();
           await this.plugin.saveSettings();
           this.display();
         }));
 
-    for (const [key, persp] of Object.entries(PERSPECTIVES)) {
+    for (const groupKey of getChronologicalGroupKeys()) {
+      const group = PERSPECTIVE_GROUPS[groupKey];
       new Setting(containerEl)
-        .setName(persp.title)
-        .setDesc(persp.description)
-        .addToggle(toggle => toggle
-          .setValue(this.plugin.settings.selectedPerspectives.includes(key))
-          .onChange(async (value) => {
-            if (value) {
-              if (!this.plugin.settings.selectedPerspectives.includes(key)) {
-                this.plugin.settings.selectedPerspectives.push(key);
-              }
-            } else {
-              this.plugin.settings.selectedPerspectives = this.plugin.settings.selectedPerspectives.filter(p => p !== key);
-            }
+        .setName(group.title)
+        .setDesc(group.description)
+        .setHeading()
+        .addButton((button) => button
+          .setButtonText('Enable group')
+          .onClick(async () => {
+            const groupPerspectiveKeys = Object.entries(PERSPECTIVES)
+              .filter(([, perspective]) => perspective.group === groupKey)
+              .map(([key]) => key);
+            this.plugin.settings.selectedPerspectives = Array.from(new Set([
+              ...this.plugin.settings.selectedPerspectives,
+              ...groupPerspectiveKeys
+            ]));
             await this.plugin.saveSettings();
+            this.display();
+          }))
+        .addButton((button) => button
+          .setButtonText('Disable group')
+          .onClick(async () => {
+            const groupPerspectiveKeys = new Set(Object.entries(PERSPECTIVES)
+              .filter(([, perspective]) => perspective.group === groupKey)
+              .map(([key]) => key));
+            this.plugin.settings.selectedPerspectives = this.plugin.settings.selectedPerspectives
+              .filter((key) => !groupPerspectiveKeys.has(key));
+            await this.plugin.saveSettings();
+            this.display();
           }));
+
+      const orderedGroupPerspectives = getChronologicalPerspectiveKeys()
+        .filter((key) => PERSPECTIVES[key]?.group === groupKey)
+        .map((key) => [key, PERSPECTIVES[key]] as const);
+
+      for (const [key, persp] of orderedGroupPerspectives) {
+        const setting = new Setting(containerEl)
+          .setName(persp.title)
+          .setDesc(persp.description)
+          .addToggle(toggle => toggle
+            .setValue(this.plugin.settings.selectedPerspectives.includes(key))
+            .onChange(async (value) => {
+              if (value) {
+                if (!this.plugin.settings.selectedPerspectives.includes(key)) {
+                  this.plugin.settings.selectedPerspectives.push(key);
+                }
+              } else {
+                this.plugin.settings.selectedPerspectives = this.plugin.settings.selectedPerspectives.filter(p => p !== key);
+              }
+              await this.plugin.saveSettings();
+            }));
+
+        const historyLabel = buildPerspectiveHistoryLabel(key, persp);
+        if (historyLabel) {
+          setting.descEl.createDiv({ text: historyLabel, cls: 'setting-item-description' });
+        }
+      }
     }
   }
 }

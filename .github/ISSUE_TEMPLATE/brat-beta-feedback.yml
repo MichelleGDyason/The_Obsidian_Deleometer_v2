@@ -1,0 +1,86 @@
+name: BRAT beta feedback
+description: Report how a BRAT beta release of The Deleometer is behaving in real use.
+title: "[BRAT beta] "
+labels:
+  - beta-feedback
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for testing a BRAT beta of The Deleometer.
+
+        Please include enough detail that the issue can be reproduced. Beta feedback is especially useful when it names the beta version, what you expected, what happened instead, and whether the note or chat content was already linked to an existing analysis note.
+
+  - type: input
+    id: beta_version
+    attributes:
+      label: BRAT beta version
+      description: For example `1.0.2-beta.21`
+      placeholder: 1.0.2-beta.xx
+    validations:
+      required: true
+
+  - type: input
+    id: obsidian_version
+    attributes:
+      label: Obsidian version
+      placeholder: 1.x.x
+    validations:
+      required: true
+
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: Desktop or mobile, plus operating system if relevant
+      placeholder: macOS desktop, Windows desktop, iPadOS, Android
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_you_did
+    attributes:
+      label: What you did
+      description: List the steps that led to the problem or useful behavior
+      placeholder: |
+        1. Opened a journal note
+        2. Continued a perspective chat
+        3. Pressed Save chat
+        4. Observed duplicated analysis text
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      placeholder: The chat should append only the new conversation to the linked note.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead
+      placeholder: The note duplicated the original analysis section before the chat transcript.
+    validations:
+      required: true
+
+  - type: textarea
+    id: note_context
+    attributes:
+      label: Note and feature context
+      description: Mention whether this was a linked source note, a new exported note, goals, milestones, calendar sync, or another feature path
+      placeholder: Linked source note from Topological Analysis chat, then exported to a separate chat note.
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or copied error text
+      description: Paste text or drag screenshots in after opening the issue if useful
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Small details, edge cases, or positive feedback are also useful
