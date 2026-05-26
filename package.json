@@ -1,7 +1,7 @@
 {
   "name": "the-deleometer",
-  "version": "1.0.2",
-  "description": "A plugin for deep self-discovery journaling using OpenAI or a local Ollama model. Use analysis history and export options.",
+  "version": "1.0.3",
+  "description": "Deep self-discovery journaling using OpenAI or a local Ollama model, with analysis history and export options.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
