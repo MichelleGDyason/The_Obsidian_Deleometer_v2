@@ -141,46 +141,21 @@ The settings screen also shows an approximate cost estimate based on how many an
 8. Consolidate similar goals or milestones when the AI proposes overlapping next steps.
 9. Optionally sync goals and milestones into Full Calendar.
 
-Analyses can be extensive. If every frame is enabled, an appended note may produce around 15,000 words, roughly a 70-minute read. Settings let you enable or disable whole analysis groups, or choose individual analyses inside each group, so you can tune the output to the time and attention you have. Generated analyses follow a strict historical chronology first; group labels come second, as lineage markers for settings and group synthesis.
+Analyses can be extensive. With all 261 frames enabled, an appended note may produce around 62,500 words, roughly a 300-minute read. Settings let you enable or disable whole analysis groups, or choose individual analyses inside each group, so you can tune the output to the time and attention you have. Generated analyses follow a strict historical chronology first; group labels come second, as lineage markers for settings and group synthesis.
 
 The analysis reader level can also be changed in settings. The available levels range from Grade 5 primary through professor-level analysis. This changes how much the AI explains specialist terms and how far it tries to guide the reader beyond their current zone of proximal development. The output language can also be changed in settings for generated analyses, syntheses, goals, chat replies, and journaling prompts. Current language options are English, French, and German.
 
 ## Screenshots
 
-These screenshots show The Deleometer in action during beta development. The README appears on GitHub and in repository documentation; inside Obsidian, the plugin settings hold the controls for API keys, folders, analysis groups, individual lenses, reader level, and safety guidance.
+These captures show the current Obsidian workflow: long-form analysis output, group synthesis and goal sections, the journal-entry composer, and the reflective assessments modal.
 
-![Multi-perspective analysis modal in Obsidian](docs/screenshots/01-analysis-modal.png)
+![Long-form analysis with chronological outline](docs/screenshots/01-long-analysis-outline.png)
 
-![Perspective chat continuing from a topological analysis](docs/screenshots/03-ai-chat-topological.png)
+![Group synthesis and suggested goals in a journal analysis](docs/screenshots/02-group-synthesis-and-goals.png)
 
-![Perspective chat continuing from Philosophy of Mind](docs/screenshots/07-ai-chat-philosophy-of-mind.png)
+![New journal entry modal](docs/screenshots/03-new-journal-entry-modal.png)
 
-![Bible Teachings analysis appended into an Obsidian note](docs/screenshots/09-bible-teachings-analysis.png)
-
-![Spinoza analysis alongside research notes](docs/screenshots/11-spinoza-analysis-with-notes.png)
-
-![Draft goals generated from an analysis](docs/screenshots/13-draft-goals-modal.png)
-
-<details>
-<summary>Additional beta workflow captures</summary>
-
-![BRAT beta update conversation](docs/screenshots/02-beta-update-thread.png)
-
-![BRAT beta update conversation alternate capture](docs/screenshots/04-beta-update-thread-alt.png)
-
-![Topological chat alternate capture](docs/screenshots/05-ai-chat-topological-alt.png)
-
-![Goal date validation beta workflow](docs/screenshots/06-goal-date-validation-thread.png)
-
-![Goal suggestion beta workflow](docs/screenshots/08-goal-suggestion-thread.png)
-
-![Goal suggestion beta workflow alternate capture](docs/screenshots/10-goal-suggestion-thread-alt.png)
-
-![GitHub beta branch view](docs/screenshots/12-github-beta-branch.png)
-
-![GitHub beta branch alternate capture](docs/screenshots/14-github-beta-branch-alt.png)
-
-</details>
+![Reflective assessments modal](docs/screenshots/04-reflective-assessments-modal.png)
 
 ## Why This Exists
 
@@ -274,7 +249,7 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 261 individual analysis frames. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
+The Deleometer currently includes 261 individual analysis frames across 11 groups. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
 
 ### Philosophy as First Discipline
 
