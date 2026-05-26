@@ -55,6 +55,30 @@ The plugin keeps an author memory summary so later analyses can respond as part 
 
 ## Installation
 
+### BRAT Beta Install
+
+[Obsidian42 - BRAT](https://community.obsidian.md/plugins/obsidian42-brat) is the easiest way to install and update beta builds of The Deleometer before it is available in Obsidian's official community plugin directory.
+
+1. Back up your vault before testing beta software.
+2. In Obsidian, open `Settings -> Community plugins`.
+3. Turn off Restricted Mode if it is still enabled.
+4. Browse community plugins, install `Obsidian42 - BRAT`, and enable it.
+5. Open the command palette and run:
+   `BRAT: Add a beta plugin for testing`
+6. When BRAT asks for the repository, paste either:
+   `https://github.com/MichelleGDyason/The_Obsidian_Deleometer_v2`
+   or:
+   `MichelleGDyason/The_Obsidian_Deleometer_v2`
+7. If BRAT asks which version to install, choose `Latest` unless you intentionally want to freeze testing on one specific beta release.
+8. Click `Add Plugin` and wait for BRAT to finish downloading the plugin.
+9. Go back to `Settings -> Community plugins`, refresh the installed plugin list if needed, find `The Deleometer`, and enable it.
+10. Open `Settings -> Community plugins -> The Deleometer` and complete the setup steps below.
+
+To update a BRAT install later, open the command palette and run:
+`BRAT: Check for updates to all beta plugins and UPDATE`
+
+If The Deleometer does not appear after BRAT installs it, restart Obsidian, then check that your vault contains `.obsidian/plugins/the-deleometer/` with `manifest.json`, `main.js`, and `styles.css` inside it. If BRAT reports an error, remove the beta plugin entry from BRAT and add the repository again.
+
 ### Manual Install
 
 1. Create a plugin folder in your vault:
