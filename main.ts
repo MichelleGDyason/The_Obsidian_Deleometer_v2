@@ -2972,14 +2972,104 @@ export default class DeleometerPlugin extends Plugin {
     return value.toLowerCase().replace(/[^a-z0-9]+/g, '');
   }
 
-  extractGeneratedText(value: unknown): string {
+  extractGeneratedText(value: unknown, seen = new WeakSet<object>()): string {
     if (typeof value === 'string') return value.trim();
-    if (!value || typeof value !== 'object') return '';
-    const record = value as Record<string, unknown>;
-    for (const field of ['analysis', 'content', 'text', 'response', 'interpretation', 'summary']) {
-      const fieldValue = record[field];
-      if (typeof fieldValue === 'string' && fieldValue.trim()) return fieldValue.trim();
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const text = this.extractGeneratedText(item, seen);
+        if (text) return text;
+      }
+      return '';
     }
+    if (!value || typeof value !== 'object') return '';
+    if (seen.has(value)) return '';
+    seen.add(value);
+    const record = value as Record<string, unknown>;
+    for (const field of [
+      'analysis',
+      'content',
+      'text',
+      'response',
+      'interpretation',
+      'summary',
+      'body',
+      'markdown',
+      'message',
+      'output',
+      'result',
+      'value'
+    ]) {
+      const text = this.extractGeneratedText(record[field], seen);
+      if (text) return text;
+    }
+    return '';
+  }
+
+  getPerspectiveMatchLabels(value: unknown, seen = new WeakSet<object>()): string[] {
+    if (typeof value === 'string') return [value];
+    if (Array.isArray(value)) {
+      return value.flatMap((item) => this.getPerspectiveMatchLabels(item, seen));
+    }
+    if (!value || typeof value !== 'object') return [];
+    if (seen.has(value)) return [];
+    seen.add(value);
+
+    const record = value as Record<string, unknown>;
+    const labels: string[] = [];
+    for (const field of [
+      'key',
+      'perspective',
+      'perspective_key',
+      'perspectiveKey',
+      'title',
+      'name',
+      'id',
+      'frame',
+      'frame_key',
+      'frameKey',
+      'label'
+    ]) {
+      labels.push(...this.getPerspectiveMatchLabels(record[field], seen));
+    }
+    return labels.filter(Boolean);
+  }
+
+  findPerspectiveAnalysisText(
+    source: unknown,
+    wanted: Set<string>,
+    seen = new WeakSet<object>()
+  ): string {
+    if (Array.isArray(source)) {
+      for (const item of source) {
+        const text = this.findPerspectiveAnalysisText(item, wanted, seen);
+        if (text) return text;
+      }
+      return '';
+    }
+
+    if (!source || typeof source !== 'object') return '';
+    if (seen.has(source)) return '';
+    seen.add(source);
+
+    const record = source as Record<string, unknown>;
+    const labels = this.getPerspectiveMatchLabels(record);
+    if (labels.some((label) => wanted.has(this.normalizePerspectiveLookupKey(label)))) {
+      const text = this.extractGeneratedText(record);
+      if (text) return text;
+    }
+
+    for (const [entryKey, value] of Object.entries(record)) {
+      if (wanted.has(this.normalizePerspectiveLookupKey(entryKey))) {
+        const text = this.extractGeneratedText(value);
+        if (text) return text;
+      }
+    }
+
+    for (const value of Object.values(record)) {
+      const text = this.findPerspectiveAnalysisText(value, wanted, seen);
+      if (text) return text;
+    }
+
     return '';
   }
 
@@ -2992,30 +3082,7 @@ export default class DeleometerPlugin extends Plugin {
       this.normalizePerspectiveLookupKey(key),
       this.normalizePerspectiveLookupKey(perspective.title)
     ]);
-
-    if (Array.isArray(source)) {
-      for (const item of source) {
-        if (!item || typeof item !== 'object') continue;
-        const record = item as Record<string, unknown>;
-        const labels = [record.key, record.perspective, record.title, record.name]
-          .filter((label): label is string => typeof label === 'string');
-        if (labels.some((label) => wanted.has(this.normalizePerspectiveLookupKey(label)))) {
-          const text = this.extractGeneratedText(record);
-          if (text) return text;
-        }
-      }
-      return '';
-    }
-
-    if (!source || typeof source !== 'object') return '';
-    const record = source as Record<string, unknown>;
-    for (const [entryKey, value] of Object.entries(record)) {
-      if (wanted.has(this.normalizePerspectiveLookupKey(entryKey))) {
-        const text = this.extractGeneratedText(value);
-        if (text) return text;
-      }
-    }
-    return '';
+    return this.findPerspectiveAnalysisText(source, wanted);
   }
 
   closeJsonCandidate(candidate: string): string {

@@ -9063,13 +9063,91 @@ ${this.settings.authorMemorySummary.trim()}`);
   normalizePerspectiveLookupKey(value) {
     return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
   }
-  extractGeneratedText(value) {
+  extractGeneratedText(value, seen = /* @__PURE__ */ new WeakSet()) {
     if (typeof value === "string") return value.trim();
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const text = this.extractGeneratedText(item, seen);
+        if (text) return text;
+      }
+      return "";
+    }
     if (!value || typeof value !== "object") return "";
+    if (seen.has(value)) return "";
+    seen.add(value);
     const record = value;
-    for (const field of ["analysis", "content", "text", "response", "interpretation", "summary"]) {
-      const fieldValue = record[field];
-      if (typeof fieldValue === "string" && fieldValue.trim()) return fieldValue.trim();
+    for (const field of [
+      "analysis",
+      "content",
+      "text",
+      "response",
+      "interpretation",
+      "summary",
+      "body",
+      "markdown",
+      "message",
+      "output",
+      "result",
+      "value"
+    ]) {
+      const text = this.extractGeneratedText(record[field], seen);
+      if (text) return text;
+    }
+    return "";
+  }
+  getPerspectiveMatchLabels(value, seen = /* @__PURE__ */ new WeakSet()) {
+    if (typeof value === "string") return [value];
+    if (Array.isArray(value)) {
+      return value.flatMap((item) => this.getPerspectiveMatchLabels(item, seen));
+    }
+    if (!value || typeof value !== "object") return [];
+    if (seen.has(value)) return [];
+    seen.add(value);
+    const record = value;
+    const labels = [];
+    for (const field of [
+      "key",
+      "perspective",
+      "perspective_key",
+      "perspectiveKey",
+      "title",
+      "name",
+      "id",
+      "frame",
+      "frame_key",
+      "frameKey",
+      "label"
+    ]) {
+      labels.push(...this.getPerspectiveMatchLabels(record[field], seen));
+    }
+    return labels.filter(Boolean);
+  }
+  findPerspectiveAnalysisText(source, wanted, seen = /* @__PURE__ */ new WeakSet()) {
+    if (Array.isArray(source)) {
+      for (const item of source) {
+        const text = this.findPerspectiveAnalysisText(item, wanted, seen);
+        if (text) return text;
+      }
+      return "";
+    }
+    if (!source || typeof source !== "object") return "";
+    if (seen.has(source)) return "";
+    seen.add(source);
+    const record = source;
+    const labels = this.getPerspectiveMatchLabels(record);
+    if (labels.some((label) => wanted.has(this.normalizePerspectiveLookupKey(label)))) {
+      const text = this.extractGeneratedText(record);
+      if (text) return text;
+    }
+    for (const [entryKey, value] of Object.entries(record)) {
+      if (wanted.has(this.normalizePerspectiveLookupKey(entryKey))) {
+        const text = this.extractGeneratedText(value);
+        if (text) return text;
+      }
+    }
+    for (const value of Object.values(record)) {
+      const text = this.findPerspectiveAnalysisText(value, wanted, seen);
+      if (text) return text;
     }
     return "";
   }
@@ -9078,27 +9156,7 @@ ${this.settings.authorMemorySummary.trim()}`);
       this.normalizePerspectiveLookupKey(key),
       this.normalizePerspectiveLookupKey(perspective.title)
     ]);
-    if (Array.isArray(source)) {
-      for (const item of source) {
-        if (!item || typeof item !== "object") continue;
-        const record2 = item;
-        const labels = [record2.key, record2.perspective, record2.title, record2.name].filter((label) => typeof label === "string");
-        if (labels.some((label) => wanted.has(this.normalizePerspectiveLookupKey(label)))) {
-          const text = this.extractGeneratedText(record2);
-          if (text) return text;
-        }
-      }
-      return "";
-    }
-    if (!source || typeof source !== "object") return "";
-    const record = source;
-    for (const [entryKey, value] of Object.entries(record)) {
-      if (wanted.has(this.normalizePerspectiveLookupKey(entryKey))) {
-        const text = this.extractGeneratedText(value);
-        if (text) return text;
-      }
-    }
-    return "";
+    return this.findPerspectiveAnalysisText(source, wanted);
   }
   closeJsonCandidate(candidate) {
     let result = candidate.trim();
