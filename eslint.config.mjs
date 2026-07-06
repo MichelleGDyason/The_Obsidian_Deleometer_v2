@@ -19,6 +19,7 @@ export default tseslint.config(
   globalIgnores([
     'node_modules',
     'main.js',
+    'chatgpt-app',
     'versions.json',
   ]),
 );

@@ -1,6 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, ItemView, TFile, TFolder, parseYaml } from 'obsidian';
-import OpenAI from 'openai';
-import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, ItemView, Platform, TFile, TFolder, parseYaml, requestUrl } from 'obsidian';
 
 const VIEW_TYPE_DASHBOARD = 'deleometer-dashboard';
 const VIEW_TYPE_AI_CHAT = 'deleometer-ai-chat';
@@ -2184,6 +2182,7 @@ const RECOMMENDED_LOCAL_MODELS: Record<string, string> = {
   'gemma2': 'Compact general-purpose model'
 };
 const OLLAMA_DOWNLOAD_URL = 'https://ollama.com/download';
+const OPENAI_CHAT_COMPLETIONS_URL = 'https://api.openai.com/v1/chat/completions';
 const GPT_4O_MINI_INPUT_USD_PER_1M = 0.15;
 const GPT_4O_MINI_OUTPUT_USD_PER_1M = 0.60;
 
@@ -2205,8 +2204,18 @@ interface ConversationMessage {
 
 type AnalysisProgressCallback = (message: string) => void | Promise<void>;
 type AIProvider = 'openai' | 'ollama';
-type AIMessage = ChatCompletionMessageParam;
+type AIMessageRole = 'system' | 'user' | 'assistant';
+type AIMessage = {
+  role: AIMessageRole;
+  content: string;
+};
 type AIResponseFormat = { type: 'json_object' };
+
+interface AIRequestError extends Error {
+  provider?: AIProvider;
+  status?: number;
+  headers?: Record<string, string | null | undefined>;
+}
 
 interface AIChatCompletionRequest {
   messages: AIMessage[];
@@ -2223,9 +2232,36 @@ interface LocalModelInfo {
   size?: number;
 }
 
+interface OpenAIChatCompletionResponse {
+  choices?: Array<{
+    message?: {
+      content?: string | null;
+    };
+  }>;
+  error?: {
+    message?: string;
+  };
+}
+
+interface OllamaChatResponse {
+  message?: {
+    content?: string;
+  };
+  error?: string;
+}
+
+interface OllamaModelsResponse {
+  models?: LocalModelInfo[];
+  error?: string;
+}
+
+interface OllamaPullResponse {
+  error?: string;
+  status?: string;
+}
+
 export default class DeleometerPlugin extends Plugin {
   settings: DeleometerSettings;
-  openai: OpenAI | null = null;
   pendingChatContext: ChatContext | null = null;
   activeAnalysisJobs: Map<string, { filePath: string; fileLabel: string; status: string; startedAt: number }> = new Map();
   authorMemoryUpdateQueue: Promise<void> = Promise.resolve();
@@ -2287,7 +2323,7 @@ export default class DeleometerPlugin extends Plugin {
             new Notice('Invalid or unsafe chat link context');
           } catch (error) {
             new Notice('Could not open chat from note link');
-            console.error(error);
+            this.logError('Could not open chat from note link', error);
           }
         };
       });
@@ -2305,40 +2341,36 @@ export default class DeleometerPlugin extends Plugin {
             await this.openGoalDraftsFromSourceNote(source);
           } catch (error) {
             new Notice('Could not open goal drafts from note link');
-            console.error(error);
+            this.logError('Could not open goal drafts from note link', error);
           }
         };
       });
     });
   }
 
-  initializeOpenAI() {
-    this.openai = new OpenAI({
-      apiKey: this.settings.openaiApiKey,
-      dangerouslyAllowBrowser: true,
-      maxRetries: 0
-    });
+  isOllamaAvailableOnCurrentDevice(): boolean {
+    return !Platform.isMobileApp;
   }
 
   initializeAIProvider() {
-    if (this.settings.aiProvider === 'openai' && this.settings.openaiApiKey) {
-      this.initializeOpenAI();
-      return;
-    }
-    this.openai = null;
-    if (this.settings.aiProvider === 'ollama') {
+    if (this.settings.aiProvider === 'ollama' && this.isOllamaAvailableOnCurrentDevice()) {
       void this.checkLocalModelLibrary(false);
     }
   }
 
   hasAIProviderConfigured(): boolean {
     if (this.settings.aiProvider === 'openai') return !!this.settings.openaiApiKey.trim();
-    if (this.settings.aiProvider === 'ollama') return !!this.settings.localEndpoint.trim() && !!this.settings.localModel.trim();
+    if (this.settings.aiProvider === 'ollama') {
+      return this.isOllamaAvailableOnCurrentDevice() && !!this.settings.localEndpoint.trim() && !!this.settings.localModel.trim();
+    }
     return false;
   }
 
   getAIProviderSetupNotice(): string {
     if (this.settings.aiProvider === 'ollama') {
+      if (!this.isOllamaAvailableOnCurrentDevice()) {
+        return 'Local Ollama mode is unavailable on mobile. Switch the AI provider to OpenAI on this device.';
+      }
       return 'Configure a local Ollama endpoint and model in settings before using AI features';
     }
     return 'Please set your OpenAI API key in settings';
@@ -2346,86 +2378,247 @@ export default class DeleometerPlugin extends Plugin {
 
   getAIProviderPrivacyNotice(): string {
     if (this.settings.aiProvider === 'ollama') {
-      return `Local AI mode: journal and chat context is sent only to ${this.settings.localEndpoint || 'your local endpoint'}. The Deleometer will not fall back to OpenAI automatically.`;
+      if (!this.isOllamaAvailableOnCurrentDevice()) {
+        return 'Local Ollama mode is unavailable on mobile. OpenAI mode remains available on mobile when an API key is configured.';
+      }
+
+      try {
+        return `Local AI mode: journal and chat context is sent only to ${this.getConfiguredOllamaEndpoint()}. The Deleometer will not fall back to OpenAI automatically.`;
+      } catch {
+        return 'Local AI mode: journal and chat context is sent only to your configured Ollama endpoint. The Deleometer will not fall back to OpenAI automatically.';
+      }
     }
     return 'OpenAI mode: journal and chat context is sent to OpenAI when you use AI features.';
+  }
+
+  getConfiguredOllamaEndpoint(): string {
+    const endpoint = (this.settings.localEndpoint || DEFAULT_SETTINGS.localEndpoint).trim();
+    let url: URL;
+    try {
+      url = new URL(endpoint);
+    } catch {
+      throw new Error('Local Ollama endpoint must be a valid http:// or https:// URL.');
+    }
+
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      throw new Error('Local Ollama endpoint must use http:// or https://.');
+    }
+
+    url.hash = '';
+    url.search = '';
+    return url.toString().replace(/\/+$/, '');
+  }
+
+  buildOllamaApiUrl(path: string): string {
+    return new URL(path, `${this.getConfiguredOllamaEndpoint()}/`).toString();
+  }
+
+  getHeadersRecord(headers?: Headers | Record<string, string> | null): Record<string, string | null | undefined> {
+    if (!headers) return {};
+    if (headers instanceof Headers) {
+      const entries: Record<string, string> = {};
+      headers.forEach((value, key) => {
+        entries[key.toLowerCase()] = value;
+      });
+      return entries;
+    }
+    const entries: Record<string, string> = {};
+    for (const [key, value] of Object.entries(headers)) {
+      entries[key.toLowerCase()] = value;
+    }
+    return entries;
+  }
+
+  createAIRequestError(
+    provider: AIProvider,
+    fallback: string,
+    options: {
+      message?: string;
+      status?: number;
+      headers?: Record<string, string | null | undefined>;
+    } = {}
+  ): AIRequestError {
+    const error = new Error(this.redactSensitiveText(options.message?.trim() || fallback)) as AIRequestError;
+    error.provider = provider;
+    error.status = options.status;
+    error.headers = options.headers;
+    return error;
+  }
+
+  extractRemoteErrorMessage(data: unknown, fallback: string): string {
+    if (data && typeof data === 'object') {
+      const record = data as Record<string, unknown>;
+      if (typeof record.error === 'string' && record.error.trim()) {
+        return record.error.trim();
+      }
+      if (record.error && typeof record.error === 'object') {
+        const nestedError = record.error as Record<string, unknown>;
+        if (typeof nestedError.message === 'string' && nestedError.message.trim()) {
+          return nestedError.message.trim();
+        }
+      }
+      if (typeof record.message === 'string' && record.message.trim()) {
+        return record.message.trim();
+      }
+    }
+    return fallback;
+  }
+
+  async fetchJson(
+    url: string,
+    provider: AIProvider,
+    fallback: string,
+    init: RequestInit
+  ): Promise<{ status: number; headers: Record<string, string | null | undefined>; data: unknown }> {
+    const method = init.method || 'GET';
+    const headers = Object.fromEntries(
+      Object.entries((init.headers as Record<string, string> | undefined) || {}).map(([key, value]) => [key, value])
+    );
+
+    let response: Awaited<ReturnType<typeof requestUrl>>;
+    try {
+      response = await requestUrl({
+        url,
+        method,
+        headers,
+        body: typeof init.body === 'string' ? init.body : undefined,
+        throw: false
+      });
+    } catch (error) {
+      throw this.createAIRequestError(provider, fallback, {
+        message: this.getErrorMessage(error)
+      });
+    }
+
+    const responseHeaders = this.getHeadersRecord(response.headers);
+    const responseJson: unknown = response.json;
+    const data = responseJson ?? (response.text ? { message: response.text } : null);
+
+    if (response.status >= 400) {
+      throw this.createAIRequestError(provider, fallback, {
+        status: response.status,
+        headers: responseHeaders,
+        message: this.extractRemoteErrorMessage(data, fallback)
+      });
+    }
+
+    return { status: response.status, headers: responseHeaders, data };
+  }
+
+  async callOpenAIChatCompletion(request: AIChatCompletionRequest): Promise<string> {
+    const apiKey = this.settings.openaiApiKey.trim();
+    if (!apiKey) throw new Error(this.getAIProviderSetupNotice());
+
+    const { data } = await this.fetchJson(
+      OPENAI_CHAT_COMPLETIONS_URL,
+      'openai',
+      'OpenAI request failed.',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: this.settings.openaiModel || DEFAULT_SETTINGS.openaiModel,
+          response_format: request.response_format,
+          max_tokens: request.max_tokens,
+          temperature: request.temperature,
+          messages: request.messages
+        })
+      }
+    );
+
+    const response = data as OpenAIChatCompletionResponse;
+    return typeof response.choices?.[0]?.message?.content === 'string'
+      ? response.choices[0].message.content
+      : '';
+  }
+
+  async callOllamaGenerateOrChat(request: AIChatCompletionRequest): Promise<string> {
+    if (!this.isOllamaAvailableOnCurrentDevice()) {
+      throw new Error(this.getAIProviderSetupNotice());
+    }
+
+    const { data } = await this.fetchJson(
+      this.buildOllamaApiUrl('/api/chat'),
+      'ollama',
+      `Local Ollama request failed. Check that Ollama is running and model "${this.settings.localModel}" is installed.`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: this.settings.localModel,
+          messages: request.messages.map((message) => ({
+            role: message.role,
+            content: message.content
+          })),
+          stream: false,
+          format: request.response_format?.type === 'json_object' ? 'json' : undefined,
+          options: {
+            temperature: request.temperature,
+            num_predict: request.max_tokens
+          }
+        })
+      }
+    );
+
+    const response = data as OllamaChatResponse;
+    if (response.error) {
+      throw this.createAIRequestError('ollama', response.error, { message: response.error });
+    }
+    return response.message?.content || '';
   }
 
   async createAIChatCompletion(request: AIChatCompletionRequest): Promise<string> {
     if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
 
     if (this.settings.aiProvider === 'ollama') {
-      return this.createOllamaChatCompletion(request);
+      return this.callOllamaGenerateOrChat(request);
     }
 
-    if (!this.openai) this.initializeOpenAI();
-    const openai = this.openai;
-    if (!openai) throw new Error('OpenAI not initialized');
-    const response = await openai.chat.completions.create({
-      model: this.settings.openaiModel || DEFAULT_SETTINGS.openaiModel,
-      response_format: request.response_format,
-      max_tokens: request.max_tokens,
-      temperature: request.temperature,
-      messages: request.messages
-    });
-    return response.choices[0]?.message?.content || '';
+    return this.callOpenAIChatCompletion(request);
   }
 
-  async createOllamaChatCompletion(request: AIChatCompletionRequest): Promise<string> {
-    const endpoint = this.settings.localEndpoint.replace(/\/+$/, '');
-    const response = await fetch(`${endpoint}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: this.settings.localModel,
-        messages: request.messages.map((message) => ({
-          role: message.role,
-          content: typeof message.content === 'string' ? message.content : JSON.stringify(message.content)
-        })),
-        stream: false,
-        format: request.response_format?.type === 'json_object' ? 'json' : undefined,
-        options: {
-          temperature: request.temperature,
-          num_predict: request.max_tokens
-        }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Local Ollama request failed (${response.status}). Check that Ollama is running and model "${this.settings.localModel}" is installed.`);
+  async listOllamaModels(): Promise<LocalModelInfo[]> {
+    if (!this.isOllamaAvailableOnCurrentDevice()) {
+      throw new Error(this.getAIProviderSetupNotice());
     }
 
-    const data = await response.json() as { message?: { content?: string }; error?: string };
-    if (data.error) throw new Error(data.error);
-    return data.message?.content || '';
-  }
-
-  async fetchLocalModels(): Promise<LocalModelInfo[]> {
-    const endpoint = this.settings.localEndpoint.replace(/\/+$/, '');
-    const response = await fetch(`${endpoint}/api/tags`);
-    if (!response.ok) {
-      throw new Error(`Could not read local model library (${response.status})`);
+    const { data } = await this.fetchJson(
+      this.buildOllamaApiUrl('/api/tags'),
+      'ollama',
+      'Could not read local model library.',
+      { method: 'GET' }
+    );
+    const response = data as OllamaModelsResponse;
+    if (response.error) {
+      throw this.createAIRequestError('ollama', response.error, { message: response.error });
     }
-    const data = await response.json() as { models?: LocalModelInfo[] };
-    return Array.isArray(data.models) ? data.models : [];
+    return Array.isArray(response.models) ? response.models : [];
   }
 
-  async installLocalModel(modelName: string): Promise<void> {
+  async pullOllamaModel(modelName: string): Promise<void> {
+    if (!this.isOllamaAvailableOnCurrentDevice()) {
+      throw new Error(this.getAIProviderSetupNotice());
+    }
+
     const name = modelName.trim();
     if (!name) throw new Error('Choose or type a model name to download into Ollama.');
-    const endpoint = this.settings.localEndpoint.replace(/\/+$/, '');
-    const response = await fetch(`${endpoint}/api/pull`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, stream: false })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Could not download "${name}" into Ollama (${response.status}). Check that Ollama is running and the model name is valid.`);
+    const { data } = await this.fetchJson(
+      this.buildOllamaApiUrl('/api/pull'),
+      'ollama',
+      `Could not download "${name}" into Ollama. Check that Ollama is running and the model name is valid.`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, stream: false })
+      }
+    );
+    const response = data as OllamaPullResponse;
+    if (response.error) {
+      throw this.createAIRequestError('ollama', response.error, { message: response.error });
     }
-
-    const data = await response.json() as { error?: string; status?: string };
-    if (data.error) throw new Error(data.error);
     this.settings.localModel = name;
     this.settings.localModelToInstall = name;
     await this.saveSettings();
@@ -2461,7 +2654,7 @@ export default class DeleometerPlugin extends Plugin {
   async checkLocalModelLibrary(showNotice: boolean = true): Promise<void> {
     if (this.settings.aiProvider !== 'ollama') return;
     try {
-      const models = await this.fetchLocalModels();
+      const models = await this.listOllamaModels();
       const signature = this.getLocalModelLibrarySignature(models);
       const modelNames = this.getLocalModelNames(models);
       const previousSignature = this.settings.lastLocalModelLibrarySignature;
@@ -2480,17 +2673,17 @@ export default class DeleometerPlugin extends Plugin {
       await this.saveSettings();
 
       if (modelNames.length === 0 && showNotice) {
-        new Notice('Ollama is running, but no local models are installed. Download one in Ollama, then refresh local models again.', 12000);
+        new Notice('Local AI is available, but no local models are installed. Download one in the local model runtime, then refresh local models again.', 12000);
       } else if (previousDigest && nextDigest && previousDigest !== nextDigest) {
         new Notice(`Your selected local model "${this.settings.localModel}" has been updated locally.`, 12000);
       } else if (previousSignature && previousSignature !== signature) {
-        new Notice('Your local Ollama model library has changed. Review the selected model in The Deleometer settings.', 12000);
+        new Notice('Your local model library has changed. Review the selected model in settings.', 12000);
       } else if (showNotice) {
         new Notice(`Local model library checked. ${models.length} model${models.length === 1 ? '' : 's'} available.`);
       }
     } catch (error) {
       if (showNotice) new Notice(this.getAIErrorMessage(error, 'Could not check local model library'));
-      console.error(error);
+      this.logError('Could not check local model library', error);
     }
   }
 
@@ -2637,7 +2830,7 @@ export default class DeleometerPlugin extends Plugin {
       new AnalysisResultModal(this.app, this, analysis, content, sourceFile).open();
     } catch (error) {
       new Notice(this.getAIErrorMessage(error, 'Error analyzing emotions'));
-      console.error(error);
+      this.logError('Error analyzing emotions', error);
     }
   }
 
@@ -2746,7 +2939,7 @@ export default class DeleometerPlugin extends Plugin {
       new Notice('Backfilled AI chat links for this note');
     } catch (error) {
       new Notice('Could not backfill analysis chat links');
-      console.error(error);
+      this.logError('Could not backfill analysis chat links', error);
     }
   }
 
@@ -2796,7 +2989,7 @@ export default class DeleometerPlugin extends Plugin {
       } catch (error) {
         const warning = `Chronological batch ${chunkIndex + 1} could not be generated: ${this.getErrorMessage(error)}`;
         analysisWarnings.push(warning);
-        console.error(error);
+        this.logError(`Chronological batch ${chunkIndex + 1} could not be generated`, error);
       }
 
       const missingPerspectives = chunk.filter(({ key }) => !results[key]);
@@ -2809,7 +3002,7 @@ export default class DeleometerPlugin extends Plugin {
         } catch (error) {
           const warning = `${item.perspective.title} could not be generated: ${this.getErrorMessage(error)}`;
           analysisWarnings.push(warning);
-          console.error(error);
+          this.logError(`${item.perspective.title} could not be generated`, error);
         }
       }
     }
@@ -2843,7 +3036,7 @@ export default class DeleometerPlugin extends Plugin {
       } catch (error) {
         const warning = `Further reading batch ${chunkIndex + 1} could not be generated: ${this.getErrorMessage(error)}`;
         analysisWarnings.push(warning);
-        console.error(error);
+        this.logError(`Further reading batch ${chunkIndex + 1} could not be generated`, error);
       }
     }
 
@@ -2865,7 +3058,7 @@ export default class DeleometerPlugin extends Plugin {
       } catch (error) {
         const warning = `${group?.title || groupKey} lineage synthesis could not be generated: ${this.getErrorMessage(error)}`;
         analysisWarnings.push(warning);
-        console.error(error);
+        this.logError(`${group?.title || groupKey} lineage synthesis could not be generated`, error);
       }
     }
 
@@ -2891,7 +3084,7 @@ export default class DeleometerPlugin extends Plugin {
       } catch (error) {
         const warning = `Inspirational song could not be generated: ${this.getErrorMessage(error)}`;
         analysisWarnings.push(warning);
-        console.error(error);
+        this.logError('Inspirational song could not be generated', error);
       }
     }
     const authorMemorySummary = this.settings.enableAuthorMemory
@@ -2958,7 +3151,7 @@ export default class DeleometerPlugin extends Plugin {
     try {
       return this.parseJsonObject(rawContent);
     } catch (error) {
-      console.error(error);
+      this.logError('Could not parse JSON response', error);
       return null;
     }
   }
@@ -3165,7 +3358,7 @@ export default class DeleometerPlugin extends Plugin {
         content.slice(-3000)
       ].join('\n');
     } catch (error) {
-      console.error(error);
+      this.logError('Could not create a compact analysis brief', error);
       await onProgress?.('Could not create a long-entry brief; analyzing opening and closing excerpts instead...');
       return [
         'Long journal entry excerpted for analysis because compact briefing failed.',
@@ -3807,7 +4000,7 @@ export default class DeleometerPlugin extends Plugin {
         return { song: parsedSong };
       }
     } catch (error) {
-      console.error(error);
+      this.logError('Could not parse inspirational song response', error);
     }
 
     return {
@@ -4026,11 +4219,11 @@ export default class DeleometerPlugin extends Plugin {
     const authorContext = this.buildAuthorContext();
     const specializationTitle = contextOverride?.title?.trim() || persp?.title || 'reflective analysis';
     const specializationDescription = contextOverride?.description?.trim() || persp?.description || '';
-    const systemMessage: ChatCompletionMessageParam = {
+    const systemMessage: AIMessage = {
       role: 'system',
       content: `You are an empathetic analytical companion specializing in ${specializationTitle}. ${specializationDescription}\n\n${this.getReaderContextPrompt()}\n\n${this.getDictionaryModePrompt()}\n\n${this.getOutputLanguagePrompt()}\n\nYou help users explore emotions, thoughts, experiences, contexts, and practical possibilities through this perspective or synthesis. Be warm, insightful, and supportive. Ask thoughtful follow-up questions. Keep responses conversational and under 150 words unless more detail is needed.${authorContext ? `\n\nContext about the journal author:\n${authorContext}` : ''}`
     };
-    const conversation: ChatCompletionMessageParam[] = messages.map((message) => ({
+    const conversation: AIMessage[] = messages.map((message) => ({
       role: message.role,
       content: this.prepareTextForAI(message.content)
     }));
@@ -4453,32 +4646,86 @@ export default class DeleometerPlugin extends Plugin {
   getErrorMessage(error: unknown): string {
     if (error && typeof error === 'object' && 'message' in error) {
       const message = (error as { message?: unknown }).message;
-      if (typeof message === 'string' && message.trim()) return message.trim();
+      if (typeof message === 'string' && message.trim()) return this.redactSensitiveText(message.trim());
     }
     return 'Unknown error';
   }
 
+  redactSensitiveText(text: string): string {
+    let redacted = text;
+    const apiKey = this.settings.openaiApiKey?.trim();
+    if (apiKey) {
+      redacted = redacted.split(apiKey).join('[redacted-api-key]');
+    }
+
+    return redacted
+      .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, 'Bearer [redacted]')
+      .replace(/\bsk-[A-Za-z0-9_-]+\b/g, '[redacted-api-key]')
+      .replace(/\bgho_[A-Za-z0-9]+\b/g, '[redacted-token]');
+  }
+
+  sanitizeErrorForLog(value: unknown, seen = new WeakSet<object>()): unknown {
+    if (typeof value === 'string') {
+      return this.redactSensitiveText(value);
+    }
+    if (!value || typeof value !== 'object') {
+      return value;
+    }
+    if (seen.has(value)) {
+      return '[Circular]';
+    }
+    seen.add(value);
+    if (value instanceof Error) {
+      return {
+        name: value.name,
+        message: this.redactSensitiveText(value.message),
+        stack: value.stack ? this.redactSensitiveText(value.stack) : undefined,
+        ...(typeof (value as AIRequestError).status === 'number' ? { status: (value as AIRequestError).status } : {}),
+        ...((value as AIRequestError).provider ? { provider: (value as AIRequestError).provider } : {}),
+        ...((value as AIRequestError).headers ? { headers: this.sanitizeErrorForLog((value as AIRequestError).headers, seen) } : {})
+      };
+    }
+    if (Array.isArray(value)) {
+      return value.map((item) => this.sanitizeErrorForLog(item, seen));
+    }
+
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, nestedValue]) => [key, this.sanitizeErrorForLog(nestedValue, seen)])
+    );
+  }
+
+  logError(context: string, error: unknown, ...details: unknown[]) {
+    console.error(
+      context,
+      this.sanitizeErrorForLog(error),
+      ...details.map((detail) => this.sanitizeErrorForLog(detail))
+    );
+  }
+
   getAIErrorMessage(error: unknown, fallback: string): string {
     if (error && typeof error === 'object') {
-      const maybeError = error as {
+      const maybeError = error as AIRequestError & {
         status?: number;
         message?: string;
         headers?: Record<string, string | null | undefined>;
       };
+      const providerName = maybeError.provider === 'ollama' ? 'Ollama' : 'OpenAI';
       if (maybeError.status === 429) {
         const retryAfter = this.getRetryAfterMessage(maybeError.headers);
         if (retryAfter) {
-          return `⚠️ OpenAI rate limit reached. ${retryAfter}`;
+          return `⚠️ ${providerName} rate limit reached. ${retryAfter}`;
         }
 
-        return '⚠️ OpenAI quota exceeded. Reset time unavailable. Check your API billing/usage, then try again.';
+        return maybeError.provider === 'ollama'
+          ? '⚠️ Ollama is rate-limiting requests. Reset time unavailable. Try again shortly.'
+          : '⚠️ OpenAI quota exceeded. Reset time unavailable. Check your API billing/usage, then try again.';
       }
       if (typeof maybeError.message === 'string' && maybeError.message.trim()) {
-        return `❌ ${maybeError.message}`;
+        return `❌ ${this.redactSensitiveText(maybeError.message)}`;
       }
     }
 
-    return `❌ ${fallback}`;
+    return `❌ ${this.redactSensitiveText(fallback)}`;
   }
 
   getRetryAfterMessage(headers?: Record<string, string | null | undefined>): string | null {
@@ -5826,7 +6073,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
       await this.deleteGoalMilestoneNotesByPath(goalFilePath);
       await this.deleteGoalCalendarEventsByPath(goalFilePath);
     } catch (error) {
-      console.error('Could not clean up deleted Deleometer goal artifacts', goalFilePath, error);
+      this.logError('Could not clean up deleted Deleometer goal artifacts', error, goalFilePath);
     }
   }
 
@@ -6416,7 +6663,7 @@ ${event.kind === 'goal_due'
       if (!analysis.analysisWarnings.includes(warning)) {
         analysis.analysisWarnings.push(warning);
       }
-      console.error(error);
+      this.logError('Inspirational song audio could not be rendered', error);
     }
     const currentContent = await this.app.vault.read(sourceFile);
     const analysisStart = this.findAnalysisSectionStart(currentContent);
@@ -7248,7 +7495,7 @@ class AIChatView extends ItemView {
         await navigator.clipboard.writeText(content);
         new Notice('Copied to clipboard');
       } catch (error) {
-        console.error(error);
+        this.plugin.logError('Could not copy chat message to clipboard', error);
         new Notice('Could not copy to clipboard');
       }
     };
@@ -7283,7 +7530,7 @@ class AIChatView extends ItemView {
       loadingDiv.remove();
       this.addMessage('assistant', this.plugin.getAIErrorMessage(error, 'I could not process your message.'));
       new Notice(this.plugin.getAIErrorMessage(error, 'Error processing your message'));
-      console.error(error);
+      this.plugin.logError('Error processing AI chat message', error);
     }
   }
 
@@ -7331,7 +7578,7 @@ class AIChatView extends ItemView {
       new Notice('Chat saved back to the source analysis section');
     } catch (error) {
       new Notice('Error saving chat');
-      console.error(error);
+      this.plugin.logError('Error saving chat', error);
     }
   }
 
@@ -7426,7 +7673,7 @@ class AIChatView extends ItemView {
       new Notice('Chat exported to note');
     } catch (error) {
       new Notice('Could not export chat');
-      console.error(error);
+      this.plugin.logError('Could not export chat', error);
     }
   }
 
@@ -7557,7 +7804,7 @@ class JournalEntryModal extends Modal {
     } catch (error) {
       this.promptDisplay.setText('Could not generate a prompt right now.');
       new Notice(this.plugin.getAIErrorMessage(error, 'Error generating journal prompt'));
-      console.error(error);
+      this.plugin.logError('Error generating journal prompt', error);
     } finally {
       this.isGeneratingPrompt = false;
       button.disabled = false;
@@ -7619,12 +7866,12 @@ ${this.content}
           new Notice('Analysis added to the note');
         } catch (error) {
           new Notice(this.plugin.getAIErrorMessage(error, 'Error analyzing journal entry'));
-          console.error(error);
+          this.plugin.logError('Error analyzing journal entry', error);
         }
       }
     } catch (error) {
       new Notice('Could not save journal entry');
-      console.error(error);
+      this.plugin.logError('Could not save journal entry', error);
     } finally {
       this.isSaving = false;
     }
@@ -7764,7 +8011,7 @@ ${this.milestones.map(m => `- [ ] ${m.title}`).join('\n')}
       this.close();
     } catch (error) {
       new Notice('Could not create goal');
-      console.error(error);
+      this.plugin.logError('Could not create goal', error);
     } finally {
       this.isSaving = false;
     }
@@ -7885,7 +8132,7 @@ class GoalDraftsModal extends Modal {
       this.close();
     } catch (error) {
       new Notice('Could not save goal drafts');
-      console.error(error);
+      this.plugin.logError('Could not save goal drafts', error);
     } finally {
       this.isSaving = false;
     }
@@ -7975,7 +8222,7 @@ class GoalConsolidationModal extends Modal {
       this.close();
     } catch (error) {
       new Notice('Could not consolidate goals');
-      console.error(error);
+      this.plugin.logError('Could not consolidate goals', error);
     }
   }
 
@@ -8054,7 +8301,7 @@ class MilestoneConsolidationModal extends Modal {
       this.close();
     } catch (error) {
       new Notice('Could not consolidate milestones');
-      console.error(error);
+      this.plugin.logError('Could not consolidate milestones', error);
     }
   }
 
@@ -8892,14 +9139,16 @@ class DeleometerSettingTab extends PluginSettingTab {
       .setName('AI provider')
       .setDesc(this.plugin.getAIProviderPrivacyNotice())
       .addDropdown((dropdown) => dropdown
-        .addOption('openai', 'OpenAI')
-        .addOption('ollama', 'Local Ollama')
+        .addOption('openai', 'Cloud service')
+        .addOption('ollama', 'Local runtime')
         .setValue(this.plugin.settings.aiProvider)
-        .onChange(async (value) => {
-          this.plugin.settings.aiProvider = value as AIProvider;
-          this.plugin.initializeAIProvider();
-          await this.plugin.saveSettings();
-          this.display();
+        .onChange((value) => {
+          void (async () => {
+            this.plugin.settings.aiProvider = value as AIProvider;
+            this.plugin.initializeAIProvider();
+            await this.plugin.saveSettings();
+            this.display();
+          })();
         }));
 
     new Setting(containerEl)
@@ -8908,8 +9157,8 @@ class DeleometerSettingTab extends PluginSettingTab {
 
     if (this.plugin.settings.aiProvider === 'openai') {
       new Setting(containerEl)
-        .setName('OpenAI model')
-        .setDesc('Model used for OpenAI analysis, chat, goals, songs, and prompts.')
+        .setName('Cloud model')
+        .setDesc('Model used for cloud analysis, chat, goals, songs, and prompts.')
         .addText((text) => text
           .setPlaceholder(DEFAULT_SETTINGS.openaiModel)
           .setValue(this.plugin.settings.openaiModel)
@@ -8942,28 +9191,33 @@ class DeleometerSettingTab extends PluginSettingTab {
           .setButtonText('Clear key')
           .onClick(async () => {
             this.plugin.settings.openaiApiKey = '';
-            this.plugin.openai = null;
             await this.plugin.saveSettings();
             this.display();
           }));
     }
 
-    if (this.plugin.settings.aiProvider === 'ollama') {
+    if (this.plugin.settings.aiProvider === 'ollama' && !this.plugin.isOllamaAvailableOnCurrentDevice()) {
+      new Setting(containerEl)
+        .setName('Local runtime on mobile')
+        .setDesc('Local runtime mode is unavailable on mobile because it depends on a user-controlled computer endpoint. Use cloud mode on mobile instead.');
+    }
+
+    if (this.plugin.settings.aiProvider === 'ollama' && this.plugin.isOllamaAvailableOnCurrentDevice()) {
       const ollamaLinkFragment = document.createDocumentFragment();
-      ollamaLinkFragment.appendText('Install Ollama first if this computer does not have it. ');
+      ollamaLinkFragment.appendText('Install the local runtime first if this computer does not have it. ');
       const ollamaLink = ollamaLinkFragment.createEl('a', {
-        text: 'Download Ollama',
+        text: 'Download local runtime',
         href: OLLAMA_DOWNLOAD_URL
       });
       ollamaLink.setAttr('target', '_blank');
       ollamaLink.setAttr('rel', 'noopener');
-      ollamaLinkFragment.appendText(' then return here and use Find installed models or Download model into Ollama.');
+      ollamaLinkFragment.appendText(' then return here and use Find installed models or Download model into the local runtime.');
       new Setting(containerEl)
-        .setName('Install Ollama')
+        .setName('Install local runtime')
         .setDesc(ollamaLinkFragment);
 
       new Setting(containerEl)
-        .setName('Local Ollama endpoint')
+        .setName('Local runtime endpoint')
         .setDesc(`${this.plugin.getLocalModelSetupHelp()} Local AI mode sends journal and chat context to this endpoint only. The plugin will not fall back to OpenAI.`)
         .addText((text) => text
           .setPlaceholder(DEFAULT_SETTINGS.localEndpoint)
@@ -8976,26 +9230,30 @@ class DeleometerSettingTab extends PluginSettingTab {
       const installedLocalModels = this.plugin.settings.lastLocalModelNames;
       if (installedLocalModels.length > 0) {
         new Setting(containerEl)
-          .setName('Installed Ollama model')
-          .setDesc('Choose from models currently detected in the local Ollama library.')
+          .setName('Installed local model')
+          .setDesc('Choose from models currently detected in the local model library.')
           .addDropdown((dropdown) => {
-            installedLocalModels.forEach((modelName) => dropdown.addOption(modelName, modelName));
+            installedLocalModels.forEach((modelName) => {
+              dropdown.addOption(modelName, modelName);
+            });
             dropdown
               .setValue(installedLocalModels.includes(this.plugin.settings.localModel)
                 ? this.plugin.settings.localModel
                 : installedLocalModels[0])
-              .onChange(async (value) => {
-                this.plugin.settings.localModel = value;
-                await this.plugin.saveSettings();
+              .onChange((value) => {
+                void (async () => {
+                  this.plugin.settings.localModel = value;
+                  await this.plugin.saveSettings();
+                })();
               });
           });
       }
 
       new Setting(containerEl)
-        .setName('Manual Ollama model name')
+        .setName('Manual local model name')
         .setDesc(installedLocalModels.length > 0
           ? 'Advanced: type a model name manually if it is not shown in the installed model list.'
-          : 'No installed models have been detected yet. Install Ollama, download a model, then refresh. Example model names: llama3.1, qwen2.5, mistral, gemma2.')
+          : 'No installed models have been detected yet. Install the local runtime, download a model, then refresh. Example model names: llama3.1, qwen2.5, mistral, gemma2.')
         .addText((text) => text
           .setPlaceholder(DEFAULT_SETTINGS.localModel)
           .setValue(this.plugin.settings.localModel)
@@ -9011,8 +9269,8 @@ class DeleometerSettingTab extends PluginSettingTab {
           }));
 
       new Setting(containerEl)
-        .setName('Download model into Ollama')
-        .setDesc('Choose a recommended model or type any Ollama model name. This downloads the model to this computer through the local Ollama server, then selects it for The Deleometer.')
+        .setName('Download model into local runtime')
+        .setDesc('Choose a recommended model or type any local model name. This downloads the model to this computer through the local runtime, then selects it for future analysis.')
         .addDropdown((dropdown) => {
           Object.entries(RECOMMENDED_LOCAL_MODELS).forEach(([modelName, description]) => {
             dropdown.addOption(modelName, `${modelName} - ${description}`);
@@ -9029,7 +9287,7 @@ class DeleometerSettingTab extends PluginSettingTab {
             });
         })
         .addText((text) => text
-          .setPlaceholder('Any Ollama model name')
+          .setPlaceholder('Any local model name')
           .setValue(this.plugin.settings.localModelToInstall)
           .onChange(async (value) => {
             this.plugin.settings.localModelToInstall = value.trim() || DEFAULT_SETTINGS.localModelToInstall;
@@ -9042,12 +9300,12 @@ class DeleometerSettingTab extends PluginSettingTab {
             button.setDisabled(true);
             button.setButtonText('Downloading...');
             try {
-              await this.plugin.installLocalModel(modelName);
+              await this.plugin.pullOllamaModel(modelName);
               new Notice(`Downloaded and selected local model "${modelName}".`, 12000);
               this.display();
             } catch (error) {
               new Notice(this.plugin.getAIErrorMessage(error, `Could not download "${modelName}" into Ollama`), 12000);
-              console.error(error);
+              this.plugin.logError(`Could not download "${modelName}" into Ollama`, error);
             } finally {
               button.setDisabled(false);
               button.setButtonText('Download');

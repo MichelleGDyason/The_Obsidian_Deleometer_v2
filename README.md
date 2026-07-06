@@ -53,7 +53,7 @@ The plugin keeps an author memory summary so later analyses can respond as part 
 
 - Obsidian `1.7.2` or later
 - either an OpenAI API key or a local Ollama installation with a downloaded model
-- desktop Obsidian is recommended for the full workflow
+- desktop Obsidian is recommended for the full workflow; OpenAI mode works on mobile, while local Ollama mode is desktop-only
 
 ## Installation
 
