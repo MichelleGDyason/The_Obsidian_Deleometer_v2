@@ -2291,6 +2291,7 @@ export default class DeleometerPlugin extends Plugin {
     this.addCommand({ id: 'consolidate-similar-goals', name: 'Consolidate similar goals', callback: async () => this.openGoalConsolidationModal() });
     this.addCommand({ id: 'consolidate-similar-milestones', name: 'Consolidate similar milestones', callback: async () => this.openMilestoneConsolidationModal() });
     this.addCommand({ id: 'repair-goal-frontmatter', name: 'Repair goal note frontmatter', callback: async () => this.repairAllGoalFrontmatter(true) });
+    this.addCommand({ id: 'run-analysis-regression-check', name: 'Run analysis regression check', callback: async () => this.runAnalysisRegressionDebugCommand() });
 
     this.addSettingTab(new DeleometerSettingTab(this.app, this));
     this.registerEvent(this.app.vault.on('delete', (file) => {
@@ -2914,6 +2915,110 @@ export default class DeleometerPlugin extends Plugin {
     }
   }
 
+  countStandaloneHorizontalRules(content: string): number {
+    return content
+      .split(/\r?\n/)
+      .filter((line) => /^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line))
+      .length;
+  }
+
+  findBlankRenderedPerspectiveSections(content: string, perspectiveKeys: string[]): string[] {
+    const blankSections: string[] = [];
+
+    for (const key of perspectiveKeys) {
+      const bounds = this.findPerspectiveSectionBounds(content, key);
+      if (!bounds) continue;
+
+      const section = content.slice(bounds.start, bounds.end);
+      const body = section
+        .replace(/^###\s+.*$/m, '')
+        .replace(/^\*Group:.*$/gm, '')
+        .replace(/^\*\*Continue Chat:\*\*.*$/gm, '')
+        .replace(/#### Further readings[\s\S]*$/m, '')
+        .trim();
+
+      if (!body) {
+        blankSections.push(PERSPECTIVES[key]?.title || key);
+      }
+    }
+
+    return blankSections;
+  }
+
+  async runAnalysisRegressionDebugCommand() {
+    const debugPerspectiveKeys = [
+      'lacanian_perspective',
+      'jungian_perspective',
+      'phenomenology_perspective'
+    ].filter((key) => PERSPECTIVES[key]);
+    const previousSelectedPerspectives = [...this.settings.selectedPerspectives];
+    const previousGenerateInspirationalSong = this.settings.generateInspirationalSong;
+    const journalFolder = this.settings.journalFolder || DEFAULT_SETTINGS.journalFolder;
+    const debugPath = `${journalFolder}/Deleometer Analysis Regression Check.md`;
+    const debugContent = [
+      '# Deleometer Analysis Regression Check',
+      '',
+      'Today I noticed I kept postponing one difficult message. I felt tense, hopeful, and embarrassed, then made tea and wrote down one honest sentence I could send tomorrow.'
+    ].join('\n');
+    let debugFile: TFile | null = null;
+
+    try {
+      this.settings.selectedPerspectives = debugPerspectiveKeys;
+      this.settings.generateInspirationalSong = false;
+      await this.saveSettings();
+
+      await this.ensureFolder(journalFolder);
+      const existingFile = this.app.vault.getAbstractFileByPath(debugPath);
+      if (existingFile instanceof TFile) {
+        debugFile = existingFile;
+        await this.app.vault.modify(debugFile, debugContent);
+      } else if (existingFile) {
+        throw new Error(`${debugPath} exists but is not a Markdown file`);
+      } else {
+        debugFile = await this.app.vault.create(debugPath, debugContent);
+      }
+
+      const analysis = await this.runJournalAnalysisForFile(debugFile, debugContent);
+      const finalContent = await this.app.vault.read(debugFile);
+      const nonEmptyPerspectiveCount = debugPerspectiveKeys
+        .filter((key) => analysis.perspectives[key]?.trim())
+        .length;
+      const horizontalRuleCount = this.countStandaloneHorizontalRules(finalContent);
+      const analysisHeadingCount = finalContent.match(/^##\s+.*AI Analysis.*$/gm)?.length || 0;
+      const blankSections = this.findBlankRenderedPerspectiveSections(finalContent, debugPerspectiveKeys);
+
+      if (nonEmptyPerspectiveCount === 0) {
+        throw new Error('No selected regression perspective produced non-empty analysis text');
+      }
+      if (horizontalRuleCount > 2 || analysisHeadingCount !== 1) {
+        throw new Error('Regression note contains repeated AI analysis separators or headings');
+      }
+      if (blankSections.length > 0) {
+        throw new Error(`Blank rendered perspective sections: ${blankSections.join(', ')}`);
+      }
+
+      new Notice(`Analysis regression check passed with ${nonEmptyPerspectiveCount}/${debugPerspectiveKeys.length} perspectives.`, 12000);
+    } catch (error) {
+      if (debugFile) {
+        const finalContent = await this.app.vault.read(debugFile);
+        const horizontalRuleCount = this.countStandaloneHorizontalRules(finalContent);
+        const analysisHeadingCount = finalContent.match(/^##\s+.*AI Analysis.*$/gm)?.length || 0;
+        if (horizontalRuleCount > 2 || analysisHeadingCount > 1) {
+          new Notice('Analysis regression check failed and the debug note contains repeated separators. See console for details.', 12000);
+        } else {
+          new Notice(`Analysis regression check failed: ${this.getErrorMessage(error)}`, 12000);
+        }
+      } else {
+        new Notice(`Analysis regression check failed: ${this.getErrorMessage(error)}`, 12000);
+      }
+      this.logError('Analysis regression check failed', error);
+    } finally {
+      this.settings.selectedPerspectives = previousSelectedPerspectives;
+      this.settings.generateInspirationalSong = previousGenerateInspirationalSong;
+      await this.saveSettings();
+    }
+  }
+
   async backfillAnalysisChatLinksForActiveFile(editor?: Editor) {
     const file = this.app.workspace.getActiveFile();
     if (!file) {
@@ -2987,6 +3092,7 @@ export default class DeleometerPlugin extends Plugin {
         Object.assign(results, batchResult.perspectives);
         Object.assign(furtherReadings, batchResult.furtherReadings);
       } catch (error) {
+        if (this.isSystemicAIRequestError(error)) throw error;
         const warning = `Chronological batch ${chunkIndex + 1} could not be generated: ${this.getErrorMessage(error)}`;
         analysisWarnings.push(warning);
         this.logError(`Chronological batch ${chunkIndex + 1} could not be generated`, error);
@@ -3000,6 +3106,7 @@ export default class DeleometerPlugin extends Plugin {
           if (fallback.analysis) results[item.key] = fallback.analysis;
           if (fallback.furtherReadings.length > 0) furtherReadings[item.key] = fallback.furtherReadings;
         } catch (error) {
+          if (this.isSystemicAIRequestError(error)) throw error;
           const warning = `${item.perspective.title} could not be generated: ${this.getErrorMessage(error)}`;
           analysisWarnings.push(warning);
           this.logError(`${item.perspective.title} could not be generated`, error);
@@ -3008,7 +3115,10 @@ export default class DeleometerPlugin extends Plugin {
     }
 
     if (Object.keys(results).length === 0) {
-      throw new Error('Analysis response did not include any usable perspectives');
+      const warningSummary = analysisWarnings.length > 0
+        ? ` ${analysisWarnings.slice(0, 3).join(' ')}`
+        : '';
+      throw new Error(`Analysis response did not include any usable perspectives.${warningSummary}`);
     }
 
     const missingFurtherReadings = perspectives.filter(({ key }) => results[key] && (furtherReadings[key]?.length || 0) < 3);
@@ -3105,6 +3215,15 @@ export default class DeleometerPlugin extends Plugin {
       goalSuggestions: [],
       analysisWarnings
     };
+  }
+
+  isSystemicAIRequestError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') return false;
+    const requestError = error as AIRequestError;
+    return (requestError.provider === 'openai' || requestError.provider === 'ollama')
+      && typeof requestError.status === 'number'
+      && requestError.status >= 400
+      && requestError.status < 500;
   }
 
   chunkArray<T>(items: T[], size: number): T[][] {
@@ -3276,6 +3395,78 @@ export default class DeleometerPlugin extends Plugin {
       this.normalizePerspectiveLookupKey(perspective.title)
     ]);
     return this.findPerspectiveAnalysisText(source, wanted);
+  }
+
+  getRawPerspectiveHeadingKey(
+    line: string,
+    perspectives: { key: string; perspective: PerspectiveDefinition }[]
+  ): string | null {
+    const heading = line
+      .trim()
+      .replace(/^#{1,6}\s+/, '')
+      .replace(/^\d+[.)]\s+/, '')
+      .replace(/^\*\*(.*?)\*\*:?\s*$/, '$1')
+      .replace(/:$/, '')
+      .trim();
+    if (!heading || heading.length > 180) return null;
+
+    const normalizedHeading = this.normalizePerspectiveLookupKey(heading);
+    for (const { key, perspective } of perspectives) {
+      const normalizedKey = this.normalizePerspectiveLookupKey(key);
+      const normalizedTitle = this.normalizePerspectiveLookupKey(perspective.title);
+      const normalizedAliases = (PERSPECTIVE_HEADING_ALIASES[key] || [])
+        .map((alias) => this.normalizePerspectiveLookupKey(alias));
+
+      if (
+        normalizedHeading === normalizedKey ||
+        normalizedHeading === normalizedTitle ||
+        normalizedAliases.some((alias) => normalizedHeading === alias)
+      ) {
+        return key;
+      }
+    }
+
+    const perspectiveKey = this.getPerspectiveKeyForHeading(heading);
+    return perspectiveKey && perspectives.some(({ key }) => key === perspectiveKey)
+      ? perspectiveKey
+      : null;
+  }
+
+  extractRawPerspectiveAnalyses(
+    rawContent: string,
+    perspectives: { key: string; perspective: PerspectiveDefinition }[]
+  ): Record<string, string> {
+    const text = this.stripResponseFences(rawContent).trim();
+    if (!text) return {};
+
+    const lines = text.split(/\r?\n/);
+    const sections: { key: string; startLine: number; endLine: number }[] = [];
+
+    for (let index = 0; index < lines.length; index += 1) {
+      const line = lines[index].trim();
+      if (!line) continue;
+
+      const key = this.getRawPerspectiveHeadingKey(line, perspectives);
+      if (!key) continue;
+
+      const previous = sections[sections.length - 1];
+      if (previous) previous.endLine = index;
+      sections.push({ key, startLine: index + 1, endLine: lines.length });
+    }
+
+    const results: Record<string, string> = {};
+    for (const section of sections) {
+      const body = lines.slice(section.startLine, section.endLine).join('\n').trim();
+      if (body && !results[section.key]) {
+        results[section.key] = body;
+      }
+    }
+
+    if (Object.keys(results).length === 0 && perspectives.length > 0) {
+      results[perspectives[0].key] = text;
+    }
+
+    return results;
   }
 
   closeJsonCandidate(candidate: string): string {
@@ -3506,7 +3697,20 @@ export default class DeleometerPlugin extends Plugin {
     });
     if (!rawContent) throw new Error('No analysis returned');
 
-    const parsed = this.parseJsonObject(rawContent);
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = this.parseJsonObject(rawContent);
+    } catch (error) {
+      const rawPerspectives = this.extractRawPerspectiveAnalyses(rawContent, perspectives);
+      if (Object.keys(rawPerspectives).length > 0) {
+        return {
+          perspectives: this.normalizeGeneratedEnglishUsageRecord(rawPerspectives),
+          furtherReadings: {},
+          groupSynthesis: ''
+        };
+      }
+      throw error;
+    }
     const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === 'object'
       ? parsed.perspectives
       : parsed;
@@ -3619,7 +3823,19 @@ export default class DeleometerPlugin extends Plugin {
     });
     if (!rawContent) throw new Error('No analysis returned');
 
-    const parsed = this.parseJsonObject(rawContent);
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = this.parseJsonObject(rawContent);
+    } catch (error) {
+      const rawPerspectives = this.extractRawPerspectiveAnalyses(rawContent, perspectives);
+      if (Object.keys(rawPerspectives).length > 0) {
+        return {
+          perspectives: this.normalizeGeneratedEnglishUsageRecord(rawPerspectives),
+          furtherReadings: {}
+        };
+      }
+      throw error;
+    }
     const parsedPerspectives = parsed.perspectives && typeof parsed.perspectives === 'object'
       ? parsed.perspectives
       : parsed;
@@ -3745,12 +3961,14 @@ export default class DeleometerPlugin extends Plugin {
     const analysis = typeof parsed.analysis === 'string'
       ? this.normalizeGeneratedEnglishUsage(parsed.analysis.trim())
       : this.normalizeGeneratedEnglishUsage(this.extractPerspectiveAnalysis(parsed, key, perspective));
+    const rawFallback = this.stripResponseFences(rawContent).trim();
+    const fallbackAnalysis = analysis || (rawFallback.startsWith('{') ? '' : this.normalizeGeneratedEnglishUsage(rawFallback));
     const furtherReadings = Array.isArray(parsed.further_readings)
       ? this.normalizeGeneratedEnglishUsageArray(
           parsed.further_readings.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean).slice(0, 5)
         )
       : [];
-    return { analysis, furtherReadings };
+    return { analysis: fallbackAnalysis, furtherReadings };
   }
 
   async getPerspectiveFurtherReadingsBatch(
@@ -4478,11 +4696,28 @@ export default class DeleometerPlugin extends Plugin {
     while ((match = analysisHeadingRegex.exec(content)) !== null) {
       const headingText = this.normalizeHeadingText(match[1]);
       if (headingText.includes('ai analysis')) {
-        return match.index;
+        return this.findAnalysisSectionStartIncludingLeadingRules(content, match.index);
       }
     }
 
     return -1;
+  }
+
+  findAnalysisSectionStartIncludingLeadingRules(content: string, headingIndex: number): number {
+    const prefix = content.slice(0, headingIndex);
+    const ruleBlock = prefix.match(/(?:\n[ \t]*)?(?:(?:-{3,}|\*{3,}|_{3,})[ \t]*(?:\n[ \t]*)*)+$/);
+    if (!ruleBlock) return headingIndex;
+
+    const candidateStart = headingIndex - ruleBlock[0].length;
+    if (content.startsWith('---\n')) {
+      const frontmatterEnd = content.indexOf('\n---\n', 4);
+      const frontmatterBoundary = frontmatterEnd === -1 ? -1 : frontmatterEnd + 5;
+      if (frontmatterBoundary !== -1 && candidateStart < frontmatterBoundary) {
+        return headingIndex;
+      }
+    }
+
+    return candidateStart;
   }
 
   getJournalContentBeforeAnalysis(content: string): string {
@@ -6665,23 +6900,24 @@ ${event.kind === 'goal_due'
       }
       this.logError('Inspirational song audio could not be rendered', error);
     }
+    const renderableAnalysis = this.getRenderableAnalysisPayload(analysis);
     const currentContent = await this.app.vault.read(sourceFile);
     const analysisStart = this.findAnalysisSectionStart(currentContent);
 
     if (analysisStart !== -1) {
       const cleaned = currentContent.slice(0, analysisStart).trimEnd();
-      await this.app.vault.modify(sourceFile, `${cleaned.trimEnd()}${this.buildAnalysisMarkdown(analysis, sourceFile.path)}`);
+      await this.app.vault.modify(sourceFile, `${cleaned.trimEnd()}${this.buildAnalysisMarkdown(renderableAnalysis, sourceFile.path)}`);
     } else {
-      await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${this.buildAnalysisMarkdown(analysis, sourceFile.path)}`);
+      await this.app.vault.modify(sourceFile, `${currentContent.trimEnd()}${this.buildAnalysisMarkdown(renderableAnalysis, sourceFile.path)}`);
     }
-    await this.ensurePerspectiveChatLinks(sourceFile, analysis);
-    await this.ensureGroupSynthesisChatLinks(sourceFile, analysis);
+    await this.ensurePerspectiveChatLinks(sourceFile, renderableAnalysis);
+    await this.ensureGroupSynthesisChatLinks(sourceFile, renderableAnalysis);
   }
 
   async writeAnalysisStatusToFile(sourceFile: TFile, status: string) {
     const currentContent = await this.app.vault.read(sourceFile);
     const analysisStart = this.findAnalysisSectionStart(currentContent);
-    const statusMarkdown = `\n\n---\n\n## 🔍 AI Analysis\n\n*Status: ${status}*\n\n`;
+    const statusMarkdown = this.buildAnalysisStatusMarkdown(status);
 
     if (analysisStart !== -1) {
       const cleaned = currentContent.slice(0, analysisStart).trimEnd();
@@ -6691,11 +6927,50 @@ ${event.kind === 'goal_due'
     }
   }
 
+  buildAnalysisStatusMarkdown(status: string): string {
+    return `\n\n---\n\n## 🔍 AI Analysis\n\n*Status: ${status}*\n\n`;
+  }
+
+  getRenderableAnalysisPayload(analysis: AnalysisPayload): AnalysisPayload {
+    const perspectives: Record<string, string> = {};
+    for (const [key, value] of Object.entries(analysis.perspectives)) {
+      const content = value.trim();
+      if (content) perspectives[key] = content;
+    }
+
+    const furtherReadings: Record<string, string[]> = {};
+    for (const [key, readings] of Object.entries(analysis.furtherReadings)) {
+      if (!perspectives[key]) continue;
+      const cleanedReadings = readings.map((reading) => reading.trim()).filter(Boolean);
+      if (cleanedReadings.length > 0) furtherReadings[key] = cleanedReadings;
+    }
+
+    const groupSyntheses: Record<string, string> = {};
+    for (const [key, value] of Object.entries(analysis.groupSyntheses)) {
+      const content = value.trim();
+      if (content) groupSyntheses[key] = content;
+    }
+
+    const analysisWarnings = analysis.analysisWarnings
+      .map((warning) => warning.trim())
+      .filter(Boolean);
+
+    return {
+      ...analysis,
+      perspectives,
+      furtherReadings,
+      groupSyntheses,
+      philosophicalReaccumulation: analysis.philosophicalReaccumulation.trim(),
+      analysisWarnings
+    };
+  }
+
   buildAnalysisMarkdown(analysis: AnalysisPayload, sourceFilePath: string = ''): string {
+    const renderableAnalysis = this.getRenderableAnalysisPayload(analysis);
     let analysisMarkdown = '\n\n---\n## 🔍 AI Analysis\n';
     analysisMarkdown += `*Analyzed: ${new Date().toLocaleString()}*\n`;
 
-    for (const [perspKey, content] of Object.entries(analysis.perspectives)) {
+    for (const [perspKey, content] of Object.entries(renderableAnalysis.perspectives)) {
       const persp = PERSPECTIVES[perspKey];
       const groupTitle = persp ? PERSPECTIVE_GROUPS[persp.group]?.title : '';
       analysisMarkdown += `\n### ${persp?.title || perspKey}\n`;
@@ -6703,26 +6978,26 @@ ${event.kind === 'goal_due'
         analysisMarkdown += `*Group: ${groupTitle}*\n`;
       }
       analysisMarkdown += `${content}\n`;
-      const readings = analysis.furtherReadings[perspKey] || [];
+      const readings = renderableAnalysis.furtherReadings[perspKey] || [];
       if (readings.length > 0) {
         analysisMarkdown += `#### Further readings\n${readings.map((reading) => `- ${reading}`).join('\n')}\n`;
       }
     }
 
-    if (Object.keys(analysis.groupSyntheses).length > 0) {
+    if (Object.keys(renderableAnalysis.groupSyntheses).length > 0) {
       analysisMarkdown += `\n## Group Syntheses\n`;
-      for (const [groupKey, content] of Object.entries(analysis.groupSyntheses)) {
+      for (const [groupKey, content] of Object.entries(renderableAnalysis.groupSyntheses)) {
         const group = PERSPECTIVE_GROUPS[groupKey];
         analysisMarkdown += `### ${group?.title || groupKey}\n${content}\n`;
       }
     }
 
-    if (analysis.philosophicalReaccumulation) {
-      analysisMarkdown += `\n## Philosophy Re-accumulation\n${analysis.philosophicalReaccumulation}\n`;
+    if (renderableAnalysis.philosophicalReaccumulation) {
+      analysisMarkdown += `\n## Philosophy Re-accumulation\n${renderableAnalysis.philosophicalReaccumulation}\n`;
     }
 
-    if (analysis.inspirationalSong) {
-      const song = analysis.inspirationalSong;
+    if (renderableAnalysis.inspirationalSong) {
+      const song = renderableAnalysis.inspirationalSong;
       analysisMarkdown += `\n## Inspirational Song\n`;
       analysisMarkdown += `### ${song.title}\n`;
       analysisMarkdown += `**Mood:** ${song.mood}\n`;
@@ -6736,14 +7011,14 @@ ${event.kind === 'goal_due'
       analysisMarkdown += `#### Lyrics\n${song.lyrics}\n`;
     }
 
-    if (analysis.analysisWarnings.length > 0) {
+    if (renderableAnalysis.analysisWarnings.length > 0) {
       analysisMarkdown += `\n## Analysis Notes\n`;
-      analysisMarkdown += `${analysis.analysisWarnings.map((warning) => `- ${warning}`).join('\n')}\n`;
+      analysisMarkdown += `${renderableAnalysis.analysisWarnings.map((warning) => `- ${warning}`).join('\n')}\n`;
     }
 
-    if (analysis.goalSuggestions.length > 0) {
+    if (renderableAnalysis.goalSuggestions.length > 0) {
       analysisMarkdown += `\n## 🎯 Suggested Goals\n`;
-      for (const goal of analysis.goalSuggestions) {
+      for (const goal of renderableAnalysis.goalSuggestions) {
         analysisMarkdown += `### ${goal.title}\n${goal.description}\n`;
         if (goal.milestones.length > 0) {
           analysisMarkdown += `${goal.milestones.map((milestone) => `- ${milestone}`).join('\n')}\n`;
