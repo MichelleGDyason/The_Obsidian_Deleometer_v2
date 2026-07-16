@@ -7,7 +7,10 @@
 - run:
 
 ```bash
+npm run lint
 npm run build
+npm run test:analysis-regression
+npm run test:review-regression
 ```
 
 - verify the generated runtime files exist:
@@ -20,12 +23,10 @@ npm run build
 
 ## For GitHub Releases
 
-- create a git tag that matches the plugin version, for example `1.0.0`
-- upload:
-  - `main.js`
-  - `manifest.json`
-  - `styles.css`
-- include release notes summarizing user-facing changes
+- push a git tag that matches the plugin version, for example `1.0.6`
+- the release workflow runs lint, build, and regression checks
+- the workflow attests and uploads `main.js`, `manifest.json`, and `styles.css`
+- verify each uploaded asset with `gh attestation verify <file> --repo MichelleGDyason/The_Obsidian_Deleometer_v2`
 
 ## For Obsidian Community Plugin Submission
 

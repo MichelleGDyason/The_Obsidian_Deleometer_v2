@@ -20,6 +20,7 @@ export default tseslint.config(
     'node_modules',
     'main.js',
     'chatgpt-app',
+    '**/*.mjs',
     'versions.json',
   ]),
 );

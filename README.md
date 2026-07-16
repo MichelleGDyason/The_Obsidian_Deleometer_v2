@@ -21,6 +21,8 @@ The Deleometer is an Obsidian plugin, not a sealed or encrypted vault. AI featur
 
 Saved analyses, chats, goals, author memory, and plugin settings are stored locally as Obsidian data or Markdown. The Deleometer does not encrypt those files. Anyone with access to the vault, backups, sync provider, device account, or another sufficiently powerful Obsidian plugin may be able to read them. Install the plugin only from the MichelleGDyason GitHub repository or the official Obsidian community plugin listing when available, and treat BRAT beta releases as development builds.
 
+File discovery is limited to the journal, goals, milestones, and Full Calendar folders configured in The Deleometer settings. The plugin does not enumerate every Markdown file in the vault. Author memory is updated incrementally from journal entries the user explicitly analyses; it does not scan the journal folder or the rest of the vault to learn about the author.
+
 ## License Position
 
 This project is licensed under the GNU Affero General Public License v3.0.

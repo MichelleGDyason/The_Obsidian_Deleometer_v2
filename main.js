@@ -5524,7 +5524,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
     return false;
   }
   async repairAllGoalFrontmatter(showNotice = false) {
-    const goalFiles = this.app.vault.getMarkdownFiles().filter((file) => file.path.startsWith(this.settings.goalsFolder));
+    const goalFiles = this.getMarkdownFilesInFolderRecursive(this.settings.goalsFolder);
     let repaired = 0;
     for (const file of goalFiles) {
       const changed = await this.repairGoalFrontmatterFile(file);
@@ -5589,7 +5589,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
   }
   async getGoalOwnedCalendarFiles(goalFilePath) {
     const ownedFiles = [];
-    for (const file of this.app.vault.getMarkdownFiles()) {
+    for (const file of this.getMarkdownFilesInFolderRecursive(this.settings.fullCalendarFolder)) {
       const frontmatter = await this.getCalendarEventFrontmatter(file);
       if ((frontmatter == null ? void 0 : frontmatter.deleometer_owner) === "deleometer" && (frontmatter.deleometer_event_kind === "goal_due" || frontmatter.deleometer_event_kind === "milestone") && typeof frontmatter.deleometer_goal_path === "string" && frontmatter.deleometer_goal_path === goalFilePath) {
         ownedFiles.push(file);
@@ -6062,7 +6062,7 @@ ${goal.description}
   }
   getJournalStats() {
     var _a;
-    const files = this.app.vault.getMarkdownFiles().filter((f) => f.path.startsWith(this.settings.journalFolder));
+    const files = this.getMarkdownFilesInFolderRecursive(this.settings.journalFolder);
     let totalMood = 0, moodCount = 0;
     for (const file of files) {
       const cache = this.app.metadataCache.getFileCache(file);
@@ -6076,7 +6076,7 @@ ${goal.description}
   }
   getGoalStats() {
     var _a;
-    const files = this.app.vault.getMarkdownFiles().filter((file) => {
+    const files = this.getMarkdownFilesInFolderRecursive(this.settings.goalsFolder).filter((file) => {
       var _a2, _b;
       if (!this.isGoalFile(file)) return false;
       const status = (_b = (_a2 = this.app.metadataCache.getFileCache(file)) == null ? void 0 : _a2.frontmatter) == null ? void 0 : _b.status;
@@ -6246,7 +6246,7 @@ var DashboardView = class extends import_obsidian.ItemView {
     const journalStats = this.plugin.getJournalStats();
     const goalStats = this.plugin.getGoalStats();
     this.createStatCard(stats, "\u{1F4DD}", journalStats.entries.toString(), "Journal entries", () => {
-      new FileListModal(this.app, "Journal entries", journalStats.recentEntries.length > 0 ? this.app.vault.getMarkdownFiles().filter((file) => file.path.startsWith(this.plugin.settings.journalFolder)).sort((a, b) => b.stat.mtime - a.stat.mtime) : []).open();
+      new FileListModal(this.app, "Journal entries", journalStats.recentEntries.length > 0 ? this.plugin.getMarkdownFilesInFolderRecursive(this.plugin.settings.journalFolder).sort((a, b) => b.stat.mtime - a.stat.mtime) : []).open();
     });
     this.createStatCard(stats, "\u{1F60A}", journalStats.avgMood.toFixed(1), "Average mood");
     this.createStatCard(stats, "\u{1F3AF}", goalStats.total.toString(), "Total goals", () => {
@@ -6353,7 +6353,7 @@ var DashboardView = class extends import_obsidian.ItemView {
           cls: "analysis-source"
         });
         scaleSummary.createEl("p", {
-          text: "Scale guide: 1-2 very low, 3-4 low, 5-6 middle range, 7-8 high, 9-10 very high. 5 is the midpoint, not a perfect score.",
+          text: "Scale guide: 1-2 very low, 3-4 low, 5-6 middle range, 7-8 high, 9-10 very high. The midpoint is 5, not a perfect score.",
           cls: "analysis-source"
         });
         scaleSummary.createEl("p", {
@@ -6421,7 +6421,7 @@ var DashboardView = class extends import_obsidian.ItemView {
   }
   getMoodTrendData() {
     var _a, _b;
-    const files = this.app.vault.getMarkdownFiles().filter((f) => f.path.startsWith(this.plugin.settings.journalFolder));
+    const files = this.plugin.getMarkdownFilesInFolderRecursive(this.plugin.settings.journalFolder);
     const moodEntries = [];
     for (const file of files) {
       const cache = this.app.metadataCache.getFileCache(file);
@@ -6449,7 +6449,7 @@ var DashboardView = class extends import_obsidian.ItemView {
     });
     const legend = chartDiv.createDiv({ cls: "mood-scale-legend" });
     ["1-2 very low", "3-4 low", "5-6 middle", "7-8 high", "9-10 very high"].forEach((label) => {
-      legend.createEl("span", { text: label, cls: "legend-item" });
+      legend.createSpan({ text: label, cls: "legend-item" });
     });
   }
   getMoodColor(mood) {
@@ -6478,9 +6478,9 @@ var DashboardView = class extends import_obsidian.ItemView {
       otherSegment.style.width = `${otherPct}%`;
     }
     const legend = chartDiv.createDiv({ cls: "goal-legend" });
-    legend.createEl("span", { text: `\u2705 Completed: ${stats.completed}`, cls: "legend-item" });
-    legend.createEl("span", { text: `\u{1F3AF} Active: ${stats.active}`, cls: "legend-item" });
-    legend.createEl("span", { text: `\u{1F4CB} Other: ${stats.total - stats.completed - stats.active}`, cls: "legend-item" });
+    legend.createSpan({ text: `\u2705 Completed: ${stats.completed}`, cls: "legend-item" });
+    legend.createSpan({ text: `\u{1F3AF} Active: ${stats.active}`, cls: "legend-item" });
+    legend.createSpan({ text: `\u{1F4CB} Other: ${stats.total - stats.completed - stats.active}`, cls: "legend-item" });
   }
   async exportChartsToNote() {
     const journalStats = this.plugin.getJournalStats();
@@ -6618,7 +6618,7 @@ var AIChatView = class extends import_obsidian.ItemView {
   }
   onOpen() {
     var _a, _b;
-    const container = this.containerEl.children[1] instanceof HTMLElement ? this.containerEl.children[1] : this.containerEl;
+    const container = this.containerEl.children[1].instanceOf(HTMLElement) ? this.containerEl.children[1] : this.containerEl;
     container.empty();
     container.addClass("deleometer-chat");
     this.chatMessages = [];
@@ -7021,10 +7021,10 @@ var JournalEntryModal = class extends import_obsidian.Modal {
     const moodGroup = contentEl.createDiv({ cls: "form-group" });
     moodGroup.createEl("label", { text: "Mood score" });
     const moodSlider = moodGroup.createDiv({ cls: "mood-slider" });
-    moodSlider.createEl("span", { text: "\u{1F622}" });
+    moodSlider.createSpan({ text: "\u{1F622}" });
     const slider = moodSlider.createEl("input", { type: "range", attr: { min: "1", max: "10", value: "5" } });
-    const moodValue = moodSlider.createEl("span", { text: "5", cls: "mood-value" });
-    moodSlider.createEl("span", { text: "\u{1F60A}" });
+    const moodValue = moodSlider.createSpan({ text: "5", cls: "mood-value" });
+    moodSlider.createSpan({ text: "\u{1F60A}" });
     slider.oninput = () => {
       this.moodScore = parseInt(slider.value);
       moodValue.textContent = slider.value;
@@ -7208,7 +7208,7 @@ var GoalModal = class extends import_obsidian.Modal {
     container.empty();
     this.milestones.forEach((m, i) => {
       const item = container.createDiv({ cls: "milestone-item" });
-      item.createEl("span", { text: `${i + 1}. ${m.title}`, cls: "milestone-title" });
+      item.createSpan({ text: `${i + 1}. ${m.title}`, cls: "milestone-title" });
       const removeBtn = item.createEl("button", { text: "\xD7", cls: "btn-secondary" });
       removeBtn.onclick = () => {
         this.milestones.splice(i, 1);
@@ -7654,7 +7654,7 @@ var BigFiveAssessmentModal = class extends import_obsidian.Modal {
     const optionsDiv = questionDiv.createDiv({ cls: "scale-options" });
     SCALE_LABELS.forEach((label, i) => {
       const option = optionsDiv.createDiv({ cls: "scale-option" });
-      option.createEl("span", { text: label });
+      option.createSpan({ text: label });
       option.onclick = () => {
         this.answers.push(i + 1);
         this.currentQuestion += 1;
@@ -7785,8 +7785,8 @@ var MyersBriggsAssessmentModal = class extends import_obsidian.Modal {
     });
     const scaleDiv = questionDiv.createDiv({ cls: "bipolar-scale" });
     const labelsDiv = scaleDiv.createDiv({ cls: "bipolar-labels" });
-    labelsDiv.createEl("span", { text: q.leftLabel });
-    labelsDiv.createEl("span", { text: q.rightLabel });
+    labelsDiv.createSpan({ text: q.leftLabel });
+    labelsDiv.createSpan({ text: q.rightLabel });
     const slider = scaleDiv.createEl("input", {
       type: "range",
       cls: "bipolar-slider",
@@ -7939,7 +7939,7 @@ var MaslowAssessmentModal = class extends import_obsidian.Modal {
     const optionsDiv = questionDiv.createDiv({ cls: "scale-options" });
     SCALE_LABELS.forEach((label, i) => {
       const option = optionsDiv.createDiv({ cls: "scale-option" });
-      option.createEl("span", { text: label });
+      option.createSpan({ text: label });
       option.onclick = () => {
         this.answers.push(i + 1);
         this.currentQuestion += 1;
@@ -8250,7 +8250,21 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
     super(app, plugin);
     this.plugin = plugin;
   }
+  getSettingDefinitions() {
+    return [];
+  }
   display() {
+    this.renderSettings();
+  }
+  refreshSettings() {
+    const modernTab = this;
+    if (typeof modernTab.update === "function") {
+      modernTab.update();
+      return;
+    }
+    this.renderSettings();
+  }
+  renderSettings() {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("p", {
@@ -8264,7 +8278,7 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
         this.plugin.settings.aiProvider = value;
         this.plugin.initializeAIProvider();
         await this.plugin.saveSettings();
-        this.display();
+        this.refreshSettings();
       })();
     }));
     new import_obsidian.Setting(containerEl).setName("Estimated AI cost").setDesc(this.plugin.getAIProviderCostEstimateText());
@@ -8287,14 +8301,14 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       }).addButton((button) => button.setButtonText("Clear key").onClick(async () => {
         this.plugin.settings.openaiApiKey = "";
         await this.plugin.saveSettings();
-        this.display();
+        this.refreshSettings();
       }));
     }
     if (this.plugin.settings.aiProvider === "ollama" && !this.plugin.isOllamaAvailableOnCurrentDevice()) {
       new import_obsidian.Setting(containerEl).setName("Local runtime on mobile").setDesc("Local runtime mode is unavailable on mobile because it depends on a user-controlled computer endpoint. Use cloud mode on mobile instead.");
     }
     if (this.plugin.settings.aiProvider === "ollama" && this.plugin.isOllamaAvailableOnCurrentDevice()) {
-      const ollamaLinkFragment = document.createDocumentFragment();
+      const ollamaLinkFragment = createFragment();
       ollamaLinkFragment.appendText("Install the local runtime first if this computer does not have it. ");
       const ollamaLink = ollamaLinkFragment.createEl("a", {
         text: "Download local runtime",
@@ -8327,7 +8341,7 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
         await this.plugin.saveSettings();
       })).addButton((button) => button.setButtonText("Find installed models").onClick(async () => {
         await this.plugin.checkLocalModelLibrary(true);
-        this.display();
+        this.refreshSettings();
       }));
       new import_obsidian.Setting(containerEl).setName("Download model into local runtime").setDesc("Choose a recommended model or type any local model name. This downloads the model to this computer through the local runtime, then selects it for future analysis.").addDropdown((dropdown) => {
         Object.entries(RECOMMENDED_LOCAL_MODELS).forEach(([modelName, description]) => {
@@ -8339,7 +8353,7 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
         dropdown.setValue(this.plugin.settings.localModelToInstall).onChange(async (value) => {
           this.plugin.settings.localModelToInstall = value;
           await this.plugin.saveSettings();
-          this.display();
+          this.refreshSettings();
         });
       }).addText((text) => text.setPlaceholder("Any local model name").setValue(this.plugin.settings.localModelToInstall).onChange(async (value) => {
         this.plugin.settings.localModelToInstall = value.trim() || DEFAULT_SETTINGS.localModelToInstall;
@@ -8351,7 +8365,7 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
         try {
           await this.plugin.pullOllamaModel(modelName);
           new import_obsidian.Notice(`Downloaded and selected local model "${modelName}".`, 12e3);
-          this.display();
+          this.refreshSettings();
         } catch (error) {
           new import_obsidian.Notice(this.plugin.getAIErrorMessage(error, `Could not download "${modelName}" into Ollama`), 12e3);
           this.plugin.logError(`Could not download "${modelName}" into Ollama`, error);
@@ -8370,7 +8384,7 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
     new import_obsidian.Setting(containerEl).setName("Author memory").setDesc("Keep a continuing local author memory summary. Turn this off if you do not want ongoing memory stored in plugin data.").addToggle((toggle) => toggle.setValue(this.plugin.settings.enableAuthorMemory).onChange(async (value) => {
       this.plugin.settings.enableAuthorMemory = value;
       await this.plugin.saveSettings();
-      this.display();
+      this.refreshSettings();
     })).addButton((button) => button.setButtonText("Clear memory").onClick(async () => {
       this.plugin.settings.authorMemorySummary = "";
       await this.plugin.saveSettings();
@@ -8391,7 +8405,7 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
     new import_obsidian.Setting(containerEl).setName("Generate inspirational song").setDesc("After philosophy re-accumulation, generate a positive song sketch with lyrics and a locally rendered audio file.").addToggle((toggle) => toggle.setValue(this.plugin.settings.generateInspirationalSong).onChange(async (value) => {
       this.plugin.settings.generateInspirationalSong = value;
       await this.plugin.saveSettings();
-      this.display();
+      this.refreshSettings();
     }));
     new import_obsidian.Setting(containerEl).setName("Journal folder").setDesc("Folder for journal entries").addText((text) => text.setValue(this.plugin.settings.journalFolder).onChange(async (value) => {
       this.plugin.settings.journalFolder = this.plugin.normalizeFolderSetting(value, DEFAULT_SETTINGS.journalFolder);
@@ -8419,7 +8433,7 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
         new import_obsidian.Notice("Use a folder inside this vault, such as deleometer/calendar, not an absolute file path.");
         this.plugin.settings.fullCalendarFolder = DEFAULT_SETTINGS.fullCalendarFolder;
         await this.plugin.saveSettings();
-        this.display();
+        this.refreshSettings();
         return;
       }
       const nextFolder = this.plugin.normalizeFullCalendarFolderSetting(value);
@@ -8470,7 +8484,7 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
     new import_obsidian.Setting(containerEl).setName("Enable all perspectives").setDesc("Turn on every available analysis type.").addButton((button) => button.setButtonText("Enable all").onClick(async () => {
       this.plugin.settings.selectedPerspectives = getChronologicalPerspectiveKeys();
       await this.plugin.saveSettings();
-      this.display();
+      this.refreshSettings();
     }));
     for (const groupKey of getChronologicalGroupKeys()) {
       const group = PERSPECTIVE_GROUPS[groupKey];
@@ -8481,12 +8495,12 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
           ...groupPerspectiveKeys
         ]));
         await this.plugin.saveSettings();
-        this.display();
+        this.refreshSettings();
       })).addButton((button) => button.setButtonText("Disable group").onClick(async () => {
         const groupPerspectiveKeys = new Set(Object.entries(PERSPECTIVES).filter(([, perspective]) => perspective.group === groupKey).map(([key]) => key));
         this.plugin.settings.selectedPerspectives = this.plugin.settings.selectedPerspectives.filter((key) => !groupPerspectiveKeys.has(key));
         await this.plugin.saveSettings();
-        this.display();
+        this.refreshSettings();
       }));
       const orderedGroupPerspectives = getChronologicalPerspectiveKeys().filter((key) => {
         var _a;

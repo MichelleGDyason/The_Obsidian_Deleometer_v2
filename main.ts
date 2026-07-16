@@ -6419,7 +6419,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
   }
 
   async repairAllGoalFrontmatter(showNotice: boolean = false) {
-    const goalFiles = this.app.vault.getMarkdownFiles().filter((file) => file.path.startsWith(this.settings.goalsFolder));
+    const goalFiles = this.getMarkdownFilesInFolderRecursive(this.settings.goalsFolder);
     let repaired = 0;
 
     for (const file of goalFiles) {
@@ -6499,7 +6499,7 @@ This goal has been consolidated into [[${this.getWikiLinkTarget(targetGoalPath)}
 
   async getGoalOwnedCalendarFiles(goalFilePath: string): Promise<TFile[]> {
     const ownedFiles: TFile[] = [];
-    for (const file of this.app.vault.getMarkdownFiles()) {
+    for (const file of this.getMarkdownFilesInFolderRecursive(this.settings.fullCalendarFolder)) {
       const frontmatter = await this.getCalendarEventFrontmatter(file);
       if (frontmatter?.deleometer_owner === 'deleometer'
         && (frontmatter.deleometer_event_kind === 'goal_due' || frontmatter.deleometer_event_kind === 'milestone')
@@ -7049,7 +7049,7 @@ ${event.kind === 'goal_due'
   }
 
   getJournalStats(): { entries: number; avgMood: number; recentEntries: TFile[] } {
-    const files = this.app.vault.getMarkdownFiles().filter(f => f.path.startsWith(this.settings.journalFolder));
+    const files = this.getMarkdownFilesInFolderRecursive(this.settings.journalFolder);
     let totalMood = 0, moodCount = 0;
     for (const file of files) {
       const cache = this.app.metadataCache.getFileCache(file);
@@ -7060,7 +7060,7 @@ ${event.kind === 'goal_due'
   }
 
   getGoalStats(): { total: number; completed: number; active: number; goals: TFile[] } {
-    const files = this.app.vault.getMarkdownFiles().filter((file) => {
+    const files = this.getMarkdownFilesInFolderRecursive(this.settings.goalsFolder).filter((file) => {
       if (!this.isGoalFile(file)) return false;
       const status: unknown = this.app.metadataCache.getFileCache(file)?.frontmatter?.status;
       return status !== 'merged';
@@ -7278,7 +7278,7 @@ class DashboardView extends ItemView {
 
     this.createStatCard(stats, '📝', journalStats.entries.toString(), 'Journal entries', () => {
       new FileListModal(this.app, 'Journal entries', journalStats.recentEntries.length > 0
-        ? this.app.vault.getMarkdownFiles().filter((file) => file.path.startsWith(this.plugin.settings.journalFolder)).sort((a, b) => b.stat.mtime - a.stat.mtime)
+        ? this.plugin.getMarkdownFilesInFolderRecursive(this.plugin.settings.journalFolder).sort((a, b) => b.stat.mtime - a.stat.mtime)
         : []).open();
     });
     this.createStatCard(stats, '😊', journalStats.avgMood.toFixed(1), 'Average mood');
@@ -7387,7 +7387,7 @@ class DashboardView extends ItemView {
           cls: 'analysis-source'
         });
         scaleSummary.createEl('p', {
-          text: 'Scale guide: 1-2 very low, 3-4 low, 5-6 middle range, 7-8 high, 9-10 very high. 5 is the midpoint, not a perfect score.',
+          text: 'Scale guide: 1-2 very low, 3-4 low, 5-6 middle range, 7-8 high, 9-10 very high. The midpoint is 5, not a perfect score.',
           cls: 'analysis-source'
         });
         scaleSummary.createEl('p', {
@@ -7450,7 +7450,7 @@ class DashboardView extends ItemView {
   }
 
   getMoodTrendData(): { labels: string[]; data: number[] } {
-    const files = this.app.vault.getMarkdownFiles().filter(f => f.path.startsWith(this.plugin.settings.journalFolder));
+    const files = this.plugin.getMarkdownFilesInFolderRecursive(this.plugin.settings.journalFolder);
     const moodEntries: { date: string; mood: number }[] = [];
     for (const file of files) {
       const cache = this.app.metadataCache.getFileCache(file);
@@ -7480,7 +7480,7 @@ class DashboardView extends ItemView {
     });
     const legend = chartDiv.createDiv({ cls: 'mood-scale-legend' });
     ['1-2 very low', '3-4 low', '5-6 middle', '7-8 high', '9-10 very high'].forEach((label) => {
-      legend.createEl('span', { text: label, cls: 'legend-item' });
+      legend.createSpan({ text: label, cls: 'legend-item' });
     });
   }
 
@@ -7513,9 +7513,9 @@ class DashboardView extends ItemView {
     }
 
     const legend = chartDiv.createDiv({ cls: 'goal-legend' });
-    legend.createEl('span', { text: `✅ Completed: ${stats.completed}`, cls: 'legend-item' });
-    legend.createEl('span', { text: `🎯 Active: ${stats.active}`, cls: 'legend-item' });
-    legend.createEl('span', { text: `📋 Other: ${stats.total - stats.completed - stats.active}`, cls: 'legend-item' });
+    legend.createSpan({ text: `✅ Completed: ${stats.completed}`, cls: 'legend-item' });
+    legend.createSpan({ text: `🎯 Active: ${stats.active}`, cls: 'legend-item' });
+    legend.createSpan({ text: `📋 Other: ${stats.total - stats.completed - stats.active}`, cls: 'legend-item' });
   }
 
   async exportChartsToNote() {
@@ -7645,7 +7645,7 @@ class AIChatView extends ItemView {
   getIcon() { return 'message-circle'; }
 
   onOpen(): Promise<void> {
-    const container = this.containerEl.children[1] instanceof HTMLElement
+    const container = this.containerEl.children[1].instanceOf(HTMLElement)
       ? this.containerEl.children[1]
       : this.containerEl;
     container.empty();
@@ -8038,10 +8038,10 @@ class JournalEntryModal extends Modal {
     const moodGroup = contentEl.createDiv({ cls: 'form-group' });
     moodGroup.createEl('label', { text: 'Mood score' });
     const moodSlider = moodGroup.createDiv({ cls: 'mood-slider' });
-    moodSlider.createEl('span', { text: '😢' });
+    moodSlider.createSpan({ text: '😢' });
     const slider = moodSlider.createEl('input', { type: 'range', attr: { min: '1', max: '10', value: '5' } });
-    const moodValue = moodSlider.createEl('span', { text: '5', cls: 'mood-value' });
-    moodSlider.createEl('span', { text: '😊' });
+    const moodValue = moodSlider.createSpan({ text: '5', cls: 'mood-value' });
+    moodSlider.createSpan({ text: '😊' });
     slider.oninput = () => { this.moodScore = parseInt(slider.value); moodValue.textContent = slider.value; };
 
     // Emotional Tags
@@ -8230,7 +8230,7 @@ class GoalModal extends Modal {
     container.empty();
     this.milestones.forEach((m, i) => {
       const item = container.createDiv({ cls: 'milestone-item' });
-      item.createEl('span', { text: `${i + 1}. ${m.title}`, cls: 'milestone-title' });
+      item.createSpan({ text: `${i + 1}. ${m.title}`, cls: 'milestone-title' });
       const removeBtn = item.createEl('button', { text: '×', cls: 'btn-secondary' });
       removeBtn.onclick = () => { this.milestones.splice(i, 1); this.renderMilestones(container); };
     });
@@ -8704,7 +8704,7 @@ class BigFiveAssessmentModal extends Modal {
     const optionsDiv = questionDiv.createDiv({ cls: 'scale-options' });
     SCALE_LABELS.forEach((label, i) => {
       const option = optionsDiv.createDiv({ cls: 'scale-option' });
-      option.createEl('span', { text: label });
+      option.createSpan({ text: label });
       option.onclick = () => {
         this.answers.push(i + 1);
         this.currentQuestion += 1;
@@ -8858,8 +8858,8 @@ class MyersBriggsAssessmentModal extends Modal {
 
     const scaleDiv = questionDiv.createDiv({ cls: 'bipolar-scale' });
     const labelsDiv = scaleDiv.createDiv({ cls: 'bipolar-labels' });
-    labelsDiv.createEl('span', { text: q.leftLabel });
-    labelsDiv.createEl('span', { text: q.rightLabel });
+    labelsDiv.createSpan({ text: q.leftLabel });
+    labelsDiv.createSpan({ text: q.rightLabel });
 
     const slider = scaleDiv.createEl('input', {
       type: 'range',
@@ -9046,7 +9046,7 @@ class MaslowAssessmentModal extends Modal {
     const optionsDiv = questionDiv.createDiv({ cls: 'scale-options' });
     SCALE_LABELS.forEach((label, i) => {
       const option = optionsDiv.createDiv({ cls: 'scale-option' });
-      option.createEl('span', { text: label });
+      option.createSpan({ text: label });
       option.onclick = () => {
         this.answers.push(i + 1);
         this.currentQuestion += 1;
@@ -9392,7 +9392,27 @@ class DeleometerSettingTab extends PluginSettingTab {
     this.plugin = plugin;
   }
 
+  getSettingDefinitions(): [] {
+    // Obsidian 1.13+ checks this method for settings search. Returning an
+    // empty definition list keeps the existing rich, conditional settings UI
+    // while retaining display() support for older Obsidian versions.
+    return [];
+  }
+
   display(): void {
+    this.renderSettings();
+  }
+
+  private refreshSettings(): void {
+    const modernTab = this as unknown as { update?: () => void };
+    if (typeof modernTab.update === 'function') {
+      modernTab.update();
+      return;
+    }
+    this.renderSettings();
+  }
+
+  private renderSettings(): void {
     const { containerEl } = this;
     containerEl.empty();
 
@@ -9422,7 +9442,7 @@ class DeleometerSettingTab extends PluginSettingTab {
             this.plugin.settings.aiProvider = value as AIProvider;
             this.plugin.initializeAIProvider();
             await this.plugin.saveSettings();
-            this.display();
+            this.refreshSettings();
           })();
         }));
 
@@ -9467,7 +9487,7 @@ class DeleometerSettingTab extends PluginSettingTab {
           .onClick(async () => {
             this.plugin.settings.openaiApiKey = '';
             await this.plugin.saveSettings();
-            this.display();
+            this.refreshSettings();
           }));
     }
 
@@ -9478,7 +9498,7 @@ class DeleometerSettingTab extends PluginSettingTab {
     }
 
     if (this.plugin.settings.aiProvider === 'ollama' && this.plugin.isOllamaAvailableOnCurrentDevice()) {
-      const ollamaLinkFragment = document.createDocumentFragment();
+      const ollamaLinkFragment = createFragment();
       ollamaLinkFragment.appendText('Install the local runtime first if this computer does not have it. ');
       const ollamaLink = ollamaLinkFragment.createEl('a', {
         text: 'Download local runtime',
@@ -9540,7 +9560,7 @@ class DeleometerSettingTab extends PluginSettingTab {
           .setButtonText('Find installed models')
           .onClick(async () => {
             await this.plugin.checkLocalModelLibrary(true);
-            this.display();
+            this.refreshSettings();
           }));
 
       new Setting(containerEl)
@@ -9558,7 +9578,7 @@ class DeleometerSettingTab extends PluginSettingTab {
             .onChange(async (value) => {
               this.plugin.settings.localModelToInstall = value;
               await this.plugin.saveSettings();
-              this.display();
+              this.refreshSettings();
             });
         })
         .addText((text) => text
@@ -9577,7 +9597,7 @@ class DeleometerSettingTab extends PluginSettingTab {
             try {
               await this.plugin.pullOllamaModel(modelName);
               new Notice(`Downloaded and selected local model "${modelName}".`, 12000);
-              this.display();
+              this.refreshSettings();
             } catch (error) {
               new Notice(this.plugin.getAIErrorMessage(error, `Could not download "${modelName}" into Ollama`), 12000);
               this.plugin.logError(`Could not download "${modelName}" into Ollama`, error);
@@ -9613,7 +9633,7 @@ class DeleometerSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.enableAuthorMemory = value;
           await this.plugin.saveSettings();
-          this.display();
+          this.refreshSettings();
         }))
       .addButton((button) => button
         .setButtonText('Clear memory')
@@ -9661,7 +9681,7 @@ class DeleometerSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.generateInspirationalSong = value;
           await this.plugin.saveSettings();
-          this.display();
+          this.refreshSettings();
         }));
 
     new Setting(containerEl)
@@ -9726,7 +9746,7 @@ class DeleometerSettingTab extends PluginSettingTab {
             new Notice('Use a folder inside this vault, such as deleometer/calendar, not an absolute file path.');
             this.plugin.settings.fullCalendarFolder = DEFAULT_SETTINGS.fullCalendarFolder;
             await this.plugin.saveSettings();
-            this.display();
+            this.refreshSettings();
             return;
           }
           const nextFolder = this.plugin.normalizeFullCalendarFolderSetting(value);
@@ -9811,7 +9831,7 @@ class DeleometerSettingTab extends PluginSettingTab {
         .onClick(async () => {
           this.plugin.settings.selectedPerspectives = getChronologicalPerspectiveKeys();
           await this.plugin.saveSettings();
-          this.display();
+          this.refreshSettings();
         }));
 
     for (const groupKey of getChronologicalGroupKeys()) {
@@ -9831,7 +9851,7 @@ class DeleometerSettingTab extends PluginSettingTab {
               ...groupPerspectiveKeys
             ]));
             await this.plugin.saveSettings();
-            this.display();
+            this.refreshSettings();
           }))
         .addButton((button) => button
           .setButtonText('Disable group')
@@ -9842,7 +9862,7 @@ class DeleometerSettingTab extends PluginSettingTab {
             this.plugin.settings.selectedPerspectives = this.plugin.settings.selectedPerspectives
               .filter((key) => !groupPerspectiveKeys.has(key));
             await this.plugin.saveSettings();
-            this.display();
+            this.refreshSettings();
           }));
 
       const orderedGroupPerspectives = getChronologicalPerspectiveKeys()
