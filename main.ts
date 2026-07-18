@@ -4925,7 +4925,7 @@ export default class DeleometerPlugin extends Plugin {
     }
 
     return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>).map(([key, nestedValue]) => [key, this.sanitizeErrorForLog(nestedValue, seen)])
+      Object.entries(value).map(([key, nestedValue]) => [key, this.sanitizeErrorForLog(nestedValue, seen)])
     );
   }
 

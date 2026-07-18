@@ -23,7 +23,7 @@ npm run test:review-regression
 
 ## For GitHub Releases
 
-- push a git tag that matches the plugin version, for example `1.0.6`
+- push a git tag that matches the plugin version, for example `1.0.7`
 - the release workflow runs lint, build, and regression checks
 - the workflow attests and uploads `main.js`, `manifest.json`, and `styles.css`
 - verify each uploaded asset with `gh attestation verify <file> --repo MichelleGDyason/The_Obsidian_Deleometer_v2`
