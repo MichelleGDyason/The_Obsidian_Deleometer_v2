@@ -220,7 +220,7 @@ Before publishing widely, you will probably want to:
 
 ## Support
 
-- Buy Me a Coffee: [buymeacoffee.com/theobsidiandeleometer](https://buymeacoffee.com/theobsidiandeleometer)
+- Buy Me a Coffee: [buymeacoffee.com/michellegdyason](https://buymeacoffee.com/michellegdyason)
 - GitHub Sponsors: [github.com/sponsors/MichelleGDyason](https://github.com/sponsors/MichelleGDyason)
 
 ## BRAT Beta Feedback
