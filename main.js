@@ -268,7 +268,7 @@ var PERSPECTIVES = {
   spivak_subaltern_analysis: { title: "Gayatri Chakravorty Spivak's Subaltern Analysis", description: "Subalternity, representation, epistemic violence, strategic essentialism, imperialism, translation, voice, mediation, and who can speak within dominant discourse", group: "archeo_genealogical_deconstruction" },
   posthumanism_perspective: { title: "Posthumanism", description: "Beyond human-centered thinking", group: "archeo_genealogical_deconstruction" },
   feminist_perspective: { title: "Feminist Psychology", description: "Gender, power, and social context", group: "gender_sexuality_queer" },
-  irigarayian_perspective: { title: "Irigarayian Feminine", description: "Philosophy and psychoanalysis of sexual difference, feminine subjectivity, language, embodiment, desire, mimicry, and the critique of phallocentric order", group: "gender_sexuality_queer" },
+  irigarayian_perspective: { title: "Luce Irigaray's Sexuate Difference", description: "Sexuate difference, sexed subjectivity, language, embodiment, desire, mimicry, maternal relation, and the critique of phallocentric order", group: "gender_sexuality_queer" },
   womens_studies: { title: "Women's Studies", description: "Women\u2019s lives, institutions, labour, history, representation, oppression, resistance, and interdisciplinary study grounded in gendered experience", group: "gender_sexuality_queer" },
   feminist_epistemology: { title: "Feminist Epistemology", description: "Situated knowledge, standpoint, bias critique, epistemic authority, social location, objectivity, and how power shapes what counts as knowledge", group: "gender_sexuality_queer" },
   feminist_methodologies: { title: "Feminist Methodologies", description: "Reflexivity, situated method, ethics of relation, participatory inquiry, embodiment, accountability, and research practice shaped by feminist critique", group: "gender_sexuality_queer" },
@@ -379,6 +379,7 @@ var PERSPECTIVE_HEADING_ALIASES = {
   jean_luc_nancy_being_with: ["Jean Luc Nancy's Being-With", "Jean-Luc Nancy"],
   fanonian_analysis: ["Franz Fanon Analysis", "Frantz Fanon Analysis"],
   kristevan_abjection_semiotic: ["Julia Kristeva's Abjection and the Semiotic", "Kristevan Analysis", "Julia Kristeva"],
+  irigarayian_perspective: ["Irigarayian Feminine", "Luce Irigaray's Feminine", "Irigarayian Perspective", "Luce Irigaray"],
   gallagher_pattern_theory_self: ["Gallagher's Pattern Theory of Self", "A Pattern Theory of Self", "Pattern Theory of Self"],
   husserlian_phenomenology: ["Husserl's Phenomenology", "Edmund Husserl", "Husserl"],
   whitehead_process_philosophy: ["Whitehead's Process Philosophy", "Alfred North Whitehead", "Whitehead"],
@@ -440,27 +441,27 @@ var PERSPECTIVE_CHRONOLOGY = [
   "indigenous_australian_philosophy_accumulated",
   "ancient_religious_interpretation",
   "ancient_egyptian_interpretation",
-  "first_testament_hebrew_interpretation",
-  "greek_gods_interpretation",
-  "roman_gods_interpretation",
-  "druidic_interpretation",
-  "celtic_religion_interpretation",
-  "buddhist_psychology_perspective",
-  "confucianism_analysis",
-  "second_testament_christian_interpretation",
-  "muslim_interpretation",
   "pagan_interpretation",
   "herbalism_analysis",
   "witchcraft_analysis",
+  "greek_gods_interpretation",
+  "first_testament_hebrew_interpretation",
+  "buddhist_psychology_perspective",
+  "confucianism_analysis",
+  "platonic_perspective",
+  "aristotle_argonic_teachings",
+  "cynics_perspective",
+  "druidic_interpretation",
+  "celtic_religion_interpretation",
+  "stoicism_perspective",
+  "roman_gods_interpretation",
+  "second_testament_christian_interpretation",
   "bible_teachings_perspective",
+  "muslim_interpretation",
   "cartographic_analysis",
   "geography_analysis",
   "anthropology_analysis",
   "archaeology_analysis",
-  "platonic_perspective",
-  "aristotle_argonic_teachings",
-  "cynics_perspective",
-  "stoicism_perspective",
   "metaphysical_analysis",
   "ontological_analysis",
   "ethical_analysis",
@@ -492,9 +493,10 @@ var PERSPECTIVE_CHRONOLOGY = [
   "william_james_pragmatism",
   "psychiatry_perspective",
   "psychology_analysis",
-  "collingwood_historical_imagination",
   "freudian_psychoanalysis",
   "jungian_perspective",
+  "lacanian_perspective",
+  "collingwood_historical_imagination",
   "logics_analysis",
   "set_theory_analysis",
   "epistemology_analysis",
@@ -529,7 +531,6 @@ var PERSPECTIVE_CHRONOLOGY = [
   "womens_studies",
   "feminist_epistemology",
   "feminist_methodologies",
-  "lacanian_perspective",
   "kristevan_abjection_semiotic",
   "intertextuality_analysis",
   "critical_theory_perspective",
@@ -700,10 +701,280 @@ var PERSPECTIVE_CHRONOLOGY = [
   "study_frameworks",
   "transformative_futures"
 ];
+var PERSPECTIVE_CHRONOLOGY_YEAR = {
+  indigenous_australian_philosophy_accumulated: -6e4,
+  ancient_religious_interpretation: -1e4,
+  herbalism_analysis: -8e3,
+  traditional_ecological_knowledges: -7e3,
+  pagan_interpretation: -5e3,
+  witchcraft_analysis: -4e3,
+  ancient_egyptian_interpretation: -3100,
+  music_songwriting_analysis: -2e3,
+  greek_gods_interpretation: -1600,
+  first_testament_hebrew_interpretation: -1200,
+  bible_teachings_perspective: -1e3,
+  african_zimbabwean_parental_guidance: -1e3,
+  advice_from_grandma: -1e3,
+  buddhist_psychology_perspective: -500,
+  confucianism_analysis: -500,
+  asian_japanese_parental_guidance: -500,
+  metaphysical_analysis: -450,
+  ontological_analysis: -450,
+  ethical_analysis: -450,
+  moral_philosophy_analysis: -450,
+  political_thought: -450,
+  democracy_analysis: -450,
+  epistemology_analysis: -450,
+  platonic_perspective: -380,
+  argumentation_construction_analysis: -350,
+  aristotle_argonic_teachings: -350,
+  cynics_perspective: -350,
+  poetics_analysis: -335,
+  textual_analysis: -335,
+  logics_analysis: -330,
+  druidic_interpretation: -300,
+  celtic_religion_interpretation: -300,
+  stoicism_perspective: -300,
+  roman_gods_interpretation: -250,
+  architectural_theories: -25,
+  second_testament_christian_interpretation: 30,
+  muslim_interpretation: 610,
+  tertiary_pedagogy: 1200,
+  cartographic_analysis: 1500,
+  francis_bacon_empiricism: 1620,
+  descartes_cogito_subject: 1637,
+  western_parental_guidance: 1690,
+  spinoza_theologic_ethico_perspective: 1677,
+  lockean_personal_identity: 1689,
+  leibniz_monadology_perspective: 1714,
+  aesthetics_untranslatables: 1735,
+  art_theory_analysis: 1750,
+  humean_bundle_self: 1739,
+  rousseau_political_thought: 1755,
+  vitalism_analysis: 1778,
+  kantian_transcendental_subject: 1781,
+  schelling_nature_philosophy: 1797,
+  landscape_design_theory: 1800,
+  hegelian_recognition_subject: 1807,
+  psychiatry_perspective: 1808,
+  schopenhauer_will_representation: 1818,
+  geography_analysis: 1820,
+  hermeneutics_perspective: 1820,
+  ralph_waldo_emerson_environmental_thought: 1836,
+  sociology_analysis: 1838,
+  social_policy_analysis: 1840,
+  kierkegaard_existential_faith: 1843,
+  existential_perspective: 1843,
+  continental_moral_philosophy: 1843,
+  marxian_analysis: 1848,
+  mechanical_engineering_analysis: 1847,
+  primary_pedagogy: 1850,
+  secondary_pedagogy: 1850,
+  trades_pedagogy: 1850,
+  archaeology_analysis: 1850,
+  naturalism_analysis: 1850,
+  anthropology_analysis: 1860,
+  ecology_perspective: 1866,
+  nietzschean_perspective: 1872,
+  set_theory_analysis: 1874,
+  psychology_analysis: 1879,
+  linguistic_analysis: 1880,
+  bergson_duration_creativity: 1889,
+  william_james_pragmatism: 1890,
+  edith_cowan_civic_reform: 1890,
+  social_research_methods: 1890,
+  social_theories_of_deviance: 1895,
+  freudian_psychoanalysis: 1895,
+  semiotic_analysis: 1900,
+  husserlian_phenomenology: 1900,
+  phenomenology_perspective: 1900,
+  quantum_theory_analysis: 1900,
+  moral_naturalism_perspective: 1903,
+  analytic_moral_philosophy: 1903,
+  metaethics_analysis: 1903,
+  australian_legal_discourse: 1901,
+  electronics_analysis: 1904,
+  montessori_method: 1907,
+  transitional_theory: 1909,
+  jungian_perspective: 1912,
+  structuralism_analysis: 1916,
+  theories_of_world_politics: 1919,
+  steiner_education: 1919,
+  organicism_analysis: 1920,
+  philosophy_of_language_analysis: 1921,
+  risk_analysis: 1921,
+  piaget_developmental_theory: 1923,
+  vygotsky_sociocultural_theory: 1925,
+  heideggerian_dasein_analysis: 1927,
+  whitehead_process_philosophy: 1929,
+  process_philosophical_analysis: 1929,
+  frankfurt_school_analysis: 1930,
+  critical_theory_perspective: 1930,
+  lacanian_perspective: 1932,
+  bataillean_analysis: 1933,
+  collingwood_historical_imagination: 1935,
+  horkheimer_critical_theory: 1937,
+  interdisciplinary_studies: 1920,
+  maslow_hierarchy_needs: 1943,
+  sartrean_subjectivity: 1943,
+  myers_briggs_perspective: 1944,
+  merleau_ponty_embodied_subject: 1945,
+  de_beauvoir_situated_subject: 1949,
+  feminist_philosophy: 1949,
+  computer_science_analysis: 1946,
+  conflict_management: 1947,
+  group_work_theories: 1947,
+  general_practice_diagnosis: 1950,
+  philosophy_of_mind_perspective: 1950,
+  public_policy_analytics: 1951,
+  gestalt_perspective: 1951,
+  discourse_analysis: 1952,
+  fanonian_analysis: 1952,
+  wittgenstein_language_games: 1953,
+  pf_strawson_personhood: 1959,
+  attachment_theory_perspective: 1958,
+  simondonian_analysis: 1958,
+  hannah_arendt_action_plurality: 1958,
+  diane_ding_dyason_practical_ethics: 1950,
+  philosophy_of_science_analysis: 1920,
+  philosophy_of_physics_analysis: 1920,
+  french_philosophy_of_science_relation: 1930,
+  foucaultian_analysis: 1961,
+  levinasian_ethics: 1961,
+  jl_austin_speech_acts: 1962,
+  sydney_shoemaker_self_knowledge: 1963,
+  chaos_theory_analysis: 1963,
+  media_studies: 1964,
+  susan_sontag_interpretation: 1964,
+  swot_analysis: 1965,
+  topological_analysis: 1965,
+  post_structuralism_analysis: 1966,
+  intertextuality_analysis: 1966,
+  adorno_negative_dialectics: 1966,
+  radical_feminism: 1967,
+  derridian_analysis: 1967,
+  grounded_theory: 1967,
+  freirean_pedagogy: 1968,
+  feminist_perspective: 1968,
+  foucauldian_discourse_analysis: 1969,
+  kristevan_abjection_semiotic: 1969,
+  transpersonal_perspective: 1969,
+  bernard_williams_personal_identity: 1970,
+  althusser_ideology_analysis: 1970,
+  womens_studies: 1970,
+  gender_studies: 1970,
+  lgbtq_studies_perspective: 1970,
+  harry_frankfurt_volitional_self: 1971,
+  schizoanalytic_insights: 1972,
+  gregory_bateson_ecology_mind: 1972,
+  bourdieu_analysis: 1972,
+  james_lovelock_gaia: 1972,
+  resilience_analysis: 1973,
+  frame_analysis: 1974,
+  goffman_frame_analysis: 1974,
+  ecofeminism: 1974,
+  feyerabend_epistemological_anarchism: 1975,
+  sexualities_studies: 1976,
+  identity_politics_analysis: 1977,
+  permaculture: 1978,
+  postcolonial_studies: 1978,
+  science_technology_studies: 1970,
+  critical_race_studies: 1970,
+  anti_psychiatry_analysis: 1960,
+  cbt_perspective: 1960,
+  data_science_analysis: 1960,
+  metascience_analysis: 1960,
+  feasibility_analysis: 1930,
+  organisational_theories: 1900,
+  organisational_transformation: 1950,
+  social_movement_theories: 1940,
+  study_frameworks: 1950,
+  transformative_futures: 1970,
+  amartya_sen_capability_approach: 1979,
+  baudrillard_analysis: 1981,
+  macintyre_narrative_self: 1981,
+  feminist_ethics: 1982,
+  discourse_ethics_analysis: 1983,
+  derek_parfit_reductionist_identity: 1984,
+  irigarayian_perspective: 1984,
+  bell_hooks_love_pedagogy: 1984,
+  paul_ricoeur_narrative_identity: 1985,
+  jean_luc_nancy_being_with: 1986,
+  narrative_psychology_perspective: 1986,
+  latourian_analysis: 1987,
+  donna_haraway_situated_knowledges: 1988,
+  spivak_subaltern_analysis: 1988,
+  charles_taylor_sources_self: 1989,
+  zizekian_analysis: 1989,
+  feminist_epistemology: 1980,
+  feminist_methodologies: 1980,
+  standpoint_theory: 1983,
+  critical_food_systems_analysis: 1980,
+  michel_serres_relations: 1980,
+  habermasian_communicative_subject: 1981,
+  queer_theory_perspective: 1990,
+  enactivism_analysis: 1991,
+  emotional_intelligence_analysis: 1990,
+  edouard_glissant_relation_poetics: 1990,
+  rewilding_analysis: 1990,
+  environmental_humanities: 1990,
+  ecopoiesis_perspective: 1990,
+  new_materialisms: 1990,
+  posthumanism_perspective: 1990,
+  trans_studies: 1990,
+  decolonial_studies: 1990,
+  pluriversal_politics: 1990,
+  fat_studies: 1990,
+  jasper_hoffmeyer_biosemiotics: 1990,
+  socio_technical_transitions_mlp: 1990,
+  autoethnography: 1990,
+  feminist_food_studies: 1990,
+  rosi_braidotti_nomadic_subjectivity: 1994,
+  elizabeth_grosz_corporeal_feminism: 1994,
+  judith_butler_performativity: 1990,
+  christine_korsgaard_self_constitution: 1996,
+  marya_schechtman_narrative_self: 1996,
+  food_sovereignty_analysis: 1996,
+  isabelle_stengers_cosmopolitics: 1997,
+  adriana_cavarero_relational_uniqueness: 1997,
+  biomimicry_perspective: 1997,
+  positive_psychology_perspective: 1998,
+  social_ecological_systems_theory: 1998,
+  regenerative_design: 1998,
+  catriona_mackenzie_relational_autonomy: 2e3,
+  continental_feminist_philosophy: 1970,
+  continental_political_aesthetics: 1935,
+  jacques_ranciere_politics_aesthetics: 2e3,
+  linda_alcoff_visible_identities: 2006,
+  anthony_appiah_identity_ethics: 2005,
+  dan_zahavi_minimal_self: 2005,
+  shaun_gallagher_embodied_self: 2005,
+  critique_of_human_rights: 1980,
+  healthy_in_all_policies: 2006,
+  karen_barad_agential_realism: 2007,
+  reciprocity_mutual_aid: 1902,
+  creative_nonfiction_perspective: 1969,
+  anti_colonial_studies: 1900,
+  mad_studies: 2e3,
+  crip_studies: 2e3,
+  tessa_laird_cinemal: 2025,
+  gallagher_pattern_theory_self: 2013,
+  moten_harney_undercommons: 2013,
+  andre_baier_tins_d_analysis: 2e3,
+  tacktical_methodological_analysis: 2e3,
+  idiotextual_analysis: 2e3
+};
 function getChronologicalPerspectiveKeys() {
   const knownPerspectiveKeys = Object.keys(PERSPECTIVES);
+  const tieBreakPosition = new Map(PERSPECTIVE_CHRONOLOGY.map((key, index) => [key, index]));
   const seen = /* @__PURE__ */ new Set();
-  const orderedKeys = PERSPECTIVE_CHRONOLOGY.filter((key) => {
+  const orderedKeys = knownPerspectiveKeys.sort((left, right) => {
+    var _a, _b, _c, _d;
+    const leftYear = (_a = PERSPECTIVE_CHRONOLOGY_YEAR[left]) != null ? _a : Number.POSITIVE_INFINITY;
+    const rightYear = (_b = PERSPECTIVE_CHRONOLOGY_YEAR[right]) != null ? _b : Number.POSITIVE_INFINITY;
+    if (leftYear !== rightYear) return leftYear - rightYear;
+    return ((_c = tieBreakPosition.get(left)) != null ? _c : Number.POSITIVE_INFINITY) - ((_d = tieBreakPosition.get(right)) != null ? _d : Number.POSITIVE_INFINITY);
+  }).filter((key) => {
     if (!PERSPECTIVES[key] || seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -860,6 +1131,66 @@ var GROUP_DEFAULT_METADATA = {
   }
 };
 var PERSPECTIVE_METADATA = {
+  ancient_religious_interpretation: {
+    tradition: "Ancient religious and ritual worlds",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "Prehistory and antiquity",
+    lineage: "Ritual, ancestor relation, sacred order, cosmology, omen, and sacrifice across early societies"
+  },
+  ancient_egyptian_interpretation: {
+    tradition: "Ancient Egyptian religion and philosophy",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "Ancient Egypt, from the 4th millennium BCE onward",
+    lineage: "Temple worlds, divine kingship, Ma'at, funerary traditions, and sacred writing"
+  },
+  pagan_interpretation: {
+    tradition: "Pagan and polytheistic traditions",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "Ancient and ongoing",
+    lineage: "Land-based, polytheistic, seasonal, animist, household, and reconstructionist traditions"
+  },
+  greek_gods_interpretation: {
+    tradition: "Ancient Greek religion and mythology",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "Bronze Age and classical antiquity",
+    lineage: "Mycenaean, archaic, classical, civic, household, poetic, and mystery traditions"
+  },
+  first_testament_hebrew_interpretation: {
+    tradition: "Ancient Hebrew and First Testament traditions",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "1st millennium BCE and ongoing reception",
+    lineage: "Covenant, law, prophecy, wisdom, lament, exile, return, and rabbinic inheritances"
+  },
+  druidic_interpretation: {
+    tradition: "Druidic and Celtic learned traditions",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "Iron Age antiquity and later reconstruction",
+    lineage: "Oral learning, ritual authority, land relation, bardic memory, and modern Druidic renewal"
+  },
+  roman_gods_interpretation: {
+    tradition: "Ancient Roman religion",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "Roman antiquity",
+    lineage: "Household cult, civic ritual, inherited Italic traditions, Greek encounter, republic, and empire"
+  },
+  second_testament_christian_interpretation: {
+    tradition: "Second Testament and Christian traditions",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "1st century CE and ongoing",
+    lineage: "Jewish Second Temple worlds -> Jesus movements -> diverse Christian textual and lived traditions"
+  },
+  bible_teachings_perspective: {
+    tradition: "Biblical wisdom and interpretation",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "1st millennium BCE to 1st century CE, with ongoing reception",
+    lineage: "First Testament and Second Testament texts -> Jewish and Christian interpretive histories"
+  },
+  muslim_interpretation: {
+    tradition: "Islamic traditions",
+    orientation: "Outside the later analytic/continental divide",
+    chronology: "7th century CE and ongoing",
+    lineage: "Qur\u2019an, prophetic practice, jurisprudence, theology, philosophy, mysticism, and diverse lived Muslim traditions"
+  },
   indigenous_australian_philosophy_accumulated: {
     tradition: "Australian Indigenous philosophies and sovereign knowledge traditions",
     orientation: "Outside the later analytic/continental divide",
@@ -1289,7 +1620,7 @@ var PERSPECTIVE_METADATA = {
   lacanian_perspective: {
     tradition: "Psychoanalysis and structuralism",
     orientation: "Continental",
-    chronology: "20th century",
+    chronology: "1930s to late 20th century",
     lineage: "Freud -> Lacan -> post-structural and \u017Di\u017Eekian lineages"
   },
   anti_psychiatry_analysis: {
@@ -1745,7 +2076,7 @@ var PERSPECTIVE_METADATA = {
   irigarayian_perspective: {
     tradition: "Continental feminist philosophy and Lacanian psychoanalysis",
     orientation: "Continental",
-    chronology: "Late 20th and 21st century",
+    chronology: "1970s onward",
     lineage: "Freud -> Lacan -> Irigaray -> sexual-difference feminism and critique of phallocentrism"
   },
   freirean_pedagogy: {
@@ -1840,10 +2171,18 @@ var PERSPECTIVE_METADATA = {
   }
 };
 function getPerspectiveMetadata(key, perspective) {
+  const chronologyYear = PERSPECTIVE_CHRONOLOGY_YEAR[key];
   return {
     ...GROUP_DEFAULT_METADATA[perspective.group] || {},
+    ...typeof chronologyYear === "number" ? { chronology: formatChronologyAnchor(chronologyYear) } : {},
     ...PERSPECTIVE_METADATA[key] || {}
   };
+}
+function formatChronologyAnchor(year) {
+  if (year < 0) return `c. ${Math.abs(year).toLocaleString()} BCE; living or inherited tradition where applicable`;
+  if (year < 1e3) return `c. ${year} CE onward`;
+  if (year % 100 === 0) return `c. ${year} CE onward`;
+  return `c. ${year} CE onward`;
 }
 function buildPerspectiveHistoryLabel(key, perspective) {
   const metadata = getPerspectiveMetadata(key, perspective);
@@ -1854,6 +2193,16 @@ function buildPerspectiveHistoryLabel(key, perspective) {
     metadata.lineage ? `Lineage: ${metadata.lineage}` : ""
   ].filter(Boolean);
   return parts.join(" | ");
+}
+function buildPerspectiveSituationLabel(key, perspective) {
+  var _a;
+  const metadata = getPerspectiveMetadata(key, perspective);
+  const family = ((_a = PERSPECTIVE_GROUPS[perspective.group]) == null ? void 0 : _a.title) || perspective.group;
+  return [
+    metadata.chronology ? `Period: ${metadata.chronology}` : "",
+    family ? `Family: ${family}` : "",
+    metadata.tradition ? `Tradition: ${metadata.tradition}` : ""
+  ].filter(Boolean).join(" \xB7 ");
 }
 function buildPerspectivePromptDescriptor(key, perspective) {
   var _a;
@@ -2057,7 +2406,7 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
     this.addCommand({ id: "analyze-current-note", name: "Analyze current note emotions", editorCallback: (editor) => this.analyzeCurrentNote(editor) });
     this.addCommand({ id: "create-goal", name: "Create new goal", callback: () => this.openGoalModal() });
     this.addCommand({ id: "personality-assessment", name: "Take personality assessment", callback: () => this.openPersonalityAssessment() });
-    this.addCommand({ id: "backfill-analysis-chat-links", name: "Backfill analysis chat links for current note", callback: async () => this.backfillAnalysisChatLinksForActiveFile() });
+    this.addCommand({ id: "backfill-analysis-chat-links", name: "Backfill analysis chat and song links for current note", callback: async () => this.backfillAnalysisChatLinksForActiveFile() });
     this.addCommand({ id: "sync-goals-to-full-calendar", name: "Sync goals to calendar", callback: async () => this.syncAllGoalsToFullCalendar(true) });
     this.addCommand({ id: "sync-milestones-to-folder", name: "Sync milestones to folder", callback: async () => this.syncAllGoalMilestonesToFolder(true) });
     this.addCommand({ id: "consolidate-similar-goals", name: "Consolidate similar goals", callback: async () => this.openGoalConsolidationModal() });
@@ -2096,6 +2445,25 @@ var DeleometerPlugin = class extends import_obsidian.Plugin {
           } catch (error) {
             new import_obsidian.Notice("Could not open chat from note link");
             this.logError("Could not open chat from note link", error);
+          }
+        };
+      });
+      element.querySelectorAll('a[href^="deleometer://song?"]').forEach((linkEl) => {
+        const link = linkEl;
+        link.onclick = async (event) => {
+          event.preventDefault();
+          try {
+            const url = new URL(link.href);
+            const perspective = url.searchParams.get("perspective") || "";
+            const source = url.searchParams.get("source") || "";
+            if (!this.getVaultMarkdownFile(source) || !PERSPECTIVES[perspective]) {
+              new import_obsidian.Notice("Invalid or unsafe song link context");
+              return;
+            }
+            await this.createPerspectiveSongFromSourceNote(source, perspective);
+          } catch (error) {
+            new import_obsidian.Notice(this.getAIErrorMessage(error, "Could not create song from note link"));
+            this.logError("Could not create song from note link", error);
           }
         };
       });
@@ -2721,7 +3089,7 @@ ${this.settings.authorMemorySummary.trim()}`);
         return;
       }
       await this.ensurePerspectiveChatLinks(file, analysis);
-      new import_obsidian.Notice("Backfilled AI chat links for this note");
+      new import_obsidian.Notice("Backfilled AI chat and perspective-song links for this note");
     } catch (error) {
       new import_obsidian.Notice("Could not backfill analysis chat links");
       this.logError("Could not backfill analysis chat links", error);
@@ -2736,6 +3104,7 @@ ${this.settings.authorMemorySummary.trim()}`);
       return {
         perspectives: {},
         furtherReadings: {},
+        perspectiveSongs: {},
         groupSyntheses: {},
         philosophicalReaccumulation: "",
         inspirationalSong: null,
@@ -2867,6 +3236,7 @@ ${this.settings.authorMemorySummary.trim()}`);
     return {
       perspectives: results,
       furtherReadings,
+      perspectiveSongs: {},
       groupSyntheses,
       philosophicalReaccumulation: synthesis.philosophicalReaccumulation,
       inspirationalSong,
@@ -3237,6 +3607,7 @@ For each perspective:
 - for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.
 - for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.
 - for Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation you have just given.
+- for Pagan Interpretation, you may end with a short seasonal or ritual verse of 2-4 lines when it genuinely fits; do not present invented ritual as historical fact.
 - for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.
 - for Julia Kristeva, include both her psychoanalysis and her philosophy. Explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, revolt, and subject formation through concrete details in the entry.
 - for Luce Irigaray, include both her philosophy and her psychoanalysis. Explain sexual difference, desire, embodiment, mimicry, speech, maternal relation, and the critique of phallocentric language through concrete details in the entry.
@@ -3348,6 +3719,7 @@ For each perspective:
 - for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.
 - for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.
 - for Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation you have just given.
+- for Pagan Interpretation, you may end with a short seasonal or ritual verse of 2-4 lines when it genuinely fits; do not present invented ritual as historical fact.
 - for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.
 - for Julia Kristeva, include both her psychoanalysis and her philosophy. Explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, revolt, and subject formation through concrete details in the entry.
 - for Luce Irigaray, include both her philosophy and her psychoanalysis. Explain sexual difference, desire, embodiment, mimicry, speech, maternal relation, and the critique of phallocentric language through concrete details in the entry.
@@ -3487,7 +3859,7 @@ If the frame is Luce Irigaray, include both her philosophy and her psychoanalysi
 Distinguish psychiatry, psychology, and psychoanalysis. Do not treat psychiatry as derived from psychoanalysis.
 If the frame is Idiotextual Analysis, attend to singular wording, recurring idiosyncratic phrases, self-made idiom, and if relevant the idea of the idiotext as a uniquely inscribed textual world rather than generic style commentary.
 
-If the frame is Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation.
+If the frame is Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation. If the frame is Pagan Interpretation, a short seasonal or ritual verse may be added when it genuinely fits, without presenting invented ritual as historical fact.
 
 ${personalityContext}
 
@@ -3707,15 +4079,15 @@ ${content}`
       messages: [
         {
           role: "system",
-          content: "You are a careful songwriter and reflective guide. Return valid JSON only."
+          content: "You create original, singable songs from private journal material and reflective interpretations. Return valid JSON only."
         },
         {
           role: "user",
-          content: `Create a positive construction of a song that could inspire the author after the analyses have been completed.
+          content: `Create an original, singable lyric from this private journal entry and its completed Deleometer readings.
 
 Return JSON with exactly these keys:
 - title: short song title.
-- rationale: 90-160 words explaining how the song gently transforms the journal entry's tensions into movement, courage, or hope without denying difficulty.
+- rationale: 60-120 words describing the song's emotional and musical approach and how it grows from the entry.
 - mood: a short phrase such as "steady, luminous, determined".
 - tempo_bpm: integer from 72 to 124.
 - key_center: one of C, D, E, F, G, A, B.
@@ -3723,9 +4095,10 @@ Return JSON with exactly these keys:
 - chord_progression: array of exactly 4 simple chord symbols using only A-G roots with optional m, for example ["Am", "F", "C", "G"].
 - motif_degrees: array of exactly 8 integers from 1 to 7.
 - hook_line: one memorable, encouraging line under 14 words.
-- lyrics: 2 short verses and 1 chorus, written plainly enough to sing.
+- lyrics: an original song of roughly 16-28 lines with clearly labelled verses and a chorus or refrain.
 
-The song should be encouraging, intelligent, and grounded in the author's actual material situation. Do not become saccharine, preachy, or falsely triumphant. Let the song retain struggle while still building a listenable path forward.
+Do not imitate or name a living artist. Do not diagnose, prescribe, or claim hidden truth. Preserve privacy by avoiding unnecessary identifying details. Keep the song grounded in the author's actual language, images, tensions, and material situation. It may be hopeful, unresolved, fierce, tender, comic, grieving, or ambivalent as the entry requires; do not force positivity, become saccharine, preachy, or falsely triumphant. Make the lyric concrete, memorable, rhythmically singable, and specific rather than a generic encouragement song.
+If a Druidic reading is present, favour an oral bardic quality, land imagery, memory, and refrain. If a Pagan reading is present, a seasonal or ritual cadence may be used without presenting invented ritual as historical fact.
 
 ${personalityContext}
 
@@ -3771,6 +4144,67 @@ ${content.slice(0, 5e3)}`
       song: this.buildFallbackInspirationalSong(content, philosophicalReaccumulation),
       warning: "Inspirational song used a local fallback because the AI song payload was incomplete."
     };
+  }
+  async getPerspectiveSong(content, perspectiveKey, interpretation) {
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+    const perspective = PERSPECTIVES[perspectiveKey];
+    if (!perspective) throw new Error("Unknown analysis perspective");
+    const metadata = getPerspectiveMetadata(perspectiveKey, perspective);
+    const specialTreatment = perspectiveKey === "druidic_interpretation" ? "Give the lyric an oral bardic quality with land imagery, memory, musical repetition, and a strong refrain." : perspectiveKey === "pagan_interpretation" ? "A seasonal or ritual cadence may be used when it genuinely fits, without presenting invented ritual as historical fact." : "Let this perspective shape the lyric's images, structure, emotional movement, and sense of evidence; do not merely name its concepts.";
+    const rawContent = await this.createAIChatCompletion({
+      response_format: { type: "json_object" },
+      max_tokens: 2400,
+      messages: [
+        {
+          role: "system",
+          content: "You create original, singable songs from private journal material and one attached Deleometer interpretation. Return valid JSON only."
+        },
+        {
+          role: "user",
+          content: `Create an original, singable lyric from the journal entry and the attached ${perspective.title} interpretation below.
+
+Return JSON with exactly these keys:
+- title: a short, memorable song title.
+- rationale: 60-120 words serving as a style note: explain the emotional and musical approach and how the perspective shaped it.
+- mood: a short musical-emotional phrase.
+- tempo_bpm: an integer from 72 to 124.
+- key_center: one of C, D, E, F, G, A, B.
+- scale_mode: either major or minor.
+- chord_progression: exactly 4 simple chord symbols using A-G roots with optional m.
+- motif_degrees: exactly 8 integers from 1 to 7.
+- hook_line: one memorable line under 14 words.
+- lyrics: an original song of roughly 16-28 lines with clearly labelled verses and a chorus or refrain.
+
+Do not imitate or name a living artist. Do not diagnose, prescribe, or claim hidden truth. Preserve privacy by avoiding unnecessary identifying details. Use concrete images, phrases, conflicts, emotional turns, and material circumstances from the entry. Make the lyric distinctive, rhythmically singable, and specific rather than generic self-help. Do not force uplift: retain ambiguity, difficulty, humour, anger, grief, desire, or hope as the entry requires.
+${specialTreatment}
+
+${this.getReaderContextPrompt()}
+
+${this.getOutputLanguagePrompt()}
+
+Perspective: ${perspective.title}
+Period: ${metadata.chronology || "See the perspective history"}
+Conceptual focus: ${perspective.description}
+${metadata.lineage ? `Lineage: ${metadata.lineage}
+` : ""}
+Attached interpretation:
+${interpretation}
+
+Journal entry:
+${content.slice(0, 12e3)}`
+        }
+      ]
+    });
+    if (!rawContent) throw new Error("The AI returned no song");
+    const parsed = this.parseJsonObjectOrNull(rawContent);
+    if (!parsed) throw new Error("The AI returned an unreadable song");
+    const title = this.getSongStringValue(parsed, ["title"]);
+    const lyrics = this.getSongStringValue(parsed, ["lyrics"]);
+    const rationale = this.getSongStringValue(parsed, ["rationale", "style_note"]);
+    if (!title || !lyrics || !rationale) throw new Error("The AI song was incomplete");
+    const song = this.parseInspirationalSong(parsed, interpretation, content);
+    if (!song) throw new Error("The AI song was incomplete");
+    return song;
   }
   parseGoalSuggestions(rawGoalSuggestions) {
     return (Array.isArray(rawGoalSuggestions) ? rawGoalSuggestions : []).map((goal) => {
@@ -4064,6 +4498,24 @@ ${preparedJournalContext}`
     };
     await this.activateAIChatView();
   }
+  async createPerspectiveSongFromSourceNote(sourceFilePath, perspectiveKey) {
+    var _a;
+    if (!this.hasAIProviderConfigured()) throw new Error(this.getAIProviderSetupNotice());
+    if (!PERSPECTIVES[perspectiveKey]) throw new Error("Unknown analysis perspective");
+    const sourceFile = this.getVaultMarkdownFile(sourceFilePath);
+    if (!sourceFile) throw new Error("Source note not found");
+    const content = await this.app.vault.read(sourceFile);
+    const analysis = this.extractAnalysisPayloadFromNote(content);
+    const interpretation = analysis.perspectives[perspectiveKey];
+    if (!interpretation) throw new Error("Perspective analysis not found in source note");
+    const perspectiveTitle = ((_a = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _a.title) || perspectiveKey;
+    new import_obsidian.Notice(`Writing an original song through ${perspectiveTitle}...`);
+    const song = await this.getPerspectiveSong(this.getJournalContentBeforeAnalysis(content), perspectiveKey, interpretation);
+    await this.ensurePerspectiveSongFile(sourceFile, perspectiveKey, song);
+    analysis.perspectiveSongs[perspectiveKey] = song;
+    await this.appendAnalysisToFile(sourceFile, analysis);
+    new import_obsidian.Notice(`Song created through ${perspectiveTitle} and saved with the analysis.`);
+  }
   getDefaultPerspectiveForGroup(groupKey) {
     const firstPerspective = getChronologicalPerspectiveKeys().find((key) => {
       var _a;
@@ -4252,17 +4704,53 @@ ${preparedJournalContext}`
     const encodedPath = encodeURIComponent(sourceFilePath);
     return `**Continue Chat:** [Open AI Chat](deleometer://chat?perspective=${perspectiveKey}&source=${encodedPath})`;
   }
+  buildPerspectiveSongLink(sourceFilePath, perspectiveKey, hasSong = false) {
+    const encodedPath = encodeURIComponent(sourceFilePath);
+    return `**Perspective Song:** [${hasSong ? "Create a new version" : "Create song"}](deleometer://song?perspective=${perspectiveKey}&source=${encodedPath})`;
+  }
   buildGroupSynthesisChatLink(sourceFilePath, groupKey) {
     const encodedPath = encodeURIComponent(sourceFilePath);
     return `**Continue Group Chat:** [Open AI Chat](deleometer://chat?group=${groupKey}&source=${encodedPath})`;
   }
+  extractPerspectiveSongFromSection(section) {
+    var _a, _b, _c, _d, _e, _f;
+    const songStart = section.search(/^####\s+Song from this perspective\s*$/m);
+    if (songStart === -1) return null;
+    const songSection = section.slice(songStart);
+    const title = ((_b = (_a = /^#####\s+(.+)$/m.exec(songSection)) == null ? void 0 : _a[1]) == null ? void 0 : _b.trim()) || "";
+    const labelValue = (label) => {
+      var _a2, _b2;
+      const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return ((_b2 = (_a2 = new RegExp(`^\\*\\*${escaped}:\\*\\*\\s*(.+)$`, "mi").exec(songSection)) == null ? void 0 : _a2[1]) == null ? void 0 : _b2.trim()) || "";
+    };
+    const lyrics = ((_d = (_c = /######\s+Lyrics\s*\n([\s\S]*?)(?=\n####\s+Latest AI Chat|\n\*\*Continue Chat:\*\*|\n\*\*Linked Chat:\*\*|\n\*\*Start Chat:\*\*|$)/m.exec(songSection)) == null ? void 0 : _c[1]) == null ? void 0 : _d.trim()) || "";
+    if (!title || !lyrics) return null;
+    const keyParts = labelValue("Key").split(/\s+/);
+    const parsed = this.parseInspirationalSong({
+      title,
+      rationale: labelValue("Style note"),
+      mood: labelValue("Mood"),
+      tempo_bpm: Number(labelValue("Tempo").replace(/[^0-9.]/g, "")),
+      key_center: keyParts[0],
+      scale_mode: keyParts[1],
+      chord_progression: labelValue("Chords").split(/\s*[–—,|]\s*/).filter(Boolean),
+      hook_line: labelValue("Hook"),
+      lyrics
+    }, "", section);
+    if (!parsed) return null;
+    const audioFilePath = (_f = (_e = /\*\*Listen:\*\*\s*!\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/m.exec(songSection)) == null ? void 0 : _e[1]) == null ? void 0 : _f.trim();
+    if (audioFilePath) parsed.audioFilePath = audioFilePath;
+    return parsed;
+  }
   extractAnalysisPayloadFromNote(content) {
     const perspectives = {};
+    const perspectiveSongs = {};
     const analysisStart = this.findAnalysisSectionStart(content);
     if (analysisStart === -1) {
       return {
         perspectives,
         furtherReadings: {},
+        perspectiveSongs: {},
         groupSyntheses: {},
         philosophicalReaccumulation: "",
         inspirationalSong: null,
@@ -4289,7 +4777,10 @@ ${preparedJournalContext}`
       if (!perspectiveKey) continue;
       const bodyStart = currentHeading.index + currentHeading.fullMatch.length;
       const nextHeadingIndex = index + 1 < headingMatches.length ? headingMatches[index + 1].index : analysisSection.length;
-      const sectionBody = analysisSection.slice(bodyStart, nextHeadingIndex).replace(/\*\*Linked Chat:\*\*.*(?:\n|$)/g, "").replace(/\*\*Start Chat:\*\*.*(?:\n|$)/g, "").replace(/\*\*Continue Chat:\*\*.*(?:\n|$)/g, "").replace(/#### Further readings[\s\S]*?(?=\n####|\n###|$)/g, "").replace(/#### Latest AI Chat[\s\S]*$/m, "").trim();
+      const rawSectionBody = analysisSection.slice(bodyStart, nextHeadingIndex);
+      const perspectiveSong = this.extractPerspectiveSongFromSection(rawSectionBody);
+      if (perspectiveSong) perspectiveSongs[perspectiveKey] = perspectiveSong;
+      const sectionBody = rawSectionBody.replace(/\*\*Linked Chat:\*\*.*(?:\n|$)/g, "").replace(/\*\*Start Chat:\*\*.*(?:\n|$)/g, "").replace(/\*\*Continue Chat:\*\*.*(?:\n|$)/g, "").replace(/\*\*Perspective Song:\*\*.*(?:\n|$)/g, "").replace(/#### Further readings[\s\S]*?(?=\n####|\n###|$)/g, "").replace(/#### Song from this perspective[\s\S]*?(?=\n#### Latest AI Chat|\n\*\*Continue Chat:\*\*|\n###|$)/g, "").replace(/#### Latest AI Chat[\s\S]*$/m, "").trim();
       if (sectionBody && !perspectives[perspectiveKey]) {
         perspectives[perspectiveKey] = sectionBody;
       }
@@ -4297,6 +4788,7 @@ ${preparedJournalContext}`
     return {
       perspectives,
       furtherReadings: {},
+      perspectiveSongs,
       groupSyntheses: {},
       philosophicalReaccumulation: "",
       inspirationalSong: null,
@@ -4537,6 +5029,21 @@ ${preparedJournalContext}`
     await this.ensureFolder(this.settings.songsFolder);
     await this.ensureFolder(this.getSongFolderPath(sourceFile.path));
     const filePath = this.getSongFilePath(sourceFile.path, song.title);
+    const audioBuffer = this.renderInspirationalSongWav(song);
+    const existing = this.app.vault.getAbstractFileByPath(filePath);
+    if (existing instanceof import_obsidian.TFile) {
+      await this.app.vault.modifyBinary(existing, audioBuffer);
+    } else {
+      await this.app.vault.createBinary(filePath, audioBuffer);
+    }
+    song.audioFilePath = filePath;
+  }
+  async ensurePerspectiveSongFile(sourceFile, perspectiveKey, song) {
+    var _a;
+    const perspectiveTitle = ((_a = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _a.title) || perspectiveKey;
+    await this.ensureFolder(this.settings.songsFolder);
+    await this.ensureFolder(this.getSongFolderPath(sourceFile.path));
+    const filePath = this.getSongFilePath(sourceFile.path, `${perspectiveTitle} - ${song.title}`);
     const audioBuffer = this.renderInspirationalSongWav(song);
     const existing = this.app.vault.getAbstractFileByPath(filePath);
     if (existing instanceof import_obsidian.TFile) {
@@ -5754,8 +6261,15 @@ ${event.kind === "goal_due" ? `This marks the target date for ${goalLink}.` : `R
     return `${safeDate}-${this.sanitizeFileNamePart(this.getFileDisplayName(sourceFilePath))}-${perspective}-Chat`;
   }
   async ensurePerspectiveChatLinks(sourceFile, analysis) {
+    var _a;
     for (const perspectiveKey of Object.keys(analysis.perspectives)) {
       await this.upsertPerspectiveSectionLine(sourceFile.path, perspectiveKey, "**Continue Chat:**", this.buildPerspectiveChatLink(sourceFile.path, perspectiveKey));
+      await this.upsertPerspectiveSectionLine(
+        sourceFile.path,
+        perspectiveKey,
+        "**Perspective Song:**",
+        this.buildPerspectiveSongLink(sourceFile.path, perspectiveKey, !!((_a = analysis.perspectiveSongs) == null ? void 0 : _a[perspectiveKey]))
+      );
     }
   }
   async ensureGroupSynthesisChatLinks(sourceFile, analysis) {
@@ -5930,6 +6444,7 @@ ${chatBlock}
 `;
   }
   getRenderableAnalysisPayload(analysis) {
+    var _a, _b;
     const perspectives = {};
     for (const [key, value] of Object.entries(analysis.perspectives)) {
       const content = value.trim();
@@ -5941,6 +6456,10 @@ ${chatBlock}
       const cleanedReadings = readings.map((reading) => reading.trim()).filter(Boolean);
       if (cleanedReadings.length > 0) furtherReadings[key] = cleanedReadings;
     }
+    const perspectiveSongs = {};
+    for (const [key, song] of Object.entries(analysis.perspectiveSongs || {})) {
+      if (perspectives[key] && ((_a = song == null ? void 0 : song.title) == null ? void 0 : _a.trim()) && ((_b = song == null ? void 0 : song.lyrics) == null ? void 0 : _b.trim())) perspectiveSongs[key] = song;
+    }
     const groupSyntheses = {};
     for (const [key, value] of Object.entries(analysis.groupSyntheses)) {
       const content = value.trim();
@@ -5951,25 +6470,54 @@ ${chatBlock}
       ...analysis,
       perspectives,
       furtherReadings,
+      perspectiveSongs,
       groupSyntheses,
       philosophicalReaccumulation: analysis.philosophicalReaccumulation.trim(),
       analysisWarnings
     };
   }
+  buildPerspectiveSongMarkdown(song) {
+    let markdown = `
+#### Song from this perspective
+`;
+    markdown += `##### ${song.title}
+`;
+    markdown += `**Style note:** ${song.rationale}
+`;
+    markdown += `**Mood:** ${song.mood}
+`;
+    markdown += `**Tempo:** ${song.tempoBpm} BPM
+`;
+    markdown += `**Key:** ${song.keyCenter} ${song.scaleMode}
+`;
+    markdown += `**Chords:** ${song.chordProgression.join(" \u2013 ")}
+`;
+    markdown += `**Hook:** ${song.hookLine}
+`;
+    if (song.audioFilePath) markdown += `**Listen:** ![[${this.getWikiLinkTarget(song.audioFilePath)}]]
+`;
+    markdown += `###### Lyrics
+${song.lyrics}
+`;
+    return markdown;
+  }
   buildAnalysisMarkdown(analysis, sourceFilePath = "") {
-    var _a;
     const renderableAnalysis = this.getRenderableAnalysisPayload(analysis);
     let analysisMarkdown = "\n\n---\n## \u{1F50D} AI Analysis\n";
     analysisMarkdown += `*Analyzed: ${(/* @__PURE__ */ new Date()).toLocaleString()}*
 `;
-    for (const [perspKey, content] of Object.entries(renderableAnalysis.perspectives)) {
+    analysisMarkdown += `*Reading order: chronology first; period and intellectual-family labels are contextual only.*
+`;
+    for (const perspKey of getChronologicalPerspectiveKeys()) {
+      const content = renderableAnalysis.perspectives[perspKey];
+      if (!content) continue;
       const persp = PERSPECTIVES[perspKey];
-      const groupTitle = persp ? (_a = PERSPECTIVE_GROUPS[persp.group]) == null ? void 0 : _a.title : "";
       analysisMarkdown += `
 ### ${(persp == null ? void 0 : persp.title) || perspKey}
 `;
-      if (groupTitle) {
-        analysisMarkdown += `*Group: ${groupTitle}*
+      if (persp) {
+        const situation = buildPerspectiveSituationLabel(perspKey, persp);
+        if (situation) analysisMarkdown += `*${situation}*
 `;
       }
       analysisMarkdown += `${content}
@@ -5980,6 +6528,8 @@ ${chatBlock}
 ${readings.map((reading) => `- ${reading}`).join("\n")}
 `;
       }
+      const perspectiveSong = renderableAnalysis.perspectiveSongs[perspKey];
+      if (perspectiveSong) analysisMarkdown += this.buildPerspectiveSongMarkdown(perspectiveSong);
     }
     if (Object.keys(renderableAnalysis.groupSyntheses).length > 0) {
       analysisMarkdown += `
@@ -8049,6 +8599,7 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
     this.sourceFile = sourceFile;
   }
   onOpen() {
+    var _a;
     const { contentEl } = this;
     contentEl.addClass("deleometer-modal");
     contentEl.addClass("deleometer-modal-medium");
@@ -8057,35 +8608,52 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
       contentEl.createEl("p", { text: `Analysis of: ${this.sourceFile.basename}`, cls: "analysis-source" });
     }
     const results = contentEl.createDiv({ cls: "analysis-results" });
-    for (const groupKey of getChronologicalGroupKeys()) {
-      const groupEntries = Object.entries(this.analysis.perspectives).filter(([perspKey]) => {
-        var _a;
-        return ((_a = PERSPECTIVES[perspKey]) == null ? void 0 : _a.group) === groupKey;
+    results.createEl("p", {
+      text: "Perspectives remain in temporal sequence. Period and intellectual-family labels provide context without moving a perspective out of its historical milieu.",
+      cls: "analysis-source"
+    });
+    for (const perspKey of getChronologicalPerspectiveKeys()) {
+      const analysisContent = this.analysis.perspectives[perspKey];
+      const persp = PERSPECTIVES[perspKey];
+      if (!analysisContent || !persp) continue;
+      const card = results.createDiv({ cls: "perspective-card" });
+      const situation = buildPerspectiveSituationLabel(perspKey, persp);
+      if (situation) {
+        card.createEl("p", { text: situation, cls: "analysis-source" });
+      }
+      const header = card.createDiv({ cls: "perspective-header" });
+      header.createEl("h4", { text: persp.title });
+      const perspectiveActions = header.createDiv({ cls: "perspective-actions" });
+      const chatBtn = perspectiveActions.createEl("button", { text: "Chat with this perspective", cls: "chat-with-btn" });
+      chatBtn.onclick = () => {
+        void this.openChatWithPerspective(perspKey, analysisContent);
+      };
+      const existingSong = (_a = this.analysis.perspectiveSongs) == null ? void 0 : _a[perspKey];
+      const songBtn = perspectiveActions.createEl("button", {
+        text: existingSong ? "Create a new song" : "Create song from this perspective",
+        cls: "song-from-perspective-btn"
       });
-      if (groupEntries.length === 0) continue;
-      const group = PERSPECTIVE_GROUPS[groupKey];
-      const groupHeader = results.createDiv({ cls: "perspective-group-heading" });
-      groupHeader.createEl("h3", { text: group.title });
-      groupHeader.createEl("p", { text: group.description });
-      for (const [perspKey, analysisContent] of groupEntries) {
-        const persp = PERSPECTIVES[perspKey];
-        const card = results.createDiv({ cls: "perspective-card" });
-        const header = card.createDiv({ cls: "perspective-header" });
-        header.createEl("h4", { text: (persp == null ? void 0 : persp.title) || perspKey });
-        const chatBtn = header.createEl("button", { text: "Chat with this perspective", cls: "chat-with-btn" });
-        chatBtn.onclick = () => {
-          void this.openChatWithPerspective(perspKey, analysisContent);
-        };
-        card.createEl("p", { text: analysisContent });
-        const readings = this.analysis.furtherReadings[perspKey] || [];
-        if (readings.length > 0) {
-          card.createEl("h5", { text: "Further readings" });
-          const readingsList = card.createEl("ul");
-          for (const reading of readings) {
-            readingsList.createEl("li", { text: reading });
-          }
+      songBtn.onclick = () => {
+        void this.runButtonAction(
+          songBtn,
+          () => {
+            var _a2;
+            return ((_a2 = this.analysis.perspectiveSongs) == null ? void 0 : _a2[perspKey]) ? "Create a new song" : "Create song from this perspective";
+          },
+          "Writing song...",
+          () => this.createSongForPerspective(perspKey, analysisContent)
+        );
+      };
+      card.createEl("p", { text: analysisContent });
+      const readings = this.analysis.furtherReadings[perspKey] || [];
+      if (readings.length > 0) {
+        card.createEl("h5", { text: "Further readings" });
+        const readingsList = card.createEl("ul");
+        for (const reading of readings) {
+          readingsList.createEl("li", { text: reading });
         }
       }
+      if (existingSong) this.renderPerspectiveSong(card, existingSong);
     }
     if (Object.keys(this.analysis.groupSyntheses).length > 0) {
       const synthesisSection = contentEl.createDiv({ cls: "analysis-section" });
@@ -8172,6 +8740,43 @@ var AnalysisResultModal = class extends import_obsidian.Modal {
       button.removeClass("is-busy");
       button.disabled = false;
       button.setText(typeof idleText === "function" ? idleText() : idleText);
+    }
+  }
+  renderPerspectiveSong(parent, song) {
+    const section = parent.createDiv({ cls: "perspective-song" });
+    section.createEl("h5", { text: "Song from this perspective" });
+    section.createEl("h4", { text: song.title });
+    section.createEl("p", { text: song.rationale, cls: "perspective-song-style" });
+    section.createEl("p", {
+      text: `Mood: ${song.mood} | Tempo: ${song.tempoBpm} BPM | Key: ${song.keyCenter} ${song.scaleMode}`,
+      cls: "analysis-source"
+    });
+    section.createEl("p", { text: `Hook: ${song.hookLine}`, cls: "perspective-song-hook" });
+    section.createEl("pre", { text: song.lyrics });
+    if (song.audioFilePath) {
+      section.createEl("p", { text: `Audio file: ${this.plugin.getFileDisplayName(song.audioFilePath)}`, cls: "analysis-source" });
+    }
+  }
+  async createSongForPerspective(perspectiveKey, interpretation) {
+    var _a;
+    if (!this.plugin.hasAIProviderConfigured()) {
+      new import_obsidian.Notice(this.plugin.getAIProviderSetupNotice());
+      return;
+    }
+    const perspectiveTitle = ((_a = PERSPECTIVES[perspectiveKey]) == null ? void 0 : _a.title) || perspectiveKey;
+    try {
+      new import_obsidian.Notice(`Writing an original song through ${perspectiveTitle}...`);
+      const song = await this.plugin.getPerspectiveSong(this.originalContent, perspectiveKey, interpretation);
+      if (this.sourceFile) await this.plugin.ensurePerspectiveSongFile(this.sourceFile, perspectiveKey, song);
+      this.analysis.perspectiveSongs = this.analysis.perspectiveSongs || {};
+      this.analysis.perspectiveSongs[perspectiveKey] = song;
+      if (this.sourceFile) await this.plugin.appendAnalysisToFile(this.sourceFile, this.analysis);
+      new import_obsidian.Notice(`Song created through ${perspectiveTitle} and saved with the analysis.`);
+      this.contentEl.empty();
+      this.onOpen();
+    } catch (error) {
+      new import_obsidian.Notice(this.plugin.getAIErrorMessage(error, `Could not create the ${perspectiveTitle} song`));
+      this.plugin.logError(`Could not create song through ${perspectiveTitle}`, error);
     }
   }
   async openChatWithPerspective(perspectiveKey, initialAnalysis) {
@@ -8402,7 +9007,7 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       this.plugin.settings.sendFullJournalToChat = value;
       await this.plugin.saveSettings();
     }));
-    new import_obsidian.Setting(containerEl).setName("Generate inspirational song").setDesc("After philosophy re-accumulation, generate a positive song sketch with lyrics and a locally rendered audio file.").addToggle((toggle) => toggle.setValue(this.plugin.settings.generateInspirationalSong).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("Generate inspirational song").setDesc("After philosophy re-accumulation, generate an original song grounded in the journal and its readings, with lyrics and a locally rendered audio file. Individual perspective cards also offer their own song buttons.").addToggle((toggle) => toggle.setValue(this.plugin.settings.generateInspirationalSong).onChange(async (value) => {
       this.plugin.settings.generateInspirationalSong = value;
       await this.plugin.saveSettings();
       this.refreshSettings();
@@ -8478,7 +9083,7 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
     });
     new import_obsidian.Setting(containerEl).setName("Analysis perspectives").setHeading();
     containerEl.createEl("p", {
-      text: "Select which perspectives to use for journal analysis. The order follows strict chronology inside each group. Tradition, placement, chronology, and lineage labels are guiding maps to intellectual history, not exclusive ownership claims.",
+      text: "Select which perspectives to use for journal analysis. The catalogue follows one temporal sequence across every discipline and tradition. Family labels describe relationships; they never move a perspective away from its historical period.",
       cls: "setting-item-description"
     });
     new import_obsidian.Setting(containerEl).setName("Enable all perspectives").setDesc("Turn on every available analysis type.").addButton((button) => button.setButtonText("Enable all").onClick(async () => {
@@ -8486,9 +9091,14 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
       await this.plugin.saveSettings();
       this.refreshSettings();
     }));
+    new import_obsidian.Setting(containerEl).setName("Family shortcuts").setHeading();
+    containerEl.createEl("p", {
+      text: "These controls are selection shortcuts only. They do not regroup or reorder the chronological catalogue below.",
+      cls: "setting-item-description"
+    });
     for (const groupKey of getChronologicalGroupKeys()) {
       const group = PERSPECTIVE_GROUPS[groupKey];
-      new import_obsidian.Setting(containerEl).setName(group.title).setDesc(group.description).setHeading().addButton((button) => button.setButtonText("Enable group").onClick(async () => {
+      new import_obsidian.Setting(containerEl).setName(group.title).setDesc(group.description).addButton((button) => button.setButtonText("Enable group").onClick(async () => {
         const groupPerspectiveKeys = Object.entries(PERSPECTIVES).filter(([, perspective]) => perspective.group === groupKey).map(([key]) => key);
         this.plugin.settings.selectedPerspectives = Array.from(/* @__PURE__ */ new Set([
           ...this.plugin.settings.selectedPerspectives,
@@ -8502,25 +9112,28 @@ var DeleometerSettingTab = class extends import_obsidian.PluginSettingTab {
         await this.plugin.saveSettings();
         this.refreshSettings();
       }));
-      const orderedGroupPerspectives = getChronologicalPerspectiveKeys().filter((key) => {
-        var _a;
-        return ((_a = PERSPECTIVES[key]) == null ? void 0 : _a.group) === groupKey;
-      }).map((key) => [key, PERSPECTIVES[key]]);
-      for (const [key, persp] of orderedGroupPerspectives) {
-        const setting = new import_obsidian.Setting(containerEl).setName(persp.title).setDesc(persp.description).addToggle((toggle) => toggle.setValue(this.plugin.settings.selectedPerspectives.includes(key)).onChange(async (value) => {
-          if (value) {
-            if (!this.plugin.settings.selectedPerspectives.includes(key)) {
-              this.plugin.settings.selectedPerspectives.push(key);
-            }
-          } else {
-            this.plugin.settings.selectedPerspectives = this.plugin.settings.selectedPerspectives.filter((p) => p !== key);
+    }
+    new import_obsidian.Setting(containerEl).setName("Chronological catalogue").setHeading();
+    containerEl.createEl("p", {
+      text: "Ordered by the earliest recognisable formation or influential formulation of each perspective. Ancient and living traditions retain their ongoing status in the period label.",
+      cls: "setting-item-description"
+    });
+    for (const key of getChronologicalPerspectiveKeys()) {
+      const persp = PERSPECTIVES[key];
+      if (!persp) continue;
+      const setting = new import_obsidian.Setting(containerEl).setName(persp.title).setDesc(persp.description).addToggle((toggle) => toggle.setValue(this.plugin.settings.selectedPerspectives.includes(key)).onChange(async (value) => {
+        if (value) {
+          if (!this.plugin.settings.selectedPerspectives.includes(key)) {
+            this.plugin.settings.selectedPerspectives.push(key);
           }
-          await this.plugin.saveSettings();
-        }));
-        const historyLabel = buildPerspectiveHistoryLabel(key, persp);
-        if (historyLabel) {
-          setting.descEl.createDiv({ text: historyLabel, cls: "setting-item-description" });
+        } else {
+          this.plugin.settings.selectedPerspectives = this.plugin.settings.selectedPerspectives.filter((p) => p !== key);
         }
+        await this.plugin.saveSettings();
+      }));
+      const situationLabel = buildPerspectiveSituationLabel(key, persp);
+      if (situationLabel) {
+        setting.descEl.createDiv({ text: situationLabel, cls: "setting-item-description" });
       }
     }
   }

@@ -168,6 +168,12 @@ assert.equal(
 const markdown = plugin.buildAnalysisMarkdown({
   perspectives: {
     lacanian_perspective: 'The message becomes a scene of address, desire, and risk.',
+    freudian_psychoanalysis: 'The delay can be read through conflict, repression, and compromise formation.',
+    nietzschean_perspective: 'The entry tests inherited values against an emerging way of living.',
+    second_testament_christian_interpretation: 'The entry can be read through grace, relation, and transformation.',
+    platonic_perspective: 'The entry moves dialectically between appearance, desire, and a possible good.',
+    pagan_interpretation: 'Seasonal and land-based relations place the decision within cycles and reciprocity.',
+    irigarayian_perspective: 'Sexuate difference asks how relation can preserve difference without hierarchy.',
     jungian_perspective: '',
     phenomenology_perspective: '   '
   },
@@ -186,9 +192,24 @@ const markdown = plugin.buildAnalysisMarkdown({
 }, 'Regression journal.md');
 
 assert.match(markdown, /### Lacanian Psychoanalysis/, 'non-empty perspective should render');
+assert.match(markdown, /### Luce Irigaray's Sexuate Difference/, 'Irigaray should render with the Sexuate Difference title');
 assert.doesNotMatch(markdown, /### Jungian Analysis/, 'blank perspective should not render');
 assert.doesNotMatch(markdown, /### Phenomenology/, 'whitespace-only perspective should not render');
 assert.ok(countHorizontalRules(markdown) <= 1, 'analysis markdown should not contain repeated rules');
 assert.match(markdown, /Parser fallback used sample raw text/, 'non-empty warning should render once');
+assert.match(markdown, /Period: .*Family:/, 'perspectives should display temporal and family context');
+assert.ok(
+  markdown.indexOf('### Pagan Interpretation') < markdown.indexOf('### Second Testament / Christian Interpretation'),
+  'pagan interpretation should precede the Second Testament in chronology'
+);
+assert.ok(
+  markdown.indexOf('### Platonic Philosophy') < markdown.indexOf('### Second Testament / Christian Interpretation'),
+  'Plato should precede the Second Testament in chronology'
+);
+assert.ok(
+  markdown.indexOf('### Nietzschean Philosophy') < markdown.indexOf('### Freudian Psychoanalysis')
+    && markdown.indexOf('### Freudian Psychoanalysis') < markdown.indexOf('### Lacanian Psychoanalysis'),
+  'Nietzsche, Freud, and Lacan should retain chronological order'
+);
 
 console.log('analysis regression checks passed');
