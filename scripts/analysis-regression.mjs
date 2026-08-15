@@ -212,4 +212,122 @@ assert.ok(
   'Nietzsche, Freud, and Lacan should retain chronological order'
 );
 
+const temporalMarkdown = plugin.buildAnalysisMarkdown({
+  perspectives: {
+    kierkegaard_existential_faith: 'Kierkegaard reads inwardness, anxiety, and choice through the task of becoming a self.',
+    nietzschean_perspective: 'Nietzsche asks how inherited values were made and whether they can be overcome.'
+  },
+  furtherReadings: {},
+  perspectiveSongs: {},
+  groupSyntheses: {},
+  philosophicalReaccumulation: '',
+  inspirationalSong: null,
+  authorMemorySummary: '',
+  goalSuggestions: [],
+  analysisWarnings: []
+}, 'Temporal regression.md');
+assert.match(temporalMarkdown, /1843 CE \(Either\/Or and Fear and Trembling\)/, 'Kierkegaard should display an exact chronology anchor');
+assert.match(temporalMarkdown, /1872 CE \(The Birth of Tragedy/, 'Nietzsche should display an exact chronology anchor');
+assert.ok(
+  temporalMarkdown.indexOf('### Søren Kierkegaard') < temporalMarkdown.indexOf('### Nietzschean Philosophy'),
+  'Kierkegaard should appear before Nietzsche in the historical sequence'
+);
+
+const druidicAnalysis = plugin.ensureDruidicBardicCoda(
+  'The Druidic frame notices the entry\'s relation to land and memory.',
+  'I keep returning to the river and the old oak.'
+);
+assert.match(druidicAnalysis, /Bardic Coda/, 'Druidic analysis should always end with a bardic coda');
+assert.match(druidicAnalysis, /river|oak/i, 'the bardic coda should borrow images from the journal entry');
+
+const readingPerspectives = [
+  { key: 'hermeneutics_perspective', perspective: { title: 'Hermeneutics' } },
+  { key: 'ralph_waldo_emerson_environmental_thought', perspective: { title: "Ralph Waldo Emerson's Environmental Thought" } }
+];
+const hermeneuticsReadings = plugin.completePerspectiveFurtherReadings(
+  'hermeneutics_perspective',
+  ['Ralph Waldo Emerson, Nature — a nearby environmental reading.', 'Hans-Georg Gadamer, Truth and Method — interpretation as dialogue.'],
+  readingPerspectives
+);
+assert.ok(hermeneuticsReadings.length >= 3, 'Hermeneutics should receive a complete reading set');
+assert.ok(!hermeneuticsReadings.some((reading) => /Emerson/i.test(reading)), 'Hermeneutics readings should reject Emerson contamination');
+assert.ok(hermeneuticsReadings.some((reading) => /Gadamer/i.test(reading)), 'Hermeneutics readings should retain relevant suggestions');
+
+const fallbackSong = plugin.buildFallbackInspirationalSong(
+  'I felt fear, grief, doubt, loss, and darkness, but I want to begin again.',
+  'The entry finds a practical opening toward a different future.'
+);
+assert.equal(fallbackSong.scaleMode, 'major', 'inspirational fallback audio should resolve in a major key');
+assert.equal(fallbackSong.chordProgression.length, 4, 'inspirational fallback should provide a complete progression');
+
+const accidentalSong = plugin.parseInspirationalSong({
+  title: 'Windows Open',
+  rationale: 'A bright song that gathers momentum through a rising refrain.',
+  mood: 'warm and expansive',
+  tempo_bpm: 108,
+  key_center: 'E♭',
+  scale_mode: 'major',
+  chord_progression: ['E♭', 'B♭', 'Cm', 'A♭'],
+  motif_degrees: [1, 2, 3, 5, 6, 5, 3, 1],
+  hook_line: 'Open the windows to the morning',
+  lyrics: 'Verse\nA different line of light arrives\n\nChorus\nOpen the windows to the morning'
+});
+assert.equal(accidentalSong?.keyCenter, 'Eb', 'flat key centres should be normalized and preserved');
+assert.deepEqual(
+  accidentalSong?.chordProgression,
+  ['Eb', 'Bb', 'Cm', 'Ab'],
+  'flat-root chords should be normalized and preserved'
+);
+assert.equal(plugin.parseSimpleChord('F#m').root, 'F#', 'sharp-root minor chords should parse');
+assert.equal(plugin.parseSimpleChord('Bbsus4').quality, 'sus4', 'suspended flat-root chords should parse');
+
+const correctedInspirationalHarmony = plugin.resolveInspirationalSongHarmony({
+  ...fallbackSong,
+  keyCenter: 'D',
+  scaleMode: 'minor',
+  chordProgression: ['Dm', 'Bb', 'F', 'C']
+});
+assert.equal(correctedInspirationalHarmony.scaleMode, 'major', 'inspirational songs should not retain a minor tonal centre');
+assert.deepEqual(
+  correctedInspirationalHarmony.chordProgression,
+  ['D', 'A', 'Bm', 'G'],
+  'minor inspirational harmony should be replaced with a coherent major-key progression'
+);
+
+plugin.createAIChatCompletion = async () => JSON.stringify({ title: 'Partial response' });
+const recoveredDruidicSong = await plugin.getPerspectiveSong(
+  'The river, oak, and returning path stayed with me.',
+  'druidic_interpretation',
+  'The entry asks how land, memory, and oral relation can support a renewed step.'
+);
+assert.ok(recoveredDruidicSong.lyrics.trim(), 'an incomplete AI song response should still produce lyrics');
+assert.match(recoveredDruidicSong.lyrics, /Bardic Refrain|Bardic Coda/, 'a recovered Druidic song should contain a bardic section');
+
+const previewSongA = {
+  ...fallbackSong,
+  title: 'First New Morning',
+  lyrics: 'Verse\nThe first path opens.\n\nChorus\nCarry the morning forward.'
+};
+const previewSongB = {
+  ...previewSongA,
+  lyrics: 'Verse\nA second path bends toward the sea.\n\nChorus\nLet a different rhythm carry me.'
+};
+const previewA = Buffer.from(plugin.renderInspirationalSongWav(previewSongA));
+const repeatedPreviewA = Buffer.from(plugin.renderInspirationalSongWav(previewSongA));
+const previewB = Buffer.from(plugin.renderInspirationalSongWav(previewSongB));
+assert.equal(Buffer.compare(previewA, repeatedPreviewA), 0, 'the same saved song should reproduce the same synthesized preview');
+assert.notEqual(Buffer.compare(previewA, previewB), 0, 'new song material should synthesize a newly arranged musical preview');
+let accumulatedSampleDifference = 0;
+let comparedSampleCount = 0;
+for (let offset = 44; offset + 1 < Math.min(previewA.length, previewB.length); offset += 2) {
+  accumulatedSampleDifference += Math.abs(previewA.readInt16LE(offset) - previewB.readInt16LE(offset));
+  comparedSampleCount += 1;
+}
+assert.ok(
+  accumulatedSampleDifference / comparedSampleCount > 500,
+  'new song previews should be materially different, not merely byte-distinct'
+);
+assert.equal(previewA.toString('ascii', 0, 4), 'RIFF', 'song previews should remain valid WAV files');
+assert.equal(previewA.readUInt32LE(24), 22050, 'song previews should retain the expected sample rate');
+
 console.log('analysis regression checks passed');

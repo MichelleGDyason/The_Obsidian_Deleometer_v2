@@ -980,6 +980,25 @@ const PERSPECTIVE_CHRONOLOGY_YEAR: Record<string, number> = {
   idiotextual_analysis: 2000
 };
 
+const PERSPECTIVE_PRECISE_CHRONOLOGY: Record<string, string> = {
+  descartes_cogito_subject: '1637 CE (Discourse on the Method)',
+  spinoza_theologic_ethico_perspective: '1677 CE (Ethics)',
+  lockean_personal_identity: '1689 CE (An Essay Concerning Human Understanding)',
+  humean_bundle_self: '1739 CE (A Treatise of Human Nature)',
+  kantian_transcendental_subject: '1781 CE (Critique of Pure Reason)',
+  hegelian_recognition_subject: '1807 CE (Phenomenology of Spirit)',
+  schopenhauer_will_representation: '1818 CE (The World as Will and Representation)',
+  ralph_waldo_emerson_environmental_thought: '1836 CE (Nature; major essays through 1841)',
+  kierkegaard_existential_faith: '1843 CE (Either/Or and Fear and Trembling)',
+  marxian_analysis: '1848 CE (The Communist Manifesto; Capital 1867)',
+  nietzschean_perspective: '1872 CE (The Birth of Tragedy; later works through 1887)',
+  bergson_duration_creativity: '1889 CE (Time and Free Will)',
+  william_james_pragmatism: '1890 CE (The Principles of Psychology)',
+  freudian_psychoanalysis: '1895 CE (Studies on Hysteria; Interpretation of Dreams 1900)',
+  husserlian_phenomenology: '1900–1901 CE (Logical Investigations)',
+  heideggerian_dasein_analysis: '1927 CE (Being and Time)'
+};
+
 function getChronologicalPerspectiveKeys(): string[] {
   const knownPerspectiveKeys = Object.keys(PERSPECTIVES);
   const tieBreakPosition = new Map(PERSPECTIVE_CHRONOLOGY.map((key, index) => [key, index]));
@@ -2195,19 +2214,15 @@ const PERSPECTIVE_METADATA: Record<string, PerspectiveMetadata> = {
 };
 
 function getPerspectiveMetadata(key: string, perspective: PerspectiveDefinition): PerspectiveMetadata {
-  const chronologyYear = PERSPECTIVE_CHRONOLOGY_YEAR[key];
   return {
     ...(GROUP_DEFAULT_METADATA[perspective.group] || {}),
-    ...(typeof chronologyYear === 'number' ? { chronology: formatChronologyAnchor(chronologyYear) } : {}),
-    ...(PERSPECTIVE_METADATA[key] || {})
+    ...(PERSPECTIVE_METADATA[key] || {}),
+    // Only sources with a defensible publication or formulation anchor get
+    // an exact display label. Broad traditions such as Druidic practice keep
+    // their careful historical ranges even though they still sort by an
+    // approximate anchor in PERSPECTIVE_CHRONOLOGY_YEAR.
+    ...(PERSPECTIVE_PRECISE_CHRONOLOGY[key] ? { chronology: PERSPECTIVE_PRECISE_CHRONOLOGY[key] } : {})
   };
-}
-
-function formatChronologyAnchor(year: number): string {
-  if (year < 0) return `c. ${Math.abs(year).toLocaleString()} BCE; living or inherited tradition where applicable`;
-  if (year < 1000) return `c. ${year} CE onward`;
-  if (year % 100 === 0) return `c. ${year} CE onward`;
-  return `c. ${year} CE onward`;
 }
 
 function buildPerspectiveHistoryLabel(key: string, perspective: PerspectiveDefinition): string {
@@ -2415,6 +2430,13 @@ interface InspirationalSong {
   hookLine: string;
   lyrics: string;
   audioFilePath?: string;
+}
+type SongTimbre = 'warm' | 'pluck' | 'bell' | 'air' | 'reed' | 'bass';
+interface ParsedSongChord {
+  root: string;
+  quality: 'major' | 'minor' | 'diminished' | 'sus2' | 'sus4';
+  minor: boolean;
+  rootMidi: number;
 }
 interface AnalysisPayload {
   perspectives: Record<string, string>;
@@ -3525,6 +3547,19 @@ export default class DeleometerPlugin extends Plugin {
       }
     }
 
+    // Validate and complete readings after every batch. This prevents a model
+    // from leaking the adjacent perspective's author/work into the current
+    // section, and guarantees a useful baseline when a response contains only
+    // one suggestion or omits the array entirely.
+    for (const { key } of perspectives) {
+      const completedReadings = this.completePerspectiveFurtherReadings(key, furtherReadings[key] || [], perspectives);
+      if (completedReadings.length > 0) furtherReadings[key] = completedReadings;
+    }
+
+    if (results.druidic_interpretation) {
+      results.druidic_interpretation = this.ensureDruidicBardicCoda(results.druidic_interpretation, analysisContent);
+    }
+
     for (let groupIndex = 0; groupIndex < selectedGroupKeys.length; groupIndex += 1) {
       const groupKey = selectedGroupKeys[groupIndex];
       const group = PERSPECTIVE_GROUPS[groupKey];
@@ -3985,6 +4020,185 @@ export default class DeleometerPlugin extends Plugin {
     );
   }
 
+  getPerspectiveReadingMarkers(key: string): string[] {
+    const markers: Record<string, string[]> = {
+      hermeneutics_perspective: ['hermeneutics', 'hermeneutic', 'schleiermacher', 'dilthey', 'heidegger', 'gadamer', 'ricoeur', 'interpretation', 'understanding'],
+      druidic_interpretation: ['druid', 'druidic', 'celtic', 'bard', 'bardic', 'land', 'oral', 'ritual', 'tree', 'seasonal'],
+      kierkegaard_existential_faith: ['kierkegaard', 'existential', 'faith', 'anxiety', 'despair', 'inwardness', 'repetition', 'leap'],
+      nietzschean_perspective: ['nietzsche', 'genealogy', 'genealogical', 'will to power', 'self-overcoming', 'values', 'ressentiment', 'metamorphosis']
+    };
+    return markers[key] || [];
+  }
+
+  getPerspectiveReadingAuthorMarkers(key: string): string[] {
+    const markers: Record<string, string[]> = {
+      hermeneutics_perspective: ['schleiermacher', 'dilthey', 'heidegger', 'gadamer', 'ricoeur'],
+      druidic_interpretation: ['cunliffe', 'hutton', 'green', 'ollivier'],
+      kierkegaard_existential_faith: ['kierkegaard'],
+      nietzschean_perspective: ['nietzsche']
+    };
+    return markers[key] || [];
+  }
+
+  getPerspectiveReadingExclusionMarkers(
+    key: string,
+    perspectives: { key: string; perspective: PerspectiveDefinition }[]
+  ): string[] {
+    const markers: string[] = [];
+    for (const item of perspectives) {
+      if (item.key === key) continue;
+      markers.push(...this.getPerspectiveReadingAuthorMarkers(item.key));
+      const title = item.perspective.title.toLowerCase();
+      const authorPart = title.split(/'s\b|’s\b/)[0].trim();
+      if (authorPart.length >= 5 && !/^(?:the|a|an)\b/.test(authorPart)) markers.push(authorPart);
+    }
+    return Array.from(new Set(markers.filter(Boolean)));
+  }
+
+  sanitizePerspectiveFurtherReadings(
+    key: string,
+    readings: string[],
+    perspectives: { key: string; perspective: PerspectiveDefinition }[] = []
+  ): string[] {
+    const exclusionMarkers = this.getPerspectiveReadingExclusionMarkers(key, perspectives);
+    const currentMarkers = this.getPerspectiveReadingMarkers(key);
+    return Array.from(new Set(readings
+      .map((reading) => this.normalizeGeneratedEnglishUsage(reading.trim()))
+      .filter(Boolean)
+      .filter((reading) => {
+        const lower = reading.toLowerCase();
+        // This is a particularly common contamination pattern: Emerson is a
+        // neighbouring nineteenth-century frame, not a hermeneutics reading.
+        if (key === 'hermeneutics_perspective' && /\b(?:ralph\s+waldo\s+)?emerson\b|\bself[- ]reliance\b/.test(lower)) return false;
+        if (
+          exclusionMarkers.some((marker) => lower.includes(marker))
+          && !(currentMarkers.length > 0 && currentMarkers.some((marker) => lower.includes(marker)))
+        ) return false;
+        // When a frame has an explicit vocabulary, discard suggestions that
+        // have no traceable relationship to it instead of displaying generic
+        // or copied recommendations.
+        return currentMarkers.length === 0 || currentMarkers.some((marker) => lower.includes(marker));
+      })))
+      .slice(0, 5);
+  }
+
+  getDefaultPerspectiveFurtherReadings(key: string): string[] {
+    const defaults: Record<string, string[]> = {
+      hermeneutics_perspective: [
+        'Friedrich Schleiermacher, Hermeneutics and Criticism — foundational account of interpretation and the relation between part and whole.',
+        'Wilhelm Dilthey, The Rise of Hermeneutics — explains historical understanding and the human sciences.',
+        'Martin Heidegger, Being and Time, §§31–34 — shows interpretation as a structure of situated being, not a technique added afterwards.',
+        'Hans-Georg Gadamer, Truth and Method — develops historically effected understanding, dialogue, and prejudice.',
+        'Paul Ricoeur, Interpretation Theory — connects hermeneutics with text, distanciation, suspicion, and meaning.'
+      ],
+      druidic_interpretation: [
+        'Barry Cunliffe, Druids: A Very Short Introduction — a careful introduction to the evidence and limits of claims about ancient Druids.',
+        'Ronald Hutton, Blood and Mistletoe — distinguishes ancient evidence from modern Druidic revival and reconstruction.',
+        'Miranda Green, The World of the Druids — surveys ritual, symbolism, and archaeological evidence without treating speculation as fact.',
+        'Miranda Aldhouse-Green, Caesar’s Druids — examines classical descriptions and their political and historical contexts.'
+      ],
+      kierkegaard_existential_faith: [
+        'Søren Kierkegaard, Either/Or — explores choice, aesthetic life, ethical commitment, and becoming a self.',
+        'Søren Kierkegaard, Fear and Trembling — examines faith, inwardness, anxiety, and the limits of public explanation.',
+        'Søren Kierkegaard, The Sickness Unto Death — analyses despair and the task of becoming a self in relation.',
+        'Søren Kierkegaard, Works of Love — develops love as a demanding practice rather than a passing feeling.'
+      ],
+      nietzschean_perspective: [
+        'Friedrich Nietzsche, The Birth of Tragedy — introduces the Apollonian/Dionysian tension and the problem of culture.',
+        'Friedrich Nietzsche, Beyond Good and Evil — critiques inherited moral categories and examines the will to power.',
+        'Friedrich Nietzsche, On the Genealogy of Morality — traces how values arise through conflict, ressentiment, and interpretation.',
+        'Friedrich Nietzsche, Thus Spoke Zarathustra — stages self-overcoming, transformation, and the creation of values.'
+      ]
+    };
+    return defaults[key] || [];
+  }
+
+  completePerspectiveFurtherReadings(
+    key: string,
+    readings: string[],
+    perspectives: { key: string; perspective: PerspectiveDefinition }[] = []
+  ): string[] {
+    const clean = this.sanitizePerspectiveFurtherReadings(key, readings, perspectives);
+    const defaults = this.sanitizePerspectiveFurtherReadings(key, this.getDefaultPerspectiveFurtherReadings(key), perspectives);
+    return Array.from(new Set([...clean, ...defaults])).slice(0, 5);
+  }
+
+  ensureDruidicBardicCoda(analysis: string, content: string): string {
+    const trimmed = analysis.trim();
+    if (!trimmed) return trimmed;
+    if (/(?:^|\n)\s*(?:#{1,6}\s*|[*_]+)?bardic\s+(?:coda|poem|speech)\b/i.test(trimmed)) return trimmed;
+
+    const sourceWords = (content.match(/[A-Za-z][A-Za-z'-]{3,}/g) || [])
+      .filter((word) => !/^(?:that|with|from|this|have|your|they|them|there|where|when|what|about|still|just|into|then|keep|returning|relation|notices|entry|asks|stayed)$/i.test(word));
+    const image = sourceWords[0] || 'oak';
+    const motion = sourceWords[1] || 'river';
+    const coda = [
+      'Bardic Coda',
+      `By ${image}, keep the ember bright;`,
+      `Let ${motion} carry what the heart can name;`,
+      'The old road listens beneath your feet,',
+      'And each true step returns a living flame.'
+    ].join('\n');
+    return `${trimmed}\n\n${coda}`;
+  }
+
+  ensureDruidicSongLyrics(song: InspirationalSong, content: string): InspirationalSong {
+    if (/(?:^|\n)\s*(?:\[?\s*|[*_]+)?bardic\s+(?:refrain|coda|verse|poem)\b/i.test(song.lyrics)) return song;
+    const sourceWords = (content.match(/[A-Za-z][A-Za-z'-]{3,}/g) || [])
+      .filter((word) => !/^(?:that|with|from|this|have|your|they|them|there|where|when|what|about|still|just|into|then|keep|returning|relation|notices|entry|asks|stayed)$/i.test(word));
+    const image = sourceWords[0] || 'oak';
+    const motion = sourceWords[1] || 'river';
+    const bardicRefrain = [
+      '',
+      'Bardic Refrain',
+      `By ${image}, I remember;`,
+      `Through ${motion}, I return;`,
+      'The song becomes a path beneath me,',
+      'And every honest footstep burns.'
+    ].join('\n');
+    return { ...song, lyrics: `${song.lyrics.trim()}${bardicRefrain}` };
+  }
+
+  buildFallbackPerspectiveSong(content: string, perspectiveKey: string, interpretation: string): InspirationalSong {
+    const base = this.buildFallbackInspirationalSong(content, interpretation);
+    const perspective = PERSPECTIVES[perspectiveKey];
+    if (perspectiveKey !== 'druidic_interpretation') {
+      return {
+        ...base,
+        title: `${perspective?.title || 'Perspective'} Song`,
+        rationale: `A local song sketch was composed from the ${perspective?.title || perspectiveKey} interpretation because the AI response was incomplete. ${base.rationale}`
+      };
+    }
+
+    const druidicSong: InspirationalSong = {
+      ...base,
+      title: 'The Oak Remembers',
+      mood: 'earth-held, oral, resilient, renewing',
+      rationale: `A local bardic song sketch was composed from the Druidic interpretation because the AI response was incomplete. It keeps land, memory, refrain, and forward movement together without inventing restricted or private ritual knowledge.`,
+      hookLine: 'The oak remembers; I begin again',
+      lyrics: [
+        'Verse 1',
+        'I bring the day to the listening hill,',
+        'A word in my mouth, a hand made still;',
+        'The roots hold fast what the years have known,',
+        'And I find a road in the weathered stone.',
+        '',
+        'Verse 2',
+        'The wind keeps time through leaf and rain,',
+        'The old stories rise without a chain;',
+        'I carry the question, I carry the flame,',
+        'And speak what is living by its own true name.',
+        '',
+        'Bardic Refrain',
+        'The oak remembers; I begin again,',
+        'Through field and river, through loss and rain;',
+        'The song is a path, the path is a flame,',
+        'I walk it awake, and I answer my name.'
+      ].join('\n')
+    };
+    return druidicSong;
+  }
+
   getLocalDateContext(): string {
     const now = new Date();
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'local timezone';
@@ -4042,7 +4256,7 @@ export default class DeleometerPlugin extends Plugin {
             `- for Gallagher's Pattern Theory of Self, map the entry across embodied, experiential, affective, intersubjective, narrative, extended, ecological, and normative dimensions without reducing the self to one single essence.\n` +
             `- for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.\n` +
             `- for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.\n` +
-            `- for Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation you have just given.\n` +
+            `- for Druidic Interpretation, end with the exact heading "Bardic Coda" followed by a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation you have just given.\n` +
             `- for Pagan Interpretation, you may end with a short seasonal or ritual verse of 2-4 lines when it genuinely fits; do not present invented ritual as historical fact.\n` +
             `- for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.\n` +
             `- for Julia Kristeva, include both her psychoanalysis and her philosophy. Explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, revolt, and subject formation through concrete details in the entry.\n` +
@@ -4096,7 +4310,9 @@ export default class DeleometerPlugin extends Plugin {
     for (const { key, perspective } of perspectives) {
       const value = this.extractPerspectiveAnalysis(parsedPerspectives, key, perspective);
       if (value) {
-        results[key] = value;
+        results[key] = key === 'druidic_interpretation'
+          ? this.ensureDruidicBardicCoda(value, content)
+          : value;
       }
     }
 
@@ -4108,11 +4324,12 @@ export default class DeleometerPlugin extends Plugin {
     for (const { key } of perspectives) {
       const value = parsedFurtherReadings[key];
       if (Array.isArray(value)) {
-        furtherReadings[key] = value
+        const readings = value
           .filter((item): item is string => typeof item === 'string')
           .map((item) => item.trim())
           .filter(Boolean)
           .slice(0, 5);
+        furtherReadings[key] = this.sanitizePerspectiveFurtherReadings(key, readings, perspectives);
       }
     }
 
@@ -4170,7 +4387,7 @@ export default class DeleometerPlugin extends Plugin {
             `- for Gallagher's Pattern Theory of Self, map the entry across embodied, experiential, affective, intersubjective, narrative, extended, ecological, and normative dimensions without reducing the self to one single essence.\n` +
             `- for Australian Indigenous Philosophy Accumulated, respect Aboriginal and Torres Strait Islander knowledges as plural, living, sovereign, and tied to Country. Do not invent sacred or restricted knowledge. Work with public concepts such as Country, kinship, custodianship, relational obligation, story, survival, and settler-colonial pressure.\n` +
             `- for religious, mythic, and pagan interpretations, write comparatively and respectfully. Do not proselytize, pronounce divine judgment, or present one tradition as universally true. Interpret through the tradition's symbols, practices, sacred narratives, ethical tensions, and lived forms of meaning.\n` +
-            `- for Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation you have just given.\n` +
+            `- for Druidic Interpretation, end with the exact heading "Bardic Coda" followed by a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation you have just given.\n` +
             `- for Pagan Interpretation, you may end with a short seasonal or ritual verse of 2-4 lines when it genuinely fits; do not present invented ritual as historical fact.\n` +
             `- for Marx, Bataille, Fanon, Habermas, Levinas, Nancy, Barad, moral naturalism, Leibniz, quantum theory, and songwriting, make the frame's distinctive method explicit rather than using only familiar keywords. Show what kind of evidence the frame treats as important.\n` +
             `- for Julia Kristeva, include both her psychoanalysis and her philosophy. Explain abjection, the semiotic, the symbolic, maternal borders, intertextuality, foreignness, revolt, and subject formation through concrete details in the entry.\n` +
@@ -4222,7 +4439,9 @@ export default class DeleometerPlugin extends Plugin {
     for (const { key, perspective } of perspectives) {
       const value = this.extractPerspectiveAnalysis(parsedPerspectives, key, perspective);
       if (value) {
-        results[key] = value;
+        results[key] = key === 'druidic_interpretation'
+          ? this.ensureDruidicBardicCoda(value, content)
+          : value;
       }
     }
 
@@ -4234,11 +4453,12 @@ export default class DeleometerPlugin extends Plugin {
     for (const { key } of perspectives) {
       const value = parsedFurtherReadings[key];
       if (Array.isArray(value)) {
-        furtherReadings[key] = value
+        const readings = value
           .filter((item): item is string => typeof item === 'string')
           .map((item) => item.trim())
           .filter(Boolean)
           .slice(0, 5);
+        furtherReadings[key] = this.sanitizePerspectiveFurtherReadings(key, readings, perspectives);
       }
     }
 
@@ -4320,7 +4540,7 @@ export default class DeleometerPlugin extends Plugin {
             `If the frame is Luce Irigaray, include both her philosophy and her psychoanalysis.\n\n` +
             `Distinguish psychiatry, psychology, and psychoanalysis. Do not treat psychiatry as derived from psychoanalysis.\n` +
             `If the frame is Idiotextual Analysis, attend to singular wording, recurring idiosyncratic phrases, self-made idiom, and if relevant the idea of the idiotext as a uniquely inscribed textual world rather than generic style commentary.\n\n` +
-            `If the frame is Druidic Interpretation, end with a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation. If the frame is Pagan Interpretation, a short seasonal or ritual verse may be added when it genuinely fits, without presenting invented ritual as historical fact.\n\n` +
+            `If the frame is Druidic Interpretation, end with the exact heading "Bardic Coda" followed by a short bardic poem or brief bardic speech of 2-4 lines that grows from the journal entry and the interpretation. If the frame is Pagan Interpretation, a short seasonal or ritual verse may be added when it genuinely fits, without presenting invented ritual as historical fact.\n\n` +
             `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n` +
             `${this.getDictionaryModePrompt()}\n\n${this.getOutputLanguagePrompt()}\n\n` +
             `Perspective: ${buildPerspectivePromptDescriptor(key, perspective)}\n\n` +
@@ -4341,12 +4561,15 @@ export default class DeleometerPlugin extends Plugin {
       : this.normalizeGeneratedEnglishUsage(this.extractPerspectiveAnalysis(parsed, key, perspective));
     const rawFallback = this.stripResponseFences(rawContent).trim();
     const fallbackAnalysis = analysis || (rawFallback.startsWith('{') ? '' : this.normalizeGeneratedEnglishUsage(rawFallback));
+    const resolvedAnalysis = key === 'druidic_interpretation' && fallbackAnalysis
+      ? this.ensureDruidicBardicCoda(fallbackAnalysis, content)
+      : fallbackAnalysis;
     const furtherReadings = Array.isArray(parsed.further_readings)
       ? this.normalizeGeneratedEnglishUsageArray(
           parsed.further_readings.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean).slice(0, 5)
         )
       : [];
-    return { analysis: fallbackAnalysis, furtherReadings };
+    return { analysis: resolvedAnalysis, furtherReadings };
   }
 
   async getPerspectiveFurtherReadingsBatch(
@@ -4380,7 +4603,7 @@ export default class DeleometerPlugin extends Plugin {
             `Return JSON with exactly one top-level key: further_readings.\n` +
             `- further_readings must be an object where each key is the exact perspective key and each value is an array of 3-5 reading suggestions.\n` +
             `- Each suggestion should name an author and work, then briefly say why it helps with this frame.\n` +
-            `- Make the readings specific to the exact analytic frame, not general theory reading.\n` +
+            `- Make the readings specific to the exact analytic frame, not general theory reading. Do not copy a reading from an adjacent requested perspective. For example, do not put Ralph Waldo Emerson under Hermeneutics merely because Emerson appears nearby in the historical sequence.\n` +
             `- Use the existing analysis excerpt to infer which canonical or especially useful texts fit that lens.\n\n` +
             `${personalityContext}\n\n${authorMemoryContext}\n\n${readerContext}\n\n${this.getOutputLanguagePrompt()}\n\n` +
             `Requested perspectives needing further readings:\n${perspectiveList}\n\n` +
@@ -4400,11 +4623,12 @@ export default class DeleometerPlugin extends Plugin {
     for (const { key } of perspectives) {
       const value = parsedFurtherReadings[key];
       if (Array.isArray(value)) {
-        furtherReadings[key] = value
+        const readings = value
           .filter((item): item is string => typeof item === 'string')
           .map((item) => item.trim())
           .filter(Boolean)
           .slice(0, 5);
+        furtherReadings[key] = this.sanitizePerspectiveFurtherReadings(key, readings, perspectives);
       }
     }
 
@@ -4564,9 +4788,9 @@ export default class DeleometerPlugin extends Plugin {
             `- rationale: 60-120 words describing the song's emotional and musical approach and how it grows from the entry.\n` +
             `- mood: a short phrase such as "steady, luminous, determined".\n` +
             `- tempo_bpm: integer from 72 to 124.\n` +
-            `- key_center: one of C, D, E, F, G, A, B.\n` +
-            `- scale_mode: either major or minor.\n` +
-            `- chord_progression: array of exactly 4 simple chord symbols using only A-G roots with optional m, for example ["Am", "F", "C", "G"].\n` +
+            `- key_center: one of C, D, Eb, E, F, G, A, or Bb.\n` +
+            `- scale_mode: major. Inspirational songs must have a clear major-key centre and an uplifting harmonic destination.\n` +
+            `- chord_progression: array of exactly 4 coherent chord symbols. Roots may include # or b and qualities may be m, dim, sus2, or sus4, for example ["D", "A", "Bm", "G"]. Keep the chords diatonic to the named major key and make the progression feel as though it can resolve home.\n` +
             `- motif_degrees: array of exactly 8 integers from 1 to 7.\n` +
             `- hook_line: one memorable, encouraging line under 14 words.\n` +
             `- lyrics: an original song of roughly 16-28 lines with clearly labelled verses and a chorus or refrain.\n\n` +
@@ -4594,7 +4818,7 @@ export default class DeleometerPlugin extends Plugin {
         content
       );
       if (parsedSong) {
-        return { song: parsedSong };
+        return { song: this.resolveInspirationalSongHarmony(parsedSong) };
       }
     } catch (error) {
       this.logError('Could not parse inspirational song response', error);
@@ -4603,6 +4827,27 @@ export default class DeleometerPlugin extends Plugin {
     return {
       song: this.buildFallbackInspirationalSong(content, philosophicalReaccumulation),
       warning: 'Inspirational song used a local fallback because the AI song payload was incomplete.'
+    };
+  }
+
+  resolveInspirationalSongHarmony(song: InspirationalSong): InspirationalSong {
+    if (song.scaleMode === 'major') return song;
+    const majorProgressions: Record<string, string[]> = {
+      C: ['C', 'G', 'Am', 'F'],
+      D: ['D', 'A', 'Bm', 'G'],
+      Eb: ['Eb', 'Bb', 'Cm', 'Ab'],
+      E: ['E', 'B', 'C#m', 'A'],
+      F: ['F', 'C', 'Dm', 'Bb'],
+      G: ['G', 'D', 'Em', 'C'],
+      A: ['A', 'E', 'F#m', 'D'],
+      Bb: ['Bb', 'F', 'Gm', 'Eb']
+    };
+    const keyCenter = majorProgressions[song.keyCenter] ? song.keyCenter : 'G';
+    return {
+      ...song,
+      keyCenter,
+      scaleMode: 'major',
+      chordProgression: majorProgressions[keyCenter]
     };
   }
 
@@ -4615,8 +4860,9 @@ export default class DeleometerPlugin extends Plugin {
     const perspective = PERSPECTIVES[perspectiveKey];
     if (!perspective) throw new Error('Unknown analysis perspective');
     const metadata = getPerspectiveMetadata(perspectiveKey, perspective);
+    const localFallback = this.buildFallbackPerspectiveSong(content, perspectiveKey, interpretation);
     const specialTreatment = perspectiveKey === 'druidic_interpretation'
-      ? 'Give the lyric an oral bardic quality with land imagery, memory, musical repetition, and a strong refrain.'
+      ? 'Give the lyric an oral bardic quality with land imagery, memory, musical repetition, and a strong refrain. Include a clearly labelled "Bardic Refrain" or "Bardic Coda" stanza in the lyrics.'
       : perspectiveKey === 'pagan_interpretation'
         ? 'A seasonal or ritual cadence may be used when it genuinely fits, without presenting invented ritual as historical fact.'
         : 'Let this perspective shape the lyric\'s images, structure, emotional movement, and sense of evidence; do not merely name its concepts.';
@@ -4638,9 +4884,9 @@ export default class DeleometerPlugin extends Plugin {
             `- rationale: 60-120 words serving as a style note: explain the emotional and musical approach and how the perspective shaped it.\n` +
             `- mood: a short musical-emotional phrase.\n` +
             `- tempo_bpm: an integer from 72 to 124.\n` +
-            `- key_center: one of C, D, E, F, G, A, B.\n` +
+            `- key_center: one of C, D, Eb, E, F, G, A, or Bb.\n` +
             `- scale_mode: either major or minor.\n` +
-            `- chord_progression: exactly 4 simple chord symbols using A-G roots with optional m.\n` +
+            `- chord_progression: exactly 4 musically coherent chord symbols. Roots may include # or b and qualities may be m, dim, sus2, or sus4. Keep the progression consistent with the named key and mode.\n` +
             `- motif_degrees: exactly 8 integers from 1 to 7.\n` +
             `- hook_line: one memorable line under 14 words.\n` +
             `- lyrics: an original song of roughly 16-28 lines with clearly labelled verses and a chorus or refrain.\n\n` +
@@ -4656,16 +4902,19 @@ export default class DeleometerPlugin extends Plugin {
         }
       ]
     });
-    if (!rawContent) throw new Error('The AI returned no song');
+    if (!rawContent) {
+      this.logError('The AI returned no perspective-song payload', new Error(perspective.title));
+      return localFallback;
+    }
     const parsed = this.parseJsonObjectOrNull(rawContent);
-    if (!parsed) throw new Error('The AI returned an unreadable song');
-    const title = this.getSongStringValue(parsed, ['title']);
-    const lyrics = this.getSongStringValue(parsed, ['lyrics']);
-    const rationale = this.getSongStringValue(parsed, ['rationale', 'style_note']);
-    if (!title || !lyrics || !rationale) throw new Error('The AI song was incomplete');
-    const song = this.parseInspirationalSong(parsed, interpretation, content);
-    if (!song) throw new Error('The AI song was incomplete');
-    return song;
+    if (!parsed) {
+      this.logError('The AI returned an unreadable perspective-song payload', new Error(perspective.title));
+      return localFallback;
+    }
+    const song = this.parseInspirationalSong(parsed, interpretation, content) || localFallback;
+    return perspectiveKey === 'druidic_interpretation'
+      ? this.ensureDruidicSongLyrics(song, content)
+      : song;
   }
 
   parseGoalSuggestions(rawGoalSuggestions: unknown): GoalSuggestion[] {
@@ -4732,21 +4981,28 @@ export default class DeleometerPlugin extends Plugin {
 
   getSongChordProgression(song: Record<string, unknown>): string[] {
     const directKeys = ['chord_progression', 'chordProgression', 'chords'];
+    const normalizeChord = (value: string) => value
+      .trim()
+      .replace(/♭/g, 'b')
+      .replace(/♯/g, '#');
+    const isSimpleChord = (value: string) => /^[A-G](?:#|b)?(?:m|dim|sus2|sus4)?$/.test(value);
     for (const key of directKeys) {
       const value = song[key];
       if (Array.isArray(value)) {
         const chords = value
           .filter((item): item is string => typeof item === 'string')
-          .map((item) => item.trim())
-          .filter((item) => /^[A-G]m?$/.test(item))
+          .map(normalizeChord)
+          .filter(isSimpleChord)
           .slice(0, 4);
         if (chords.length > 0) return chords;
       }
       if (typeof value === 'string') {
-        const chords = value
-          .split(/[^A-Gm]+/)
-          .map((item) => item.trim())
-          .filter((item) => /^[A-G]m?$/.test(item))
+        const chords = (value
+          .replace(/♭/g, 'b')
+          .replace(/♯/g, '#')
+          .match(/[A-G](?:#|b)?(?:dim|sus2|sus4|m)?/g) || [])
+          .map(normalizeChord)
+          .filter(isSimpleChord)
           .slice(0, 4);
         if (chords.length > 0) return chords;
       }
@@ -4781,6 +5037,18 @@ export default class DeleometerPlugin extends Plugin {
 
   buildFallbackInspirationalSong(content: string, philosophicalReaccumulation: string): InspirationalSong {
     const seedText = `${philosophicalReaccumulation}\n${content}`.trim();
+    const musicalSeed = this.hashString(seedText || 'Carry the Morning');
+    const upliftingPresets = [
+      { keyCenter: 'C', chords: ['C', 'G', 'Am', 'F'], motif: [1, 3, 5, 6, 5, 3, 2, 1] },
+      { keyCenter: 'D', chords: ['D', 'A', 'Bm', 'G'], motif: [1, 2, 3, 5, 6, 5, 3, 2] },
+      { keyCenter: 'Eb', chords: ['Eb', 'Bb', 'Cm', 'Ab'], motif: [3, 5, 6, 5, 4, 3, 2, 1] },
+      { keyCenter: 'E', chords: ['E', 'B', 'C#m', 'A'], motif: [1, 5, 3, 6, 5, 4, 2, 3] },
+      { keyCenter: 'F', chords: ['F', 'C', 'Dm', 'Bb'], motif: [1, 3, 4, 5, 6, 5, 3, 1] },
+      { keyCenter: 'G', chords: ['G', 'D', 'Em', 'C'], motif: [1, 2, 5, 3, 6, 5, 2, 1] },
+      { keyCenter: 'A', chords: ['A', 'E', 'F#m', 'D'], motif: [1, 3, 5, 3, 2, 6, 5, 1] },
+      { keyCenter: 'Bb', chords: ['Bb', 'F', 'Gm', 'Eb'], motif: [5, 3, 1, 2, 3, 5, 6, 5] }
+    ];
+    const musicalPreset = upliftingPresets[musicalSeed % upliftingPresets.length];
     const significantWords = (seedText.match(/[A-Za-z][A-Za-z'-]{2,}/g) || [])
       .map((word) => word.toLowerCase())
       .filter((word) => !new Set([
@@ -4792,11 +5060,7 @@ export default class DeleometerPlugin extends Plugin {
     const title = titleWords.length > 0
       ? titleWords.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
       : 'Carry the Morning';
-    const negativeSignals = (seedText.match(/\b(fear|grief|hurt|loss|anxious|violence|dark|alone|tired|doubt)\b/gi) || []).length;
-    const scaleMode: 'major' | 'minor' = negativeSignals >= 3 ? 'minor' : 'major';
-    const hookLine = scaleMode === 'minor'
-      ? 'Keep moving, even when the night feels close'
-      : 'Carry this light into the next clear day';
+    const hookLine = 'Carry this light into the next clear day';
     const rationaleSource = philosophicalReaccumulation.trim() || content.trim();
     const rationaleSnippet = rationaleSource
       .replace(/\s+/g, ' ')
@@ -4810,12 +5074,12 @@ export default class DeleometerPlugin extends Plugin {
     return {
       title,
       rationale,
-      mood: scaleMode === 'minor' ? 'steady, brave, grounded' : 'luminous, grounded, determined',
-      tempoBpm: scaleMode === 'minor' ? 88 : 96,
-      keyCenter: scaleMode === 'minor' ? 'A' : 'C',
-      scaleMode,
-      chordProgression: scaleMode === 'minor' ? ['Am', 'F', 'C', 'G'] : ['C', 'G', 'Am', 'F'],
-      motifDegrees: [1, 3, 5, 3, 6, 5, 3, 2],
+      mood: ['luminous, grounded, determined', 'open-hearted, bright, moving', 'warm, resilient, expansive'][musicalSeed % 3],
+      tempoBpm: 88 + (musicalSeed % 29),
+      keyCenter: musicalPreset.keyCenter,
+      scaleMode: 'major',
+      chordProgression: musicalPreset.chords,
+      motifDegrees: musicalPreset.motif,
       hookLine,
       lyrics: this.normalizeGeneratedEnglishUsage(
         `Verse 1\nI carried the weight and I carried the weather\nHeld one small breath when the ground felt thin\nI did not vanish inside the pressure\nI kept one door unlatched within\n\n` +
@@ -4834,8 +5098,10 @@ export default class DeleometerPlugin extends Plugin {
     const mood = this.getSongStringValue(song, ['mood', 'feeling', 'tone']);
     const hookLine = this.getSongStringValue(song, ['hook_line', 'hookLine', 'hook', 'chorus_hook']);
     const lyrics = this.getSongStringValue(song, ['lyrics', 'lyric', 'verses', 'song_lyrics']);
-    const keyCandidate = this.getSongStringValue(song, ['key_center', 'keyCenter', 'key']);
-    const keyCenter = /^[A-G]$/.test(keyCandidate) ? keyCandidate : '';
+    const keyCandidate = this.getSongStringValue(song, ['key_center', 'keyCenter', 'key'])
+      .replace(/♭/g, 'b')
+      .replace(/♯/g, '#');
+    const keyCenter = /^[A-G](?:#|b)?$/.test(keyCandidate) ? keyCandidate : '';
     const scaleCandidate = this.getSongStringValue(song, ['scale_mode', 'scaleMode', 'mode']).toLowerCase();
     const scaleMode: 'major' | 'minor' = scaleCandidate === 'minor'
       ? 'minor'
@@ -5725,59 +5991,187 @@ export default class DeleometerPlugin extends Plugin {
     const totalDuration = totalBeats * secondsPerBeat;
     const totalSamples = Math.ceil(totalDuration * sampleRate);
     const buffer = new Float32Array(totalSamples);
-    const rng = this.createSeededRng(this.hashString(`${song.title}|${song.hookLine}|${song.keyCenter}|${song.scaleMode}`));
+    const seedMaterial = [
+      song.title,
+      song.hookLine,
+      song.mood,
+      song.rationale,
+      song.keyCenter,
+      song.scaleMode,
+      song.tempoBpm,
+      song.chordProgression.join(','),
+      song.motifDegrees.join(','),
+      song.lyrics
+    ].join('|');
+    const songSeed = this.hashString(seedMaterial);
+    const rng = this.createSeededRng(songSeed);
     const scaleIntervals = song.scaleMode === 'minor'
       ? [0, 2, 3, 5, 7, 8, 10]
       : [0, 2, 4, 5, 7, 9, 11];
-    const keySemitone = this.getNaturalNoteSemitone(song.keyCenter);
+    const keySemitone = this.getNoteSemitone(song.keyCenter);
     const progression = song.chordProgression.length ? song.chordProgression : ['C', 'G', 'Am', 'F'];
     const motifDegrees = song.motifDegrees.length ? song.motifDegrees : [1, 3, 5, 3, 6, 5, 3, 2];
+    const arrangement = Math.floor(rng() * 4);
+    const timbreCharacter = 0.15 + rng() * 0.8;
+    const leadTimbres: SongTimbre[] = ['bell', 'pluck', 'air', 'reed'];
+    const chordTimbres: SongTimbre[] = ['warm', 'pluck', 'air', 'reed'];
+    const leadTimbre = leadTimbres[arrangement];
+    const chordTimbre = chordTimbres[arrangement];
+    const melodyPatterns = [
+      [0, 0.5, 1.5, 2, 3],
+      [0, 1, 1.5, 2.5, 3, 3.5],
+      [0, 0.75, 1.5, 2.5, 3.25],
+      [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]
+    ];
+    const melodyOnsets = melodyPatterns[arrangement];
+    const melodyBaseMidi = 60 + keySemitone;
 
     for (let bar = 0; bar < bars; bar += 1) {
-      const chordSymbol = progression[bar % progression.length];
+      const tonicSymbol = `${song.keyCenter}${song.scaleMode === 'minor' ? 'm' : ''}`;
+      const chordSymbol = bar === bars - 1 ? tonicSymbol : progression[bar % progression.length];
       const chord = this.parseSimpleChord(chordSymbol);
       const barStartBeat = bar * beatsPerBar;
       const barStartSeconds = barStartBeat * secondsPerBeat;
+      const chordMidi = this.voiceSongChord(this.chordToMidiNotes(chord, 3), (bar + arrangement) % 3);
+      const upperChordMidi = this.voiceSongChord(this.chordToMidiNotes(chord, 4), (bar + arrangement + 1) % 3);
 
-      const chordMidi = this.chordToMidiNotes(chord, 3);
-      for (const midi of chordMidi) {
-        this.addWaveNote(buffer, sampleRate, barStartSeconds, secondsPerBeat * beatsPerBar * 0.96, this.midiToFrequency(midi), 0.055, 'sine', 0.03, 0.18);
-        this.addWaveNote(buffer, sampleRate, barStartSeconds, secondsPerBeat * beatsPerBar * 0.96, this.midiToFrequency(midi + 12), 0.025, 'triangle', 0.02, 0.18);
+      if (arrangement === 0 || arrangement === 2) {
+        for (const midi of chordMidi) {
+          this.addSynthNote(
+            buffer,
+            sampleRate,
+            barStartSeconds,
+            secondsPerBeat * beatsPerBar * 0.96,
+            this.midiToFrequency(midi),
+            bar === bars - 1 ? 0.055 : 0.042,
+            chordTimbre,
+            timbreCharacter
+          );
+        }
+      }
+
+      if (arrangement === 1 || arrangement === 2) {
+        const arpeggioSteps = arrangement === 1 ? 8 : 4;
+        for (let step = 0; step < arpeggioSteps; step += 1) {
+          const onsetBeat = step * (beatsPerBar / arpeggioSteps);
+          const arpeggioMidi = upperChordMidi[(step + bar) % upperChordMidi.length];
+          this.addSynthNote(
+            buffer,
+            sampleRate,
+            barStartSeconds + onsetBeat * secondsPerBeat,
+            secondsPerBeat * (arrangement === 1 ? 0.42 : 0.78),
+            this.midiToFrequency(arpeggioMidi),
+            arrangement === 1 ? 0.055 : 0.045,
+            arrangement === 1 ? 'pluck' : 'bell',
+            timbreCharacter
+          );
+        }
+      } else if (arrangement === 3) {
+        for (let beat = 0; beat < beatsPerBar; beat += 1) {
+          for (const midi of upperChordMidi) {
+            this.addSynthNote(
+              buffer,
+              sampleRate,
+              barStartSeconds + beat * secondsPerBeat,
+              secondsPerBeat * 0.42,
+              this.midiToFrequency(midi),
+              beat === 0 ? 0.046 : 0.031,
+              'reed',
+              timbreCharacter
+            );
+          }
+        }
+      } else {
+        for (const pulseBeat of [0, 2]) {
+          const midi = upperChordMidi[(bar + pulseBeat) % upperChordMidi.length];
+          this.addSynthNote(
+            buffer,
+            sampleRate,
+            barStartSeconds + pulseBeat * secondsPerBeat,
+            secondsPerBeat * 0.7,
+            this.midiToFrequency(midi),
+            0.048,
+            'pluck',
+            timbreCharacter
+          );
+        }
+      }
+
+      const bassOnsets = arrangement === 3 ? [0, 1, 2, 3] : arrangement === 1 ? [0, 2.5] : [0, 2];
+      for (let bassIndex = 0; bassIndex < bassOnsets.length; bassIndex += 1) {
+        const onsetBeat = bassOnsets[bassIndex];
+        const bassMidi = bassIndex % 2 === 1 && arrangement === 1
+          ? chord.rootMidi + 7
+          : chord.rootMidi;
+        this.addSynthNote(
+          buffer,
+          sampleRate,
+          barStartSeconds + onsetBeat * secondsPerBeat,
+          secondsPerBeat * (arrangement === 3 ? 0.62 : 0.9),
+          this.midiToFrequency(bassMidi),
+          arrangement === 3 ? 0.058 : 0.075,
+          'bass',
+          timbreCharacter
+        );
+      }
+
+      for (let noteIndex = 0; noteIndex < melodyOnsets.length; noteIndex += 1) {
+        const onsetBeat = melodyOnsets[noteIndex];
+        const nextOnsetBeat = melodyOnsets[noteIndex + 1] ?? beatsPerBar;
+        const motifIndex = (bar * 3 + noteIndex + arrangement) % motifDegrees.length;
+        const isFinalNote = bar === bars - 1 && noteIndex === melodyOnsets.length - 1;
+        const degree = isFinalNote ? 1 : motifDegrees[motifIndex];
+        const melodicSemitone = scaleIntervals[(degree - 1) % scaleIntervals.length];
+        let melodicMidi = melodyBaseMidi + melodicSemitone + 12;
+        if (melodicMidi > 84) melodicMidi -= 12;
+        if (bar >= 4 && noteIndex === Math.floor(melodyOnsets.length / 2) && melodicMidi < 79) melodicMidi += 12;
+        const pitchDrift = (rng() - 0.5) * (leadTimbre === 'reed' ? 0.18 : 0.08);
+        const durationBeats = Math.max(0.28, (nextOnsetBeat - onsetBeat) * (isFinalNote ? 1.2 : 0.86));
+        const noteStartSeconds = barStartSeconds + onsetBeat * secondsPerBeat;
+        this.addSynthNote(
+          buffer,
+          sampleRate,
+          noteStartSeconds,
+          secondsPerBeat * durationBeats,
+          this.midiToFrequency(melodicMidi + pitchDrift),
+          bar === bars - 1 ? 0.125 : 0.105,
+          leadTimbre,
+          timbreCharacter
+        );
+
+        if ((noteIndex + bar + arrangement) % 4 === 0 && !isFinalNote) {
+          const harmonyDegree = ((degree - 1 + 2) % 7) + 1;
+          let harmonyMidi = melodyBaseMidi + scaleIntervals[harmonyDegree - 1] + 12;
+          if (harmonyMidi > 84) harmonyMidi -= 12;
+          this.addSynthNote(
+            buffer,
+            sampleRate,
+            noteStartSeconds,
+            secondsPerBeat * durationBeats * 0.84,
+            this.midiToFrequency(harmonyMidi),
+            0.034,
+            arrangement === 2 ? 'air' : 'warm',
+            timbreCharacter
+          );
+        }
       }
 
       for (let beat = 0; beat < beatsPerBar; beat += 1) {
-        const beatSeconds = (barStartBeat + beat) * secondsPerBeat;
-        const bassMidi = chord.rootMidi;
-        if (beat === 0 || beat === 2) {
-          this.addWaveNote(buffer, sampleRate, beatSeconds, secondsPerBeat * 0.9, this.midiToFrequency(bassMidi), 0.08, 'triangle', 0.01, 0.12);
+        const beatSeconds = barStartSeconds + beat * secondsPerBeat;
+        if (beat === 0 || (beat === 2 && arrangement !== 2)) {
+          this.addSongKick(buffer, sampleRate, beatSeconds, arrangement === 3 ? 0.075 : 0.052, songSeed + bar * 17 + beat);
         }
-
-        const motifIndex = (bar * beatsPerBar + beat) % motifDegrees.length;
-        const degree = motifDegrees[motifIndex];
-        const melodicSemitone = keySemitone + scaleIntervals[(degree - 1) % scaleIntervals.length];
-        const melodicMidi = 72 + melodicSemitone;
-        const melodicDurationBeats = beat === beatsPerBar - 1 ? 1.2 : 0.9;
-        const pitchBend = (rng() - 0.5) * 0.35;
-        this.addWaveNote(
-          buffer,
-          sampleRate,
-          beatSeconds,
-          secondsPerBeat * melodicDurationBeats,
-          this.midiToFrequency(melodicMidi + pitchBend),
-          0.14,
-          'sine',
-          0.01,
-          0.14
-        );
-
-        if (rng() > 0.58) {
-          const harmonyDegree = ((degree + 2) % 7) + 1;
-          const harmonyMidi = 72 + keySemitone + scaleIntervals[(harmonyDegree - 1) % scaleIntervals.length];
-          this.addWaveNote(buffer, sampleRate, beatSeconds, secondsPerBeat * 0.72, this.midiToFrequency(harmonyMidi), 0.05, 'triangle', 0.01, 0.12);
+        if ((beat === 1 || beat === 3) && arrangement !== 2) {
+          this.addSongNoiseHit(buffer, sampleRate, beatSeconds, 0.08, arrangement === 3 ? 0.035 : 0.021, songSeed + bar * 31 + beat);
+        }
+        if (arrangement === 1 || arrangement === 3) {
+          this.addSongNoiseHit(buffer, sampleRate, beatSeconds + secondsPerBeat * 0.5, 0.035, 0.012, songSeed + bar * 47 + beat);
         }
       }
     }
 
+    this.applySongEcho(buffer, sampleRate, 0.16 + arrangement * 0.045, arrangement === 2 ? 0.13 : 0.075);
+    this.applySongFade(buffer, sampleRate, 0.04, 0.32);
     this.normalizeAudioBuffer(buffer, 0.85);
     return this.encodeMonoWav(buffer, sampleRate);
   }
@@ -5801,46 +6195,78 @@ export default class DeleometerPlugin extends Plugin {
     };
   }
 
-  getNaturalNoteSemitone(note: string): number {
+  getNoteSemitone(note: string): number {
+    const normalized = note.trim().replace(/♭/g, 'b').replace(/♯/g, '#');
+    const match = normalized.match(/^([A-G])([#b]?)$/);
     const semitones: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
-    return semitones[note] ?? 0;
+    if (!match) return 0;
+    const accidental = match[2] === '#' ? 1 : match[2] === 'b' ? -1 : 0;
+    return (semitones[match[1]] + accidental + 12) % 12;
   }
 
-  parseSimpleChord(symbol: string): { root: string; minor: boolean; rootMidi: number } {
-    const match = symbol.trim().match(/^([A-G])(m?)$/);
+  parseSimpleChord(symbol: string): ParsedSongChord {
+    const normalized = symbol.trim().replace(/♭/g, 'b').replace(/♯/g, '#');
+    const match = normalized.match(/^([A-G](?:#|b)?)(m|dim|sus2|sus4)?$/);
     const root = match?.[1] || 'C';
-    const minor = match?.[2] === 'm';
+    const qualityToken = match?.[2] || '';
+    const quality: ParsedSongChord['quality'] = qualityToken === 'm'
+      ? 'minor'
+      : qualityToken === 'dim'
+        ? 'diminished'
+        : qualityToken === 'sus2'
+          ? 'sus2'
+          : qualityToken === 'sus4'
+            ? 'sus4'
+            : 'major';
     return {
       root,
-      minor,
-      rootMidi: 48 + this.getNaturalNoteSemitone(root)
+      quality,
+      minor: quality === 'minor',
+      rootMidi: 48 + this.getNoteSemitone(root)
     };
   }
 
-  chordToMidiNotes(chord: { root: string; minor: boolean; rootMidi: number }, octave: number): number[] {
-    const rootMidi = octave * 12 + 12 + this.getNaturalNoteSemitone(chord.root);
-    const third = rootMidi + (chord.minor ? 3 : 4);
-    const fifth = rootMidi + 7;
+  chordToMidiNotes(chord: ParsedSongChord, octave: number): number[] {
+    const rootMidi = octave * 12 + 12 + this.getNoteSemitone(chord.root);
+    const third = rootMidi + (chord.quality === 'minor' || chord.quality === 'diminished'
+      ? 3
+      : chord.quality === 'sus2'
+        ? 2
+        : chord.quality === 'sus4'
+          ? 5
+          : 4);
+    const fifth = rootMidi + (chord.quality === 'diminished' ? 6 : 7);
     return [rootMidi, third, fifth];
+  }
+
+  voiceSongChord(notes: number[], inversion: number): number[] {
+    const voiced = [...notes];
+    const rotations = Math.max(0, Math.min(voiced.length - 1, inversion));
+    for (let index = 0; index < rotations; index += 1) {
+      const lowest = voiced.shift();
+      if (typeof lowest === 'number') voiced.push(lowest + 12);
+    }
+    return voiced;
   }
 
   midiToFrequency(midi: number): number {
     return 440 * Math.pow(2, (midi - 69) / 12);
   }
 
-  addWaveNote(
+  addSynthNote(
     buffer: Float32Array,
     sampleRate: number,
     startSeconds: number,
     durationSeconds: number,
     frequency: number,
     amplitude: number,
-    waveform: 'sine' | 'triangle',
-    attackSeconds: number,
-    releaseSeconds: number
+    timbre: SongTimbre,
+    character: number
   ) {
     const startSample = Math.max(0, Math.floor(startSeconds * sampleRate));
     const totalSamples = Math.max(1, Math.floor(durationSeconds * sampleRate));
+    const attackSeconds = timbre === 'air' || timbre === 'warm' ? 0.035 : 0.006;
+    const releaseSeconds = timbre === 'air' ? 0.28 : timbre === 'warm' ? 0.2 : 0.1;
     const attackSamples = Math.max(1, Math.floor(attackSeconds * sampleRate));
     const releaseSamples = Math.max(1, Math.floor(releaseSeconds * sampleRate));
 
@@ -5857,10 +6283,95 @@ export default class DeleometerPlugin extends Plugin {
       }
 
       const phase = 2 * Math.PI * frequency * time;
-      const wave = waveform === 'triangle'
-        ? (2 / Math.PI) * Math.asin(Math.sin(phase))
-        : Math.sin(phase);
+      const triangle = (2 / Math.PI) * Math.asin(Math.sin(phase));
+      let wave = Math.sin(phase);
+      if (timbre === 'warm') {
+        wave = Math.sin(phase) + (0.2 + character * 0.12) * Math.sin(phase * 2) + 0.08 * Math.sin(phase * 3);
+      } else if (timbre === 'pluck') {
+        wave = Math.sin(phase) + (0.28 + character * 0.18) * Math.sin(phase * 2) + 0.12 * Math.sin(phase * 3);
+        envelope *= Math.exp(-4.2 * time / Math.max(0.01, durationSeconds));
+      } else if (timbre === 'bell') {
+        wave = Math.sin(phase) + (0.24 + character * 0.16) * Math.sin(phase * 2.01) + 0.16 * Math.sin(phase * 3.98);
+        envelope *= Math.exp(-2.4 * time / Math.max(0.01, durationSeconds));
+      } else if (timbre === 'air') {
+        wave = 0.78 * Math.sin(phase) + 0.16 * Math.sin(phase * 2) + 0.06 * Math.sin(phase * 5);
+      } else if (timbre === 'reed') {
+        wave = 0.66 * triangle + (0.2 + character * 0.08) * Math.sin(phase) + 0.08 * Math.sin(phase * 2);
+      } else if (timbre === 'bass') {
+        wave = 0.82 * Math.sin(phase) + 0.18 * triangle;
+      }
       buffer[sampleIndex] += wave * amplitude * envelope;
+    }
+  }
+
+  addSongKick(
+    buffer: Float32Array,
+    sampleRate: number,
+    startSeconds: number,
+    amplitude: number,
+    seed: number
+  ) {
+    const startSample = Math.max(0, Math.floor(startSeconds * sampleRate));
+    const totalSamples = Math.floor(sampleRate * 0.18);
+    const startFrequency = 82 + (seed % 27);
+    let phase = 0;
+    for (let offset = 0; offset < totalSamples; offset += 1) {
+      const sampleIndex = startSample + offset;
+      if (sampleIndex >= buffer.length) break;
+      const progress = offset / totalSamples;
+      const frequency = 42 + (startFrequency - 42) * Math.pow(1 - progress, 2.4);
+      phase += 2 * Math.PI * frequency / sampleRate;
+      const envelope = Math.pow(1 - progress, 3.2);
+      buffer[sampleIndex] += Math.sin(phase) * amplitude * envelope;
+    }
+  }
+
+  addSongNoiseHit(
+    buffer: Float32Array,
+    sampleRate: number,
+    startSeconds: number,
+    durationSeconds: number,
+    amplitude: number,
+    seed: number
+  ) {
+    const startSample = Math.max(0, Math.floor(startSeconds * sampleRate));
+    const totalSamples = Math.max(1, Math.floor(durationSeconds * sampleRate));
+    let noiseState = seed || 1;
+    let previousNoise = 0;
+    for (let offset = 0; offset < totalSamples; offset += 1) {
+      const sampleIndex = startSample + offset;
+      if (sampleIndex >= buffer.length) break;
+      noiseState = Math.imul(noiseState ^ (noiseState >>> 15), 1 | noiseState);
+      noiseState ^= noiseState + Math.imul(noiseState ^ (noiseState >>> 7), 61 | noiseState);
+      const noise = (((noiseState ^ (noiseState >>> 14)) >>> 0) / 4294967295) * 2 - 1;
+      const brightNoise = noise - previousNoise * 0.72;
+      previousNoise = noise;
+      const envelope = Math.pow(1 - offset / totalSamples, 2.2);
+      buffer[sampleIndex] += brightNoise * amplitude * envelope;
+    }
+  }
+
+  applySongEcho(buffer: Float32Array, sampleRate: number, delaySeconds: number, mix: number) {
+    const delaySamples = Math.max(1, Math.floor(delaySeconds * sampleRate));
+    for (let index = delaySamples; index < buffer.length; index += 1) {
+      buffer[index] += buffer[index - delaySamples] * mix;
+    }
+  }
+
+  applySongFade(
+    buffer: Float32Array,
+    sampleRate: number,
+    fadeInSeconds: number,
+    fadeOutSeconds: number
+  ) {
+    const fadeInSamples = Math.max(1, Math.floor(fadeInSeconds * sampleRate));
+    const fadeOutSamples = Math.max(1, Math.floor(fadeOutSeconds * sampleRate));
+    for (let index = 0; index < Math.min(fadeInSamples, buffer.length); index += 1) {
+      buffer[index] *= index / fadeInSamples;
+    }
+    for (let index = 0; index < Math.min(fadeOutSamples, buffer.length); index += 1) {
+      const sampleIndex = buffer.length - 1 - index;
+      buffer[sampleIndex] *= index / fadeOutSamples;
     }
   }
 
@@ -10276,7 +10787,7 @@ class DeleometerSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Generate inspirational song')
-      .setDesc('After philosophy re-accumulation, generate an original song grounded in the journal and its readings, with lyrics and a locally rendered audio file. Individual perspective cards also offer their own song buttons.')
+      .setDesc('After philosophy re-accumulation, generate an original song grounded in the journal and its readings, with lyrics and a newly synthesized local audio preview whose key, melody, rhythm, arrangement, and timbre belong to that song. Individual perspective cards also offer their own song buttons.')
       .addToggle((toggle) => toggle
         .setValue(this.plugin.settings.generateInspirationalSong)
         .onChange(async (value) => {
