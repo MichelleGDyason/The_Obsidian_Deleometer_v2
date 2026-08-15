@@ -143,7 +143,7 @@ The settings screen also shows an approximate cost estimate based on how many an
 8. Consolidate similar goals or milestones when the AI proposes overlapping next steps.
 9. Optionally sync goals and milestones into Full Calendar.
 
-Analyses can be extensive. With all 261 frames enabled, an appended note may produce around 62,500 words, roughly a 300-minute read. Settings let you enable or disable whole analysis groups, or choose individual analyses inside each group, so you can tune the output to the time and attention you have. Generated analyses follow a strict historical chronology first; group labels come second, as lineage markers for settings and group synthesis.
+Analyses can be extensive. With all 261 frames enabled, an appended note may produce around 62,500 words, roughly a 300-minute read. Settings provide family shortcuts and one chronological catalogue for choosing individual analyses, so you can tune the output to the time and attention you have. Generated analyses follow historical chronology first. Period and intellectual-family labels provide context but never move a perspective out of its temporal milieu.
 
 The analysis reader level can also be changed in settings. The available levels range from Grade 5 primary through professor-level analysis. This changes how much the AI explains specialist terms and how far it tries to guide the reader beyond their current zone of proximal development. The output language can also be changed in settings for generated analyses, syntheses, goals, chat replies, and journaling prompts. Current language options are English, French, and German.
 
@@ -220,7 +220,7 @@ Before publishing widely, you will probably want to:
 
 ## Support
 
-- Buy Me a Coffee: [buymeacoffee.com/theobsidiandeleometer](https://buymeacoffee.com/theobsidiandeleometer)
+- Buy Me a Coffee: [buymeacoffee.com/michellegdyason](https://buymeacoffee.com/michellegdyason)
 - GitHub Sponsors: [github.com/sponsors/MichelleGDyason](https://github.com/sponsors/MichelleGDyason)
 
 ## BRAT Beta Feedback
@@ -251,7 +251,7 @@ This project is licensed under the GNU Affero General Public License v3.0. See [
 
 ## Analysis Catalogue
 
-The Deleometer currently includes 261 individual analysis frames across 11 groups. Generated analyses are ordered by strict chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. The catalogue below is grouped as a settings map: groups and individual analyses can be toggled on or off, and group syntheses are produced after the chronological individual analyses have been explicated.
+The Deleometer currently includes 261 individual analysis frames across 11 intellectual families. Generated analyses are ordered by chronology, beginning with accumulated Australian Indigenous philosophy and then moving through ancient, classical, modern, and contemporary traditions so the analyses can show a progression in thought. A perspective's family is descriptive metadata rather than a shelf: it remains in its given period. Family syntheses are produced separately after the chronological individual analyses have been explicated.
 
 ### Philosophy as First Discipline
 
@@ -434,7 +434,7 @@ The Deleometer currently includes 261 individual analysis frames across 11 group
 ### Gender, Sexuality, and Queer Studies
 
 - Feminist Psychology
-- Irigarayian Feminine
+- Luce Irigaray's Sexuate Difference
 - Women's Studies
 - Feminist Epistemology
 - Feminist Methodologies
