@@ -7,6 +7,8 @@ There's more to life than what psychiatry knows about.
 Active repository:
 [github.com/MichelleGDyason/The_Obsidian_Deleometer_v2](https://github.com/MichelleGDyason/The_Obsidian_Deleometer_v2)
 
+Current release: [1.0.10](https://github.com/MichelleGDyason/The_Obsidian_Deleometer_v2/releases/tag/1.0.10)
+
 ## Safety and Interpretation
 
 The Deleometer is a reflective conversation and journaling tool. It is not a medical device, diagnosis, treatment, or substitute for medication, therapy, crisis support, or professional care already used by the journal author.
